@@ -1,131 +1,151 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, StatusBar, View, Alert} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import AuthContext from './src/contexts/AuthContext';
+import LoginScreen from './src/screens/LoginScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import AdminScreen from './src/screens/AdminScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
+import api from './src/services/api';
+import StartScreen from './src/screens/StartScreen';
+import SearchScreen from './src/screens/SearchScreen';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const Stack = createNativeStackNavigator();
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  // Xử lý auth state và refresh token
+  const handleAuthStateChanged = async (
+    user: FirebaseAuthTypes.User | null,
+  ) => {
+    console.log('[Auth] User state changed:', user ? user.email : 'null');
+    if (
+      user &&
+      (user.emailVerified || user.providerData[0]?.providerId !== 'password')
+    ) {
+      try {
+        const tokenResult = await user.getIdTokenResult(true);
+        console.log('Token fetched:', tokenResult.token);
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+        await api.post('/auth/setCustomClaims', {IdToken: tokenResult.token});
+        //await api.post('/auth/setCustomClaims', { userId: user.uid });
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+        // Chờ một chút trước khi làm mới token (tránh việc claims chưa cập nhật)
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+        // Force refresh token để nhận claims mới nhất
+        const updatedTokenResult = await user.getIdTokenResult(true);
+        console.log('Updated token result:', updatedTokenResult);
+
+        // Xác định roles dựa trên claim 'roles'
+        setRoles(updatedTokenResult.claims.roles || []);
+
+        // Cập nhật header API
+        api.defaults.headers.common[
+          'Authorization'
+        ] = `Bearer ${tokenResult.token}`;
+      } catch (error) {
+        console.error('Token refresh error:', error);
+        console.error('Lỗi khi thiết lập claims hoặc làm mới token:', error);
+      }
+    } else {
+      console.log('[Auth] User is null or email not verified');
+      setRoles([]);
+      delete api.defaults.headers.common['Authorization'];
+    }
+    setUser(user);
+    setLoading(false);
   };
 
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the reccomendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
+  const isEmailVerifiedOrFacebook = () => {
+    if (!user) return false;
+
+    const providerId = user.providerData[0]?.providerId;
+
+    // Nếu là Facebook thì không cần emailVerified
+    if (providerId === 'facebook.com') return true;
+
+    // Các provider khác cần emailVerified
+    return user.emailVerified;
+  };
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(handleAuthStateChanged);
+    return subscriber;
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </View>
+    <AuthContext.Provider value={{user, roles}}>
+      {/* <StatusBar translucent={true}/> */}
+      <NavigationContainer>
+        <Stack.Navigator>
+          {!isEmailVerifiedOrFacebook() ? (
+            <>
+              <Stack.Screen
+                name="Start"
+                component={StartScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="SignUp"
+                component={SignUpScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="Search"
+                component={SearchScreen}
+                options={{headerShown: false}}
+              />
+            </>
+          ) : roles.includes('Admin') ? (
+            <>
+              <Stack.Screen
+                name="Admin"
+                component={AdminScreen}
+                options={{headerShown: false}}
+              />
+              {/* <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ headerShown: false }}
+              /> */}
+            </>
+          ) : (
+            <>
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="Search"
+                component={SearchScreen}
+                options={{headerShown: false}}
+              />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthContext.Provider>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;

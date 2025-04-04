@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SpotifyApp</string>
+    <string name="facebook_app_id">1743727106576443</string>
+    <string name="facebook_client_token">84c0430d62ae1908b01680556f284b46</string>
 </resources>

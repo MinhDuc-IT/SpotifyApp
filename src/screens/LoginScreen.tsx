@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet, TouchableOpacity } from 'react-native';
 import AuthContext from '../contexts/AuthContext';
-import auth from '@react-native-firebase/auth';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
@@ -64,11 +64,35 @@ const LoginScreen = () => {
     const handleLogin = async () => {
         try {
             setIsLoading(true);
-            await auth().signInWithEmailAndPassword(email, password);
+            const userCredential = await auth().signInWithEmailAndPassword(email, password);
+
+            const user = userCredential.user;
+            await user.reload();
+
+            if (!user.emailVerified) {
+
+                await resendVerification(user);
+
+                Alert.alert(
+                    'Email Not Verified',
+                    'Please verify your email. A new verification link has been sent.',
+                    [{ text: 'OK', onPress: () => auth().signOut() }]
+                );
+                return;
+            }
+            Alert.alert('Success', 'Login successful!');
         } catch (error: any) {
             Alert.alert('Login Failed', error.message);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const resendVerification = async (user: FirebaseAuthTypes.User) => {
+        try {
+            await user.sendEmailVerification();
+        } catch (error) {
+            Alert.alert('Error', 'Failed to resend verification email.');
         }
     };
 
@@ -118,7 +142,7 @@ const LoginScreen = () => {
 
                 <TouchableOpacity
                     style={styles.signupLinkContainer}
-                    onPress={() => navigation.navigate('SignUp')} // Navigate to SignUpScreen
+                    onPress={() => navigation.navigate('SignUp')}
                 >
                     <Text style={styles.signupLinkText}>Don't have an account? Sign Up</Text>
                 </TouchableOpacity>

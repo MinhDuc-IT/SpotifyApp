@@ -56,8 +56,12 @@ const SignUpScreen = () => {
 
         try {
             setIsLoading(true);
-            await auth().createUserWithEmailAndPassword(email, password);
-            Alert.alert('Success', 'Account created successfully!');
+            const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+
+            // Send verification email
+            await userCredential.user.sendEmailVerification();
+            await auth().signOut();
+            Alert.alert('Success', 'Account created successfully! Please check your email to verify your account.');
             navigation.goBack();
         } catch (error: any) {
             let message = 'Sign up failed. Please try again.';

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, View } from 'react-native';
+import { ActivityIndicator, StatusBar, View, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
@@ -20,7 +20,8 @@ const App = () => {
 
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (user: FirebaseAuthTypes.User | null) => {
-    if (user) {
+    console.log('[Auth] User state changed:', user ? user.email : 'null');
+    if (user && user.emailVerified) {
       try {
         const tokenResult = await user.getIdTokenResult(true);
         console.log("Token fetched:", tokenResult.token);
@@ -71,7 +72,7 @@ const App = () => {
       {/* <StatusBar translucent={true}/> */}
       <NavigationContainer>
         <Stack.Navigator>
-          {!user ? (
+          {!(user && user.emailVerified)? (
             <>
               <Stack.Screen
                 name='Start'
@@ -89,18 +90,18 @@ const App = () => {
                 options={{ headerShown: false }}
               />
             </>
-          ) : roles.includes('Admin') ? ( // Check role chính xác
+          ) : roles.includes('Admin') ? (
             <>
               <Stack.Screen
                 name="Admin"
                 component={AdminScreen}
                 options={{ headerShown: false }}
               />
-              <Stack.Screen
+              {/* <Stack.Screen
                 name="Home"
                 component={HomeScreen}
                 options={{ headerShown: false }}
-              />
+              /> */}
             </>
           ) : (
             <>

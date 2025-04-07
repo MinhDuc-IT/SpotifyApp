@@ -24,19 +24,34 @@ const AuthButton = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+
+      console.log("Checking Play Services...");
       await GoogleSignin.hasPlayServices();
+      console.log("Play Services are available.");
+
+      console.log("Attempting to sign in...");
       const signInResult = await GoogleSignin.signIn();
+      console.log("Sign in successful, result:", signInResult);
 
-      const tokens = await GoogleSignin.getTokens();
+      console.log("Getting tokens...");
+      const idToken = signInResult.data?.idToken;
 
-      const idToken = tokens.idToken;
+      if (!idToken) {
+        throw new Error('No ID token found');
+      }
+      console.log("ID Token:", idToken);
+
+      console.log("Creating Google Credential...");
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
+      console.log("Google Credential created:", googleCredential);
 
-      Alert.alert('Success', 'Account created successfully!');
-      navigation.goBack(); // Điều hướng quay lại màn hình đăng nhập
+      console.log("Signing in with Google Credential...");
+      await auth().signInWithCredential(googleCredential);
+      console.log("Sign-in with credential successful!");
+
     } catch (error: any) {
-      Alert.alert('Google Sign Up Failed', error.message);
+      console.log("Error occurred:", error);  // Log the error details
+      Alert.alert('Google Sign In Failed', error.message);
     } finally {
       setIsLoading(false);
     }

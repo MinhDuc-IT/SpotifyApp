@@ -9,6 +9,11 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import Config from 'react-native-config';
+import { Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const BUTTON_WIDTH = SCREEN_WIDTH * 0.85; // Chiếm 85% chiều rộng màn hình
+const BUTTON_HEIGHT = 50;
 
 // Khởi tạo Google Sign-In
 GoogleSignin.configure({
@@ -136,14 +141,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#121212',
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 45,
     //paddingVertical: 15,
     paddingHorizontal: 25,
     marginBottom: 10,
-    width: 337,
-    height: 49,
+    width: BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
+    alignSelf: 'center',
   },
   buttonText: {
     fontSize: 16,
@@ -161,8 +167,9 @@ const styles = StyleSheet.create({
     borderRadius: 45,
     paddingHorizontal: 25,
     marginBottom: 10,
-    width: 337,
-    height: 49,
+    width: BUTTON_WIDTH,
+    height: BUTTON_HEIGHT,
+    alignSelf: 'center',
   },
   signupText: {
     fontSize: 16,

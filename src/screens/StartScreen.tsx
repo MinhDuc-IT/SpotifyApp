@@ -1,6 +1,9 @@
 import React from 'react';
 import { SafeAreaView, Image, StyleSheet, Text, View, ScrollView} from 'react-native';
 import AuthButton from '../components/AuthButton';
+import { Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 const StartScreen: React.FC = () => {
     const filePath = require('../assets/images/image-fotor-20250404214212.png');
@@ -23,17 +26,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         //justifyContent: 'center',
-        alignItems: 'center',
+        //alignItems: 'center',
         backgroundColor: '#121212',
     },
     scrollView: {
         alignItems: 'center',
-        paddingBottom: 20,
+        //paddingBottom: 20,
     },
     image: {
-        height: undefined,
+        height: height * 0.4,
         width: '100%',
-        aspectRatio: 1,
+        resizeMode: 'contain',
     },
     textContainer: {
         marginTop: 20,
@@ -42,7 +45,7 @@ const styles = StyleSheet.create({
     text: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 20,
+        fontSize: width > 400 ? 22 : 20,
         textAlign: 'center',
     }
 });

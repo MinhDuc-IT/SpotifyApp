@@ -6,10 +6,11 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import api from '../services/api';
 import { RootStackParamList } from '../types/navigation';
 import { useNavigation } from '@react-navigation/native';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
-const HomeScreen = ( ) => {
+const HomeScreen = () => {
     const { user, roles } = useContext(AuthContext);
     const [data, setData] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -34,6 +35,13 @@ const HomeScreen = ( ) => {
         try {
             const user = auth().currentUser;
             if (user) {
+                const gguser = await GoogleSignin.getCurrentUser();
+
+                if (gguser) {
+                    await GoogleSignin.revokeAccess();
+                    await GoogleSignin.signOut();
+                }
+
                 await auth().signOut();
             } else {
                 Alert.alert('No user logged in', 'There is no user currently logged in.');
@@ -43,7 +51,7 @@ const HomeScreen = ( ) => {
             Alert.alert('Logout Error', 'Failed to sign out');
             console.error(error);
         }
-    };    
+    };
 
     return (
         <View style={styles.container}>

@@ -17,7 +17,8 @@ const BUTTON_HEIGHT = 50;
 
 // Khởi tạo Google Sign-In
 GoogleSignin.configure({
-  webClientId: Config.WEB_CLIENT_ID,
+  webClientId: "156556474154-demnbngvus85rnm257kqtk5jr184es79.apps.googleusercontent.com",
+  offlineAccess: true,
 });
 
 type StartScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Start'>;
@@ -33,6 +34,13 @@ const AuthButton = () => {
       console.log("Checking Play Services...");
       await GoogleSignin.hasPlayServices();
       console.log("Play Services are available.");
+
+      const user = await GoogleSignin.getCurrentUser();
+
+      if (user) {
+        console.log("Đã đăng nhập. Đang đăng xuất...");
+        await GoogleSignin.signOut();
+      }
 
       console.log("Attempting to sign in...");
       const signInResult = await GoogleSignin.signIn();

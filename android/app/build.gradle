@@ -79,7 +79,7 @@ android {
 
     namespace "com.spotifyapp"
     defaultConfig {
-        applicationId "com.spotifyapp"
+        applicationId "com.spotifyminiapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -120,3 +120,4 @@ dependencies {
     }
 }
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")

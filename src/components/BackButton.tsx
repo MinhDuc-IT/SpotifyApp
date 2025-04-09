@@ -15,7 +15,7 @@ const BackButton = ({ onPress }: BackButtonType) => {
             style={{ padding: 20, backgroundColor: '#121212' }}
             activeOpacity={1}
         >
-            <Ionicons name="arrow-back" size={24} color="#777777" />
+            <Ionicons name="chevron-back-outline" size={24} color="#777777" />
         </TouchableOpacity>
     );
 };

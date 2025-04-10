@@ -21,7 +21,7 @@ const App = () => {
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (user: FirebaseAuthTypes.User | null) => {
     console.log('[Auth] User state changed:', user ? user.email : 'null');
-    if (user && user.emailVerified) {
+    if (user && (user.emailVerified || user.providerData[0]?.providerId !== 'password')) {
       try {
         const tokenResult = await user.getIdTokenResult(true);
         console.log("Token fetched:", tokenResult.token);
@@ -47,6 +47,7 @@ const App = () => {
 
       }
     } else {
+      console.log('[Auth] User is null or email not verified');
       setRoles([]);
       delete api.defaults.headers.common['Authorization'];
     }
@@ -54,11 +55,24 @@ const App = () => {
     setLoading(false);
   };
 
+  const isEmailVerifiedOrFacebook = () => {
+    if (!user) return false;
+  
+    const providerId = user.providerData[0]?.providerId;
+  
+    // Nếu là Facebook thì không cần emailVerified
+    if (providerId === 'facebook.com') return true;
+  
+    // Các provider khác cần emailVerified
+    return user.emailVerified;
+  };
+  
+
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(handleAuthStateChanged);
     return subscriber;
   }, []);
-
+  
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -72,7 +86,7 @@ const App = () => {
       {/* <StatusBar translucent={true}/> */}
       <NavigationContainer>
         <Stack.Navigator>
-          {!(user && user.emailVerified)? (
+          {!isEmailVerifiedOrFacebook()? (
             <>
               <Stack.Screen
                 name='Start'

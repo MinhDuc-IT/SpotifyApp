@@ -12,6 +12,8 @@ import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import TestScreen from './src/screens/TestScreen';
+import BottomTabNavigator from './src/components/BottomTabNavigator';
+import LibraryScreen from './src/screens/LibraryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -148,6 +150,7 @@ const App = () => {
                 component={SearchScreen}
                 options={{headerShown: false}}
               />
+            <Stack.Screen name="MainApp" component={BottomTabNavigator} options={{ headerShown: false }}/>
             </>
           )}
         </Stack.Navigator>

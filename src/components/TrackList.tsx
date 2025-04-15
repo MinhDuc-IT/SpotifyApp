@@ -305,48 +305,93 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
       </LinearGradient>
 
       {currentTrack && (
-        <Pressable
-          onPress={() => setModalVisible(!modalVisible)}
-          style={{
-            backgroundColor: '#5072A7',
-            width: '90%',
-            padding: 10,
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            marginBottom: 15,
-            position: 'absolute',
-            borderRadius: 6,
-            left: 20,
-            bottom: 10,
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-          }}>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-            <Image
-              style={{width: 40, height: 40}}
-              source={{uri: currentTrack?.track?.album?.images[0].url}}
+        <View>
+          <Pressable
+            onPress={() => setModalVisible(!modalVisible)}
+            style={{
+              backgroundColor: '#5072A7',
+              width: '90%',
+              padding: 10,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              marginBottom: 15,
+              position: 'absolute',
+              borderRadius: 6,
+              left: 20,
+              bottom: 10,
+            }}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10}}>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+              {/* <Image
+                style={{width: 40, height: 40}}
+                source={{uri: currentTrack?.track?.album?.images[0].url}}
+              /> */}
+              {currentTrack?.track?.album?.images?.[0]?.url ? (
+  <Image
+    style={{ width: 40, height: 40 }}
+    source={{ uri: currentTrack.track.album.images[0].url }}
+  />
+) : (
+  <Ionicons name="person-circle" size={40} color="white" />
+)}
+
+              <Text
+                numberOfLines={1}
+                style={{
+                  fontSize: 13,
+                  width: 220,
+                  color: 'white',
+                  fontWeight: 'bold',
+                }}>
+                {currentTrack?.track?.name} .{' '}
+                {currentTrack?.track?.artists[0].name}
+              </Text>
+            </View>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+              <AntDesign name="heart" size={24} color="#1DB954" />
+              <Pressable>
+                <AntDesign name="pausecircle" size={24} color="white" />
+              </Pressable>
+            </View>
+            </View>
+
+            <View
+            style={{
+              width: '100%',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              marginTop: 7,
+              height: 3,
+              backgroundColor: 'gray',
+              borderRadius: 5,
+            }}>
+            {/* Thanh tiến độ hoàn thành */}
+            <View
+              style={[styles.progressbar, {width: `${(progress ?? 0) * 100}%`}]}
             />
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 13,
-                width: 220,
-                color: 'white',
-                fontWeight: 'bold',
-              }}>
-              {currentTrack?.track?.name} .{' '}
-              {currentTrack?.track?.artists[0].name}
-            </Text>
+            {/* Vòng tròn di chuyển trên thanh tiến độ */}
+            <View
+              style={[
+                {
+                  position: 'absolute',
+                  top: -1,
+                  width: circleSize/2,
+                  height: circleSize/2,
+                  borderRadius: 5,
+                  backgroundColor: 'white',
+                },
+                {
+                  left: `${(progress ?? 0) * 100}%`,
+                  marginLeft: -circleSize / 2,
+                },
+              ]}
+            />
           </View>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-            <AntDesign name="heart" size={24} color="#1DB954" />
-            <Pressable>
-              <AntDesign name="pausecircle" size={24} color="white" />
-            </Pressable>
-          </View>
-        </Pressable>
+          </Pressable>
+          
+          
+          
+        </View>
       )}
 
       <BottomModal
@@ -354,7 +399,14 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
         onClose={() => setModalVisible(false)}>
         <ModalContent
           style={{height: '100%', width: '100%', backgroundColor: '#5072A7'}}>
-          <View style={{height: '100%', width: '100%', marginTop: 40, paddingLeft: 20, paddingRight: 20}}>
+          <View
+            style={{
+              height: '100%',
+              width: '100%',
+              marginTop: 40,
+              paddingLeft: 20,
+              paddingRight: 20,
+            }}>
             <Pressable
               style={{
                 flexDirection: 'row',

@@ -35,6 +35,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import LikedSongsScreen from './screens/LikedSongsScreen';
+import SongInfoScreen from './screens/SongInfoScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -106,11 +107,11 @@ export default function Navigation() {
           component={LikedSongsScreen}
           options={{ headerShown: false }}
         />
-        {/* <Stack.Screen
+        <Stack.Screen
           name="Info"
           component={SongInfoScreen}
           options={{ headerShown: false }}
-        /> */}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

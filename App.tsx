@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, StatusBar, View, Alert} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StatusBar, View, Alert } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import AuthContext from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -12,6 +12,10 @@ import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import TestScreen from './src/screens/TestScreen';
+import BottomTabNavigator from './src/components/BottomTabNavigator';
+import LibraryScreenTest from './src/screens/LibraryScreenTest';
+import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
+import { LibraryProvider } from './src/contexts/LibraryContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,7 +37,7 @@ const App = () => {
         const tokenResult = await user.getIdTokenResult(true);
         console.log('Token fetched:', tokenResult.token);
 
-        await api.post('/auth/setCustomClaims', {IdToken: tokenResult.token});
+        await api.post('/auth/setCustomClaims', { IdToken: tokenResult.token });
         //await api.post('/auth/setCustomClaims', { userId: user.uid });
 
         // Chờ một chút trước khi làm mới token (tránh việc claims chưa cập nhật)
@@ -43,6 +47,7 @@ const App = () => {
         const updatedTokenResult = await user.getIdTokenResult(true);
 
         console.log('Updated token result:', updatedTokenResult);
+
 
         // Xác định roles dựa trên claim 'roles'
         setRoles(updatedTokenResult.claims.roles || []);
@@ -84,74 +89,101 @@ const App = () => {
 
   if (loading) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <AuthContext.Provider value={{user, roles}}>
-      {/* <StatusBar translucent={true}/> */}
-      <NavigationContainer>
-        <Stack.Navigator>
-          {!isEmailVerifiedOrFacebook() ? (
-            <>
-              <Stack.Screen
-                name="Start"
-                component={StartScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="SignUp"
-                component={SignUpScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Search"
-                component={SearchScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Test"
-                component={TestScreen}
-                options={{headerShown: false}}
-              />
-            </>
-          ) : roles.includes('Admin') ? (
-            <>
-              <Stack.Screen
-                name="Admin"
-                component={AdminScreen}
-                options={{headerShown: false}}
-              />
-              {/* <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{ headerShown: false }}
-              /> */}
-            </>
-          ) : (
-            <>
-              <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Search"
-                component={SearchScreen}
-                options={{headerShown: false}}
-              />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+    // <AuthContext.Provider value={{ user, roles }}>
+    //   <LibraryProvider>
+    //     <NavigationContainer>
+    //       <Stack.Navigator>
+    //         {!isEmailVerifiedOrFacebook() ? (
+    //           <>
+    //             <Stack.Screen
+    //               name='Start'
+    //               component={StartScreen}
+    //               options={{ headerShown: false }}
+    //             />
+    //             <Stack.Screen
+    //               name="Login"
+    //               component={LoginScreen}
+    //               options={{ headerShown: false }}
+    //             />
+    //             <Stack.Screen
+    //               name="SignUp"
+    //               component={SignUpScreen}
+    //               options={{ headerShown: false }}
+    //             />
+    //           </>
+    //         ) : roles.includes('Admin') ? (
+    //           <>
+    //             <Stack.Screen
+    //               name="Admin"
+    //               component={AdminScreen}
+    //               options={{ headerShown: false }}
+    //             />
+    //             {/* <Stack.Screen
+    //             name="Home"
+    //             component={HomeScreen}
+    //             options={{ headerShown: false }}
+    //           /> */}
+    //           </>
+    //         ) : (
+    //           <>
+    //             <Stack.Screen
+    //               name="Home"
+    //               component={HomeScreen}
+    //               options={{ headerShown: false }}
+    //             />
+    //             <Stack.Screen
+    //               name="Search"
+    //               component={SearchScreen}
+    //               options={{ headerShown: false }}
+    //             />
+    //             <Stack.Screen name="MainApp" component={BottomTabNavigator} options={{ headerShown: false }} />
+    //           </>
+    //         )}
+    //         <Stack.Screen
+    //           name="LibraryScreenTest"
+    //           component={LibraryScreenTest}
+    //           options={{ headerShown: false }}
+    //         />
+    //         <Stack.Screen name="CreatePlaylist" component={CreatePlaylistScreen} options={{ headerShown: false }} />
+    //       </Stack.Navigator>
+    //     </NavigationContainer>
+    //   </LibraryProvider>
+    // </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, roles }}>
+      <LibraryProvider>
+        <NavigationContainer>
+          <Stack.Navigator>
+            {!isEmailVerifiedOrFacebook() ? (
+              <>
+                <Stack.Screen name="Start" component={StartScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Search" component={SearchScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Test" component={TestScreen} options={{ headerShown: false }} />
+              </>
+            ) : roles.includes('Admin') ? (
+              <>
+                <Stack.Screen name="Admin" component={AdminScreen} options={{ headerShown: false }} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Search" component={SearchScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="MainApp" component={BottomTabNavigator} options={{ headerShown: false }} />
+              </>
+            )}
+            <Stack.Screen name="LibraryScreenTest" component={LibraryScreenTest} options={{ headerShown: false }} />
+            <Stack.Screen name="CreatePlaylist" component={CreatePlaylistScreen} options={{ headerShown: false }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </LibraryProvider>
     </AuthContext.Provider>
   );
 };

@@ -87,11 +87,6 @@ const AuthButton = () => {
     navigation.navigate('SignUp');
   };
 
-  // const handleGoogleSignIn = () => {
-  //   Alert.alert('Thông báo', 'Đăng nhập bằng Google');
-  //   // Thêm logic xác thực Google tại đây
-  //   // Ví dụ: Firebase, Auth0, hoặc API của bạn
-  // };
 
   const handleFacebookSignIn = async () => {
     try {
@@ -141,10 +136,6 @@ const AuthButton = () => {
     }
   };
 
-  // const handleAppleSignIn = () => {
-  //   Alert.alert('Thông báo', 'Đăng nhập bằng Apple');
-  //   // Thêm logic xác thực Apple tại đây
-  // };
 
   const handleLogin = () => {
     //Alert.alert('Thông báo', 'Đăng nhập');
@@ -178,6 +169,14 @@ const AuthButton = () => {
             style={styles.icon}
           />
           <Text style={styles.buttonText}>Continue with Facebook</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search')}>
+          {/* <Icon name="facebook" size={20} color="#fff" style={styles.icon} /> */}
+          <Image
+            // source={require('../assets/icons/icons8-facebook-logo-48.png')}
+            style={styles.icon}
+          />
+          <Text style={styles.buttonText}>Go to search screen</Text>
         </TouchableOpacity>
 
         {/* <TouchableOpacity style={styles.button} onPress={handleAppleSignIn}>

@@ -13,55 +13,6 @@ export type LibraryItem = {
     imageUrl?: string;
 };
 
-// const libraryItems: LibraryItem[] = [
-//     {
-//         id: '1',
-//         name: 'Chill Hits',
-//         category: 'playlist',
-//         author: 'Spotify',
-//         lastUpdate: '2025-04-10',
-//     },
-//     {
-//         id: '2',
-//         name: 'Ed Sheeran',
-//         category: 'artist',
-//     },
-//     {
-//         id: '3',
-//         name: '÷ (Deluxe)',
-//         category: 'album',
-//     },
-//     {
-//         id: '4',
-//         name: 'The Joe Rogan Experience',
-//         category: 'podcast',
-//     },
-//     {
-//         id: '5',
-//         name: 'Perfect',
-//         category: 'song',
-//         author: 'Ed Sheeran',
-//     },
-//     {
-//         id: '6',
-//         name: 'Workout Mix 2025',
-//         category: 'playlist',
-//         author: 'ABC',
-//         lastUpdate: '2025-04-13',
-//     },
-//     {
-//         id: '7',
-//         name: 'Taylor Swift',
-//         category: 'artist',
-//     },
-//     {
-//         id: '8',
-//         name: 'Anti-Hero',
-//         category: 'song',
-//         author: 'Taylor Swift',
-//     },
-// ];
-
 const LibraryScreenTest = () => {
     const { libraryItems } = useLibrary();
 

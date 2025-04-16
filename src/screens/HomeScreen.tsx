@@ -63,10 +63,6 @@ const HomeScreen = () => {
     }
   };
 
-  const handlePress = () => {
-    navigation.navigate('Search');
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.welcomeText}>Welcome, {user?.email}</Text>
@@ -87,11 +83,6 @@ const HomeScreen = () => {
         )}
 
         <Button title="Logout" onPress={handleLogout} color="#ff3b30" />
-        <Button
-          title="Go to Search"
-          onPress={() => handlePress()}
-          color="#4a90e2"
-        />
       </View>
     </View>
   );

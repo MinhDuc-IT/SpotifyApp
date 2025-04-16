@@ -11,6 +11,7 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
 import SearchScreen from './src/screens/SearchScreen';
+import TestScreen from './src/screens/TestScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -67,7 +68,6 @@ const App = () => {
   const isEmailVerifiedOrFacebook = () => {
     if (!user) return false;
 
-
     const providerId = user.providerData[0]?.providerId;
 
     // Nếu là Facebook thì không cần emailVerified
@@ -82,7 +82,6 @@ const App = () => {
     return subscriber;
   }, []);
 
-
   if (loading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -92,7 +91,6 @@ const App = () => {
   }
 
   return (
-
     <AuthContext.Provider value={{user, roles}}>
       {/* <StatusBar translucent={true}/> */}
       <NavigationContainer>
@@ -112,12 +110,16 @@ const App = () => {
               <Stack.Screen
                 name="SignUp"
                 component={SignUpScreen}
-
                 options={{headerShown: false}}
               />
               <Stack.Screen
                 name="Search"
                 component={SearchScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="Test"
+                component={TestScreen}
                 options={{headerShown: false}}
               />
             </>

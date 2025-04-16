@@ -170,7 +170,7 @@ const AuthButton = () => {
           />
           <Text style={styles.buttonText}>Continue with Facebook</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Test')}>
           {/* <Icon name="facebook" size={20} color="#fff" style={styles.icon} /> */}
           <Image
             // source={require('../assets/icons/icons8-facebook-logo-48.png')}

@@ -7,9 +7,9 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 type SearchItem = {
@@ -30,6 +30,7 @@ const initialSearches: SearchItem[] = [
 const SearchScreen = () => {
   const [searchText, setSearchText] = useState('');
   const [searches, setSearches] = useState<SearchItem[]>(initialSearches);
+  const navigation = useNavigation();
 
   const handleDeleteItem = (id: string) => {
     setSearches(prev => prev.filter(item => item.id !== id));
@@ -39,9 +40,17 @@ const SearchScreen = () => {
     setSearches([]);
   };
 
+  const handleCancel = () => {
+    setSearchText('');
+    navigation.goBack();
+  }
+
   const renderItem = ({item}: {item: SearchItem}) => (
     <View style={styles.itemContainer}>
-      <Image source={require('../assets/images/sontung.jpg')} style={styles.avatar} />
+      <Image
+        source={require('../assets/images/sontung.jpg')}
+        style={styles.avatar}
+      />
       <View style={styles.textContainer}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.type}>{item.type}</Text>
@@ -70,14 +79,14 @@ const SearchScreen = () => {
             onChangeText={setSearchText}
             onSubmitEditing={() => {
               if (searchText.trim() !== '') {
-                alert(`Bạn đã tìm kiếm: ${searchText}`);
+                Alert.alert(`Bạn đã tìm kiếm: ${searchText}`);
               } else {
-                alert('Vui lòng nhập nội dung tìm kiếm!');
+                Alert.alert('Vui lòng nhập nội dung tìm kiếm!');
               }
             }}
           />
         </View>
-        <TouchableOpacity onPress={() => setSearchText('')}>
+        <TouchableOpacity onPress={() => handleCancel()}>
           <Text style={styles.cancelText}>Hủy</Text>
         </TouchableOpacity>
       </View>

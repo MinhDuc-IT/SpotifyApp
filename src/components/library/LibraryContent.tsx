@@ -39,7 +39,7 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
   const [pinnedItems, setPinnedItems] = useState<LibraryItem[]>([]);
 
   //const tabBarHeight = useBottomTabBarHeight();
-  const tabBarHeight = 60; // hot fix
+  const tabBarHeight = 170; // hot fix
 
   const categories = ['All', ...Array.from(new Set(libraryItems.map(item => item.category)))];
 
@@ -60,6 +60,12 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
   // }, []);
 
   useEffect(() => {
+    console.log('itemOptionsVisible:', itemOptionsVisible);
+  }, [itemOptionsVisible]);
+  
+  useEffect(() => {
+    console.log(libraryItems);
+    
     // 1. Lọc theo category
     let items = selectedCategory === 'All'
       ? [...libraryItems]

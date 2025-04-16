@@ -2,8 +2,9 @@ import React from "react";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import HeaderLibrary from "../components/library/HeaderLibrary";
 import LibraryContent from "../components/library/LibraryContent";
+import { useLibrary } from '../contexts/LibraryContext';
 
-type LibraryItem = {
+export type LibraryItem = {
     id: string;
     name: string;
     category: 'artist' | 'playlist' | 'album' | 'podcast' | 'song';
@@ -12,56 +13,58 @@ type LibraryItem = {
     imageUrl?: string;
 };
 
-const libraryItems: LibraryItem[] = [
-    {
-        id: '1',
-        name: 'Chill Hits',
-        category: 'playlist',
-        author: 'Spotify',
-        lastUpdate: '2025-04-10',
-    },
-    {
-        id: '2',
-        name: 'Ed Sheeran',
-        category: 'artist',
-    },
-    {
-        id: '3',
-        name: '÷ (Deluxe)',
-        category: 'album',
-    },
-    {
-        id: '4',
-        name: 'The Joe Rogan Experience',
-        category: 'podcast',
-    },
-    {
-        id: '5',
-        name: 'Perfect',
-        category: 'song',
-        author: 'Ed Sheeran',
-    },
-    {
-        id: '6',
-        name: 'Workout Mix 2025',
-        category: 'playlist',
-        author: 'ABC',
-        lastUpdate: '2025-04-13',
-    },
-    {
-        id: '7',
-        name: 'Taylor Swift',
-        category: 'artist',
-    },
-    {
-        id: '8',
-        name: 'Anti-Hero',
-        category: 'song',
-        author: 'Taylor Swift',
-    },
-];
+// const libraryItems: LibraryItem[] = [
+//     {
+//         id: '1',
+//         name: 'Chill Hits',
+//         category: 'playlist',
+//         author: 'Spotify',
+//         lastUpdate: '2025-04-10',
+//     },
+//     {
+//         id: '2',
+//         name: 'Ed Sheeran',
+//         category: 'artist',
+//     },
+//     {
+//         id: '3',
+//         name: '÷ (Deluxe)',
+//         category: 'album',
+//     },
+//     {
+//         id: '4',
+//         name: 'The Joe Rogan Experience',
+//         category: 'podcast',
+//     },
+//     {
+//         id: '5',
+//         name: 'Perfect',
+//         category: 'song',
+//         author: 'Ed Sheeran',
+//     },
+//     {
+//         id: '6',
+//         name: 'Workout Mix 2025',
+//         category: 'playlist',
+//         author: 'ABC',
+//         lastUpdate: '2025-04-13',
+//     },
+//     {
+//         id: '7',
+//         name: 'Taylor Swift',
+//         category: 'artist',
+//     },
+//     {
+//         id: '8',
+//         name: 'Anti-Hero',
+//         category: 'song',
+//         author: 'Taylor Swift',
+//     },
+// ];
 
 const LibraryScreenTest = () => {
+    const { libraryItems } = useLibrary();
+
     return (
         <SafeAreaView>
             <View style={styles.container}>

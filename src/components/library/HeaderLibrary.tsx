@@ -11,12 +11,18 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from "../../types/navigation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
+type NavigationProps = NativeStackNavigationProp<RootStackParamList, 'LibraryScreenTest'>;
+
 const HeaderLibrary = () => {
   const [modalVisible, setModalVisible] = useState(false);
-
+  const navigation = useNavigation<NavigationProps>();
+  
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
@@ -44,7 +50,13 @@ const HeaderLibrary = () => {
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>Tạo mới</Text>
 
-            <TouchableOpacity style={styles.modalItem}>
+            <TouchableOpacity 
+              style={styles.modalItem}
+              onPress={() => {
+                setModalVisible(false);
+                navigation.navigate('CreatePlaylist');
+              }}
+            >
               <Ionicons name="list" size={24} color="#4CAF50" style={styles.modalIcon} />
               <View>
                 <Text style={styles.modalTitle}>Danh sách phát</Text>

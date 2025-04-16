@@ -6,7 +6,8 @@ export type RootStackParamList = {
     SignUp: undefined;
     Start: undefined;
     Search: undefined;
-    Test: undefined;
+    SearchDetail: undefined;
+    Premium: undefined;
     Library: undefined;
     LibraryScreenTest: undefined;
     CreatePlaylist: undefined;

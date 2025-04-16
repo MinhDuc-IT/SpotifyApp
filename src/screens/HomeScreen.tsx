@@ -14,7 +14,6 @@ import api from '../services/api';
 import {RootStackParamList} from '../types/navigation';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
->>>>>>> 12cb1d0 (search screen)
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 

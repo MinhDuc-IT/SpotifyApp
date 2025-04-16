@@ -8,4 +8,5 @@ export type RootStackParamList = {
     Search: undefined;
     Test: undefined;
     Library: undefined;
+    LibraryScreenTest: undefined;
 };

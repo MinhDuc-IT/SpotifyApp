@@ -13,7 +13,7 @@ import StartScreen from './src/screens/StartScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import TestScreen from './src/screens/TestScreen';
 import BottomTabNavigator from './src/components/BottomTabNavigator';
-import LibraryScreen from './src/screens/LibraryScreen';
+import LibraryScreenTest from './src/screens/LibraryScreenTest';
 
 const Stack = createNativeStackNavigator();
 
@@ -153,6 +153,11 @@ const App = () => {
             <Stack.Screen name="MainApp" component={BottomTabNavigator} options={{ headerShown: false }}/>
             </>
           )}
+          <Stack.Screen
+                name="LibraryScreenTest"
+                component={LibraryScreenTest}
+                options={{ headerShown: false }}
+              />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthContext.Provider>

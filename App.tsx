@@ -1,16 +1,23 @@
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, StatusBar, View, Alert} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import AuthContext from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
-import HomeScreen from './src/screens/HomeScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
-import SearchScreen from './src/screens/SearchScreen';
+import BottomTabNavigator from './src/components/BottomTabNavigator';
+import LibraryScreenTest from './src/screens/LibraryScreenTest';
+import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
+import SearchDetailScreen from './src/screens/SearchDetailScreen';
+import {LibraryProvider} from './src/contexts/LibraryContext';
+import LikedSongsScreen from './src/screens/LikedSongsScreen';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {PlayerContext} from './src/PlayerContext';
+import SongInfoScreen from './src/screens/SongInfoScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -67,7 +74,6 @@ const App = () => {
   const isEmailVerifiedOrFacebook = () => {
     if (!user) return false;
 
-
     const providerId = user.providerData[0]?.providerId;
 
     // Nếu là Facebook thì không cần emailVerified
@@ -82,7 +88,6 @@ const App = () => {
     return subscriber;
   }, []);
 
-
   if (loading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -92,65 +97,78 @@ const App = () => {
   }
 
   return (
-
-    <AuthContext.Provider value={{user, roles}}>
-      {/* <StatusBar translucent={true}/> */}
-      <NavigationContainer>
-        <Stack.Navigator>
-          {!isEmailVerifiedOrFacebook() ? (
-            <>
-              <Stack.Screen
-                name="Start"
-                component={StartScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="SignUp"
-                component={SignUpScreen}
-
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Search"
-                component={SearchScreen}
-                options={{headerShown: false}}
-              />
-            </>
-          ) : roles.includes('Admin') ? (
-            <>
-              <Stack.Screen
-                name="Admin"
-                component={AdminScreen}
-                options={{headerShown: false}}
-              />
-              {/* <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{ headerShown: false }}
-              /> */}
-            </>
-          ) : (
-            <>
-              <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Search"
-                component={SearchScreen}
-                options={{headerShown: false}}
-              />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <AuthContext.Provider value={{user, roles}}>
+        <PlayerContext>
+          <LibraryProvider>
+            <NavigationContainer>
+              <Stack.Navigator>
+                {!isEmailVerifiedOrFacebook() ? (
+                  <>
+                    <Stack.Screen
+                      name="Start"
+                      component={StartScreen}
+                      options={{headerShown: false}}
+                    />
+                    <Stack.Screen
+                      name="Login"
+                      component={LoginScreen}
+                      options={{headerShown: false}}
+                    />
+                    <Stack.Screen
+                      name="SignUp"
+                      component={SignUpScreen}
+                      options={{headerShown: false}}
+                    />
+                  </>
+                ) : roles.includes('Admin') ? (
+                  <>
+                    <Stack.Screen
+                      name="Admin"
+                      component={AdminScreen}
+                      options={{headerShown: false}}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Stack.Screen
+                      name="MainApp"
+                      component={BottomTabNavigator}
+                      options={{headerShown: false}}
+                    />
+                  </>
+                )}
+                <Stack.Screen
+                  name="LibraryScreenTest"
+                  component={LibraryScreenTest}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="CreatePlaylist"
+                  component={CreatePlaylistScreen}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="SearchDetail"
+                  component={SearchDetailScreen}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="Liked"
+                  component={LikedSongsScreen}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="Info"
+                  component={SongInfoScreen}
+                  options={{headerShown: false}}
+                />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </LibraryProvider>
+        </PlayerContext>
+      </AuthContext.Provider>
+    </GestureHandlerRootView>
   );
 };
 

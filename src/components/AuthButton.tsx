@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,16 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import {useNavigation} from '@react-navigation/native';
-import {RootStackParamList} from '../types/navigation';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
 import Config from 'react-native-config';
-import {Dimensions} from 'react-native';
-import {LoginManager, AccessToken} from 'react-native-fbsdk-next';
+import { Dimensions } from 'react-native';
+import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BUTTON_WIDTH = SCREEN_WIDTH * 0.85; // Chiếm 85% chiều rộng màn hình
 const BUTTON_HEIGHT = 50;
 
@@ -170,18 +170,12 @@ const AuthButton = () => {
           />
           <Text style={styles.buttonText}>Continue with Facebook</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search')}>
-          {/* <Icon name="facebook" size={20} color="#fff" style={styles.icon} /> */}
-          <Image
-            // source={require('../assets/icons/icons8-facebook-logo-48.png')}
-            style={styles.icon}
-          />
-          <Text style={styles.buttonText}>Go to search screen</Text>
-        </TouchableOpacity>
 
-        {/* <TouchableOpacity style={styles.button} onPress={handleAppleSignIn}>
-          <Icon name="apple" size={20} color="#000" style={styles.icon} />
-          <Text style={styles.buttonText}>Continue with Apple</Text>
+        {/* <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('LibraryScreenTest')}
+        >
+          <Text style={styles.buttonText}>Go to Library</Text>
         </TouchableOpacity> */}
 
         <TouchableOpacity style={styles.loginContainer} onPress={handleLogin}>

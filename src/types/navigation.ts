@@ -6,4 +6,11 @@ export type RootStackParamList = {
     SignUp: undefined;
     Start: undefined;
     Search: undefined;
+    SearchDetail: undefined;
+    Premium: undefined;
+    Library: undefined;
+    LibraryScreenTest: undefined;
+    CreatePlaylist: undefined;
+    Liked: undefined;
+    Info: undefined;
 };

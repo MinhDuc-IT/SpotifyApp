@@ -6,14 +6,56 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Image,
+  Pressable,
+  FlatList,
+  ListRenderItemInfo,
 } from 'react-native';
 import AuthContext from '../contexts/AuthContext';
 import auth from '@react-native-firebase/auth';
 import {StackNavigationProp} from '@react-navigation/stack';
-import api from '../services/api';
+
 import {RootStackParamList} from '../types/navigation';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import LinearGradient from 'react-native-linear-gradient';
+import {ScrollView} from 'react-native-gesture-handler';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import ArtistCard from '../components/ArtistCard';
+import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
+
+import api from '../services/api';
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+interface SpotifyImage {
+  url: string;
+}
+interface SpotifyName {
+  name: string;
+}
+interface SpotifyUser {
+  images?: SpotifyImage[];
+  name?: SpotifyName;
+}
+
+interface RecentlyPlayedItem {
+  track: {
+    name: string;
+    album: {
+      images: SpotifyImage[];
+    };
+  };
+}
+
+interface Artist {
+  id: string;
+  name: string;
+  images: SpotifyImage[];
+}
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -63,59 +105,283 @@ const HomeScreen = () => {
     }
   };
 
-  const handlePress = () => {
-    navigation.navigate('Search');
+  const [userProfile, setUserProfile] = useState<SpotifyUser | null>(null);
+  const [recentlyplayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
+    [],
+  );
+
+  const [topArtists, setTopArtists] = useState<Artist[]>([]);
+
+  const greetingMessage = () => {
+    const currentTime = new Date().getHours();
+    if (currentTime < 12) return 'Good Morning';
+    if (currentTime < 16) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>Welcome, {user?.email}</Text>
+  const message = greetingMessage();
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#4a90e2" />
-      ) : (
-        <Text style={styles.dataText}>{data}</Text>
-      )}
+  const getProfile = async () => {
+    console.log('Fetching profile...'); // Log to check if the function is called
+    try {
+      const response = await api.get('/user/profile');
+      const data = response.data;
+      console.log('Profile data:', data); // Log the profile data for debugging
 
-      <View style={styles.buttonContainer}>
-        {roles.includes('Admin') && (
-          <Button
-            title="Admin Dashboard"
-            onPress={() => navigation.navigate('Admin')}
-            color="#4a90e2"
-          />
-        )}
+      const user: SpotifyUser = {
+        images: data.avatar ? [{url: data.avatar}] : [],
+        name: data.name ? {name: data.email} : undefined,
+      };
 
-        <Button title="Logout" onPress={handleLogout} color="#ff3b30" />
-        <Button
-          title="Go to Search"
-          onPress={() => handlePress()}
-          color="#4a90e2"
-        />
+      setUserProfile(user);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  useEffect(() => {
+    getProfile();
+  }, []);
+
+  const getRecentlyPlayedSongs = async () => {
+    try {
+      const response = await fetch(
+        'http://10.0.2.2:5063/api/user/recently-played',
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const tracks = data.items;
+      console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
+      setRecentlyPlayed(tracks);
+    } catch (err: any) {
+      console.log('Error fetching recently played:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    getRecentlyPlayedSongs();
+  }, []);
+
+  const renderItem = ({item}: ListRenderItemInfo<RecentlyPlayedItem>) => (
+    <Pressable
+      style={{
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginHorizontal: 10,
+        marginVertical: 8,
+        backgroundColor: '#282828',
+        borderRadius: 4,
+        elevation: 3,
+      }}>
+      <Image
+        style={{height: 55, width: 55}}
+        source={{uri: item.track.album.images[0].url}}
+      />
+      <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
+        <Text
+          numberOfLines={2}
+          style={{fontSize: 13, fontWeight: 'bold', color: 'white'}}>
+          {item.track.name}
+        </Text>
       </View>
-    </View>
+    </Pressable>
+  );
+
+  const getTopItems = async () => {
+    try {
+      const response = await fetch("http://10.0.2.2:5063/api/user/top-artists");
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      setTopArtists(data.items);
+      console.log("Top Artists:", data.items); // log để kiểm tra
+    } catch (err: any) {
+      console.log("Error fetching top artists:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    getTopItems();
+  }, []);
+
+  return (
+    <LinearGradient
+      colors={['#040306', '#0a0a10', '#131624']}
+      style={{flex: 1}}>
+      <ScrollView style={{marginTop: 50}}>
+        <View>
+          <View style={styles.header}>
+            <View style={styles.avatarWrapper}>
+              {userProfile?.images?.length ? (
+                <Image
+                  style={styles.avatar}
+                  source={{uri: userProfile.images[0].url}}
+                />
+              ) : (
+                <Ionicons name="person-circle" size={40} color="white" />
+              )}
+            </View>
+            <Text style={styles.greeting}>{message || 'No message'}</Text>
+            <Text style={{color: 'white', fontSize: 20}}>{userProfile?.name?.name}</Text>
+            <MaterialCommunityIcons
+              name="lightning-bolt-outline"
+              size={24}
+              color="white"
+            />
+          </View>
+
+          <View style={styles.filterRow}>
+            <Pressable style={styles.filterButton}>
+              <Text style={styles.filterText}>Music</Text>
+            </Pressable>
+            <Pressable style={styles.filterButton}>
+              <Text style={styles.filterText}>Podcasts & Shows</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.cardRow}>
+            <Pressable
+              onPress={() => navigation.navigate('Liked')}
+              style={styles.card}>
+              <LinearGradient colors={['#33006F', '#FFFFFF']}>
+                <Pressable style={styles.cardIcon}>
+                  <AntDesign name="heart" size={24} color="white" />
+                </Pressable>
+              </LinearGradient>
+              <Text style={styles.cardText}>Liked Songs</Text>
+            </Pressable>
+
+            <View style={styles.card}>
+              <Image
+                style={{width: 55, height: 55}}
+                source={{uri: 'https://i.pravatar.cc/150?img=12'}}
+              />
+              <View>
+                <Text style={styles.cardText}>Hiphop Tamhiza</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <FlatList
+          data={recentlyplayed}
+          renderItem={renderItem}
+          keyExtractor={(_, index) => index.toString()}
+          numColumns={2}
+          columnWrapperStyle={{justifyContent: 'space-between'}}
+        />
+
+        <Text style={styles.sectionTitle}>Your Top Artists</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {topArtists.map((item, index) => (
+            <ArtistCard item={item} key={index} />
+          ))}
+        </ScrollView>
+
+        <Text style={styles.sectionTitle}>Recently Played</Text>
+        <FlatList
+          data={recentlyplayed}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={({ item, index }) => (
+            <RecentlyPlayedCard item={item} key={index} />
+          )}
+        />
+        <Button title="Logout" onPress={handleLogout} color="#ff3b30" />
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    justifyContent: 'space-between',
   },
-  welcomeText: {
+  avatarWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    resizeMode: 'cover',
+  },
+  greeting: {
+    marginLeft: 10,
     fontSize: 20,
-    textAlign: 'center',
-    marginBottom: 30,
+    fontWeight: 'bold',
+    color: 'white',
   },
-  dataText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
+  filterRow: {
+    marginHorizontal: 12,
+    marginVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
-  buttonContainer: {
-    gap: 15,
+  filterButton: {
+    backgroundColor: '#282828',
+    padding: 10,
+    borderRadius: 30,
+  },
+  filterText: {
+    fontSize: 15,
+    color: 'white',
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  card: {
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    marginHorizontal: 10,
+    marginVertical: 8,
+    backgroundColor: '#202020',
+    borderRadius: 4,
+    elevation: 3,
+  },
+  cardIcon: {
+    width: 55,
+    height: 55,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardText: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  sectionTitle: {
+    color: 'white',
+    fontSize: 19,
+    fontWeight: 'bold',
+    marginHorizontal: 10,
+    marginTop: 10,
   },
 });
+
 
 export default HomeScreen;

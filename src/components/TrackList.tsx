@@ -75,7 +75,7 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
     //     onPlaybackStatusUpdate,
     //   );
     //   setCurrentSound(sound);
-    //   setCurrentTrack(nextTrack);
+    setCurrentTrack(nextTrack);
     //   await sound.playAsync();
     // } catch (err) {
     //   console.error('Play error:', err);
@@ -145,11 +145,12 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
     //   setCurrentSound(null);
     // }
     // value.current -= 1;
-    // if (value.current < savedTracks.length) {
-    //   const nextTrack = savedTracks[value.current];
-    //   setCurrentTrack(nextTrack);
-    //   await play(nextTrack);
-    // }
+    if (value.current > 0) {
+      value.current--;
+      const prevTrack = savedTracks[value.current];
+      setCurrentTrack(prevTrack);
+      await play(prevTrack);
+    }
   };
 
   const handlePlayPause = async () => {
@@ -320,77 +321,85 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
               left: 20,
               bottom: 10,
             }}>
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10}}>
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-              {/* <Image
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 10,
+              }}>
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                {/* <Image
                 style={{width: 40, height: 40}}
                 source={{uri: currentTrack?.track?.album?.images[0].url}}
               /> */}
-              {currentTrack?.track?.album?.images?.[0]?.url ? (
-  <Image
-    style={{ width: 40, height: 40 }}
-    source={{ uri: currentTrack.track.album.images[0].url }}
-  />
-) : (
-  <Ionicons name="person-circle" size={40} color="white" />
-)}
+                {currentTrack?.track?.album?.images?.[0]?.url ? (
+                  <Image
+                    style={{width: 40, height: 40}}
+                    source={{uri: currentTrack.track.album.images[0].url}}
+                  />
+                ) : (
+                  <Ionicons name="person-circle" size={40} color="white" />
+                )}
 
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 13,
-                  width: 220,
-                  color: 'white',
-                  fontWeight: 'bold',
-                }}>
-                {currentTrack?.track?.name} .{' '}
-                {currentTrack?.track?.artists[0].name}
-              </Text>
-            </View>
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-              <AntDesign name="heart" size={24} color="#1DB954" />
-              <Pressable>
-                <AntDesign name="pausecircle" size={24} color="white" />
-              </Pressable>
-            </View>
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    fontSize: 13,
+                    width: 220,
+                    color: 'white',
+                    fontWeight: 'bold',
+                  }}>
+                  {currentTrack?.track?.name} .{' '}
+                  {currentTrack?.track?.artists[0].name}
+                </Text>
+              </View>
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <AntDesign name="heart" size={24} color="#1DB954" />
+                <Pressable>
+                  <AntDesign name="pausecircle" size={24} color="white" />
+                </Pressable>
+              </View>
             </View>
 
             <View
-            style={{
-              width: '100%',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              marginTop: 7,
-              height: 3,
-              backgroundColor: 'gray',
-              borderRadius: 5,
-            }}>
-            {/* Thanh tiến độ hoàn thành */}
-            <View
-              style={[styles.progressbar, {width: `${(progress ?? 0) * 100}%`}]}
-            />
-            {/* Vòng tròn di chuyển trên thanh tiến độ */}
-            <View
-              style={[
-                {
-                  position: 'absolute',
-                  top: -1,
-                  width: circleSize/2,
-                  height: circleSize/2,
-                  borderRadius: 5,
-                  backgroundColor: 'white',
-                },
-                {
-                  left: `${(progress ?? 0) * 100}%`,
-                  marginLeft: -circleSize / 2,
-                },
-              ]}
-            />
-          </View>
+              style={{
+                width: '100%',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                marginTop: 7,
+                height: 3,
+                backgroundColor: 'gray',
+                borderRadius: 5,
+              }}>
+              {/* Thanh tiến độ hoàn thành */}
+              <View
+                style={[
+                  styles.progressbar,
+                  {width: `${(progress ?? 0) * 100}%`},
+                ]}
+              />
+              {/* Vòng tròn di chuyển trên thanh tiến độ */}
+              <View
+                style={[
+                  {
+                    position: 'absolute',
+                    top: -1,
+                    width: circleSize / 2,
+                    height: circleSize / 2,
+                    borderRadius: 5,
+                    backgroundColor: 'white',
+                  },
+                  {
+                    left: `${(progress ?? 0) * 100}%`,
+                    marginLeft: -circleSize / 2,
+                  },
+                ]}
+              />
+            </View>
           </Pressable>
-          
-          
-          
         </View>
       )}
 

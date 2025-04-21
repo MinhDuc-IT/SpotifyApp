@@ -14,7 +14,7 @@ import {
 import AuthContext from '../contexts/AuthContext';
 import auth from '@react-native-firebase/auth';
 import {StackNavigationProp} from '@react-navigation/stack';
-import api from '../services/api';
+
 import {RootStackParamList} from '../types/navigation';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
@@ -30,13 +30,18 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import ArtistCard from '../components/ArtistCard';
 import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
 
+import api from '../services/api';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 interface SpotifyImage {
   url: string;
 }
+interface SpotifyName {
+  name: string;
+}
 interface SpotifyUser {
   images?: SpotifyImage[];
+  name?: SpotifyName;
 }
 
 interface RecentlyPlayedItem {
@@ -119,13 +124,15 @@ const HomeScreen = () => {
   const message = greetingMessage();
 
   const getProfile = async () => {
+    console.log('Fetching profile...'); // Log to check if the function is called
     try {
-      const response = await fetch('http://10.0.2.2:5063/api/user/profile');
-      const data = await response.json();
+      const response = await api.get('/user/profile');
+      const data = response.data;
       console.log('Profile data:', data); // Log the profile data for debugging
 
       const user: SpotifyUser = {
         images: data.avatar ? [{url: data.avatar}] : [],
+        name: data.name ? {name: data.email} : undefined,
       };
 
       setUserProfile(user);
@@ -225,6 +232,7 @@ const HomeScreen = () => {
               )}
             </View>
             <Text style={styles.greeting}>{message || 'No message'}</Text>
+            <Text style={{color: 'white', fontSize: 20}}>{userProfile?.name?.name}</Text>
             <MaterialCommunityIcons
               name="lightning-bolt-outline"
               size={24}

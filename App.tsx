@@ -17,6 +17,7 @@ import {LibraryProvider} from './src/contexts/LibraryContext';
 import LikedSongsScreen from './src/screens/LikedSongsScreen';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PlayerContext} from './src/PlayerContext';
+import SongInfoScreen from './src/screens/SongInfoScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -155,6 +156,11 @@ const App = () => {
                 <Stack.Screen
                   name="Liked"
                   component={LikedSongsScreen}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="Info"
+                  component={SongInfoScreen}
                   options={{headerShown: false}}
                 />
               </Stack.Navigator>

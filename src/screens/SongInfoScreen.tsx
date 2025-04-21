@@ -30,7 +30,7 @@ const mockTrack = {
     uri: "spotify:album:mockalbum123",
     images: [
       {
-        url: "https://via.placeholder.com/200",
+        url: "https://cdn.pixabay.com/photo/2012/04/01/12/48/record-23281_1280.png",
       },
     ],
   },

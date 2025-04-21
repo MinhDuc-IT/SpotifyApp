@@ -11,4 +11,6 @@ export type RootStackParamList = {
     Library: undefined;
     LibraryScreenTest: undefined;
     CreatePlaylist: undefined;
+    Liked: undefined;
+    Info: undefined;
 };

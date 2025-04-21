@@ -14,6 +14,10 @@ import LibraryScreenTest from './src/screens/LibraryScreenTest';
 import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
 import SearchDetailScreen from './src/screens/SearchDetailScreen';
 import {LibraryProvider} from './src/contexts/LibraryContext';
+import LikedSongsScreen from './src/screens/LikedSongsScreen';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {PlayerContext} from './src/PlayerContext';
+import SongInfoScreen from './src/screens/SongInfoScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -93,64 +97,78 @@ const App = () => {
   }
 
   return (
-    <AuthContext.Provider value={{user, roles}}>
-      <LibraryProvider>
-        <NavigationContainer>
-          <Stack.Navigator>
-            {!isEmailVerifiedOrFacebook() ? (
-              <>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <AuthContext.Provider value={{user, roles}}>
+        <PlayerContext>
+          <LibraryProvider>
+            <NavigationContainer>
+              <Stack.Navigator>
+                {!isEmailVerifiedOrFacebook() ? (
+                  <>
+                    <Stack.Screen
+                      name="Start"
+                      component={StartScreen}
+                      options={{headerShown: false}}
+                    />
+                    <Stack.Screen
+                      name="Login"
+                      component={LoginScreen}
+                      options={{headerShown: false}}
+                    />
+                    <Stack.Screen
+                      name="SignUp"
+                      component={SignUpScreen}
+                      options={{headerShown: false}}
+                    />
+                  </>
+                ) : roles.includes('Admin') ? (
+                  <>
+                    <Stack.Screen
+                      name="Admin"
+                      component={AdminScreen}
+                      options={{headerShown: false}}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Stack.Screen
+                      name="MainApp"
+                      component={BottomTabNavigator}
+                      options={{headerShown: false}}
+                    />
+                  </>
+                )}
                 <Stack.Screen
-                  name="Start"
-                  component={StartScreen}
+                  name="LibraryScreenTest"
+                  component={LibraryScreenTest}
                   options={{headerShown: false}}
                 />
                 <Stack.Screen
-                  name="Login"
-                  component={LoginScreen}
+                  name="CreatePlaylist"
+                  component={CreatePlaylistScreen}
                   options={{headerShown: false}}
                 />
                 <Stack.Screen
-                  name="SignUp"
-                  component={SignUpScreen}
+                  name="SearchDetail"
+                  component={SearchDetailScreen}
                   options={{headerShown: false}}
                 />
-              </>
-            ) : roles.includes('Admin') ? (
-              <>
                 <Stack.Screen
-                  name="Admin"
-                  component={AdminScreen}
+                  name="Liked"
+                  component={LikedSongsScreen}
                   options={{headerShown: false}}
                 />
-              </>
-            ) : (
-              <>
                 <Stack.Screen
-                  name="MainApp"
-                  component={BottomTabNavigator}
+                  name="Info"
+                  component={SongInfoScreen}
                   options={{headerShown: false}}
                 />
-              </>
-            )}
-            <Stack.Screen
-              name="LibraryScreenTest"
-              component={LibraryScreenTest}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="CreatePlaylist"
-              component={CreatePlaylistScreen}
-              options={{headerShown: false}}
-            />
-            <Stack.Screen
-              name="SearchDetail"
-              component={SearchDetailScreen}
-              options={{headerShown: false}}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </LibraryProvider>
-    </AuthContext.Provider>
+              </Stack.Navigator>
+            </NavigationContainer>
+          </LibraryProvider>
+        </PlayerContext>
+      </AuthContext.Provider>
+    </GestureHandlerRootView>
   );
 };
 

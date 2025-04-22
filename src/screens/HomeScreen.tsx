@@ -130,8 +130,12 @@ const HomeScreen = () => {
 
       const user: SpotifyUser = {
         images: data.avatar ? [{url: data.avatar}] : [],
-        name: data.name ? {name: data.email} : undefined,
+        name: data.email ? {name: data.email} : undefined,
       };
+      console.log('User object:', user); // Log the user object for debugging
+      if (userProfile?.images?.[0]?.url?.includes('default-avatar.png')) {
+        user.images = undefined;
+      }
 
       setUserProfile(user);
     } catch (error) {
@@ -194,17 +198,17 @@ const HomeScreen = () => {
 
   const getTopItems = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:5063/api/user/top-artists");
-  
+      const response = await fetch('http://10.0.2.2:5063/api/user/top-artists');
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       setTopArtists(data.items);
-      console.log("Top Artists:", data.items); // log để kiểm tra
+      console.log('Top Artists:', data.items); // log để kiểm tra
     } catch (err: any) {
-      console.log("Error fetching top artists:", err.message);
+      console.log('Error fetching top artists:', err.message);
     }
   };
 
@@ -220,7 +224,7 @@ const HomeScreen = () => {
         <View>
           <View style={styles.header}>
             <View style={styles.avatarWrapper}>
-              {userProfile?.images?.length ? (
+              {userProfile?.images?.length? (
                 <Image
                   style={styles.avatar}
                   source={{uri: userProfile.images[0].url}}
@@ -230,7 +234,9 @@ const HomeScreen = () => {
               )}
             </View>
             <Text style={styles.greeting}>{message || 'No message'}</Text>
-            <Text style={{color: 'white', fontSize: 20}}>{userProfile?.name?.name}</Text>
+            {/* <Text style={{color: 'white', fontSize: 20}}>
+              {userProfile?.name?.name}
+            </Text> */}
             <MaterialCommunityIcons
               name="lightning-bolt-outline"
               size={24}
@@ -292,7 +298,7 @@ const HomeScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <RecentlyPlayedCard item={item} key={index} />
           )}
         />
@@ -301,7 +307,6 @@ const HomeScreen = () => {
     </LinearGradient>
   );
 };
-
 
 const styles = StyleSheet.create({
   header: {
@@ -382,6 +387,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
 
 export default HomeScreen;

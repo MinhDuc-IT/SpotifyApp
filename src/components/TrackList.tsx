@@ -26,6 +26,10 @@ import {ModalContent} from './ModalContent';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
+// const defaultFetchTracks = async () => {
+//   return []; // Trả về mảng rỗng khi không có dữ liệu
+// };
+
 type SavedTrack = {
   track: {
     name: string;
@@ -166,7 +170,8 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
 
   return (
     <>
-      <LinearGradient colors={['#614385', '#516395']} style={{flex: 1}}>
+      {/* <LinearGradient colors={['#614385', '#516395']} style={{flex: 1}}> */}
+      <LinearGradient colors={['#040306', '#131624']} style={{flex: 1}}>
         <ScrollView style={{marginTop: 50}}>
           <Pressable
             onPress={() => navigation.goBack()}
@@ -187,7 +192,7 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 10,
-                backgroundColor: '#42275a',
+                backgroundColor: '#444444',
                 padding: 9,
                 flex: 1,
                 borderRadius: 3,
@@ -198,7 +203,7 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
                 <TextInput
                   value={input}
                   onChangeText={text => handleInputChange(text)}
-                  placeholder="Find in liked songs"
+                  placeholder="Find in song list"
                   placeholderTextColor={'lightgrey'}
                   style={{
                     fontSize: 12,
@@ -213,7 +218,7 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
             <Pressable
               style={{
                 marginHorizontal: 10,
-                backgroundColor: '#42275a',
+                backgroundColor: '#444444',
                 padding: 10,
                 borderRadius: 3,
                 height: 38,
@@ -221,6 +226,33 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
               <Text style={{color: 'white'}}>Sort</Text>
             </Pressable>
           </Pressable>
+
+          {/* Song Image */}
+          {currentTrack?.track?.album?.images?.[0]?.url ? (
+            <View style={{alignItems: 'center', marginVertical: 15}}>
+            <Image
+              source={{uri: currentTrack.track.album.images[0].url}}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 10,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+          ) : (
+            <View style={{alignItems: 'center', marginVertical: 15}}>
+            <Image
+              source={{uri: savedTracks[0]?.track?.album?.images?.[0]?.url}}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 10,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+          )}
 
           <View style={{marginHorizontal: 10}}>
             <Text style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
@@ -310,7 +342,8 @@ const TrackListScreen: React.FC<Props> = ({title, fetchTracks, totalCount}) => {
           <Pressable
             onPress={() => setModalVisible(!modalVisible)}
             style={{
-              backgroundColor: '#5072A7',
+              // backgroundColor: '#5072A7',
+              backgroundColor: '#040306',
               width: '90%',
               padding: 10,
               marginLeft: 'auto',

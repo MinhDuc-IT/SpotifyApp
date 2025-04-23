@@ -5,24 +5,26 @@ import Icon from 'react-native-vector-icons/Ionicons';
 // Định nghĩa kiểu dữ liệu cho props
 type ArtistCardProps = {
   item: {
-    images: {url: string}[];
-    name: string;
+    artistId: number;
+    artistName: string;
+    totalPlays: number;
+    thumbnailUrl: string;
   };
 };
 
 const ArtistCard: React.FC<ArtistCardProps> = ({item}) => {
-  const hasImage = item.images && item.images.length > 0 && item.images[0].url;
+  const hasImage = item.thumbnailUrl && item.thumbnailUrl.length > 0 && item.thumbnailUrl;
 
   return (
     <View style={styles.card}>
       {hasImage ? (
-        <Image style={styles.image} source={{uri: item.images[0].url}} />
+        <Image style={styles.image} source={{uri: item.thumbnailUrl}} />
       ) : (
         <View style={[styles.image, styles.iconContainer]}>
           <Icon name="person" size={50} color="#aaa" />
         </View>
       )}
-      <Text style={styles.name}>{item?.name}</Text>
+      <Text style={styles.name}>{item?.artistName}</Text>
     </View>
   );
 };

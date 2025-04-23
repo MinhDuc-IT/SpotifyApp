@@ -6,19 +6,27 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 interface RecentlyPlayedCardProps {
   item: {
-    track: {
-      name: string;
-      album: {
-        images: { url: string }[];
-      };
-    };
+    // track: {
+    //   name: string;
+    //   album: {
+    //     images: { url: string }[];
+    //   };
+    // };
+    songId: number;
+  title: string;
+  artistName: string;
+  album: string;
+  albumId: number;
+  thumbnailUrl: string;
+  duration: string;
+  audioUrl: string;
   };
 }
 
 const RecentlyPlayedCard: React.FC<RecentlyPlayedCardProps> = ({ item }) => {
   const navigation = useNavigation<NativeStackNavigationProp<{ Info: { item: RecentlyPlayedCardProps["item"] } }>>();
 
-  const hasImage = item.track.album.images && item.track.album.images.length > 0 && item.track.album.images[0].url;
+  const hasImage = item.thumbnailUrl && item.thumbnailUrl.length > 0 && item.thumbnailUrl;
 
   return (
     <Pressable
@@ -28,7 +36,7 @@ const RecentlyPlayedCard: React.FC<RecentlyPlayedCardProps> = ({ item }) => {
       {hasImage ? (
         <Image
           style={styles.image}
-          source={{ uri: item.track.album.images[0].url }}
+          source={{ uri: item.thumbnailUrl }}
         />
       ) : (
         <View style={[styles.image, styles.iconContainer]}>
@@ -36,7 +44,7 @@ const RecentlyPlayedCard: React.FC<RecentlyPlayedCardProps> = ({ item }) => {
         </View>
       )}
       <Text numberOfLines={1} style={styles.name}>
-        {item?.track?.name}
+        {item?.title}
       </Text>
     </Pressable>
   );

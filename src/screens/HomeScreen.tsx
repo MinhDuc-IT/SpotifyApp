@@ -42,19 +42,31 @@ interface SpotifyUser {
   name?: SpotifyName;
 }
 
+// interface RecentlyPlayedItem {
+//   track: {
+//     name: string;
+//     album: {
+//       images: SpotifyImage[];
+//     };
+//   };
+// }
+
 interface RecentlyPlayedItem {
-  track: {
-    name: string;
-    album: {
-      images: SpotifyImage[];
-    };
-  };
+  songId: number;
+  title: string;
+  artistName: string;
+  album: string;
+  albumId: number;
+  thumbnailUrl: string;
+  duration: string;
+  audioUrl: string;
 }
 
 interface Artist {
-  id: string;
-  name: string;
-  images: SpotifyImage[];
+  artistId: number;
+  artistName: string;
+  totalPlays: number;
+  thumbnailUrl: string;
 }
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -149,16 +161,15 @@ const HomeScreen = () => {
 
   const getRecentlyPlayedSongs = async () => {
     try {
-      const response = await fetch(
-        'http://10.0.2.2:5063/api/user/recently-played',
-      );
+      // const response = await fetch(
+      //   'http://10.0.2.2:5063/api/user/recently-played',
+      // );
+      const response = await api.get('/history/listening-history');
+      const data = response.data;
+      console.log('Recent data:', data); // Log the profile data for debugging
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const tracks = data.items;
+      //const data = await response.json();
+      const tracks = data;
       console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
       setRecentlyPlayed(tracks);
     } catch (err: any) {
@@ -184,13 +195,15 @@ const HomeScreen = () => {
       }}>
       <Image
         style={{height: 55, width: 55}}
-        source={{uri: item.track.album.images[0].url}}
+        //source={{uri: item.track.album.images[0].url}}
+        source={{uri: item.thumbnailUrl}}
       />
       <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
         <Text
           numberOfLines={2}
           style={{fontSize: 13, fontWeight: 'bold', color: 'white'}}>
-          {item.track.name}
+          {/* {item.track.name} */}
+          {item.artistName}
         </Text>
       </View>
     </Pressable>
@@ -198,15 +211,16 @@ const HomeScreen = () => {
 
   const getTopItems = async () => {
     try {
-      const response = await fetch('http://10.0.2.2:5063/api/user/top-artists');
+      // const response = await fetch('http://10.0.2.2:5063/api/user/top-artists');
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! Status: ${response.status}`);
+      // }
+      const response = await api.get('/history/top-artists');
+      const data = response.data;
+      console.log('Top artist:', data); // Log the profile data for debugging
 
-      const data = await response.json();
-      setTopArtists(data.items);
-      console.log('Top Artists:', data.items); // log để kiểm tra
+      setTopArtists(data);
     } catch (err: any) {
       console.log('Error fetching top artists:', err.message);
     }
@@ -224,7 +238,7 @@ const HomeScreen = () => {
         <View>
           <View style={styles.header}>
             <View style={styles.avatarWrapper}>
-              {userProfile?.images?.length? (
+              {userProfile?.images?.length ? (
                 <Image
                   style={styles.avatar}
                   source={{uri: userProfile.images[0].url}}

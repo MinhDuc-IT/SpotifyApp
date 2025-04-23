@@ -36,6 +36,7 @@ const App = () => {
       (user.emailVerified || user.providerData[0]?.providerId !== 'password')
     ) {
       try {
+        setLoading(true);
         const tokenResult = await user.getIdTokenResult(true);
         console.log('Token fetched:', tokenResult.token);
 

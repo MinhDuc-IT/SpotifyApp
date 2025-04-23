@@ -1,14 +1,16 @@
-import React, { useContext } from "react";
+import React from "react";
 import { StyleSheet, Text, View, Pressable, Image } from "react-native";
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { Player, usePlayer } from "../PlayerContext";
+import { usePlayer } from "../contexts/PlayerContext";
 
 // Định nghĩa kiểu dữ liệu cho props
 type SongItemProps = {
   item: {
     track: {
+      id: number;
       name: string;
+      preview_url: string | null;
       album: { images: { url: string }[] };
       artists: { name: string }[];
     };
@@ -18,10 +20,13 @@ type SongItemProps = {
 };
 
 const SongItem: React.FC<SongItemProps> = ({ item, onPress, isPlaying }) => {
-  const { currentTrack, setCurrentTrack } = usePlayer();
+  const { state, dispatch } = usePlayer();
 
   const handlePress = () => {
-    setCurrentTrack(item);
+    const track = item.track;
+    if (track && track.id && track.preview_url) {
+      dispatch({ type: 'SET_CURRENT_TRACK', track });
+    }
     onPress(item);
   };
 

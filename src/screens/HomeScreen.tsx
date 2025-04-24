@@ -42,19 +42,37 @@ interface SpotifyUser {
   name?: SpotifyName;
 }
 
+// interface RecentlyPlayedItem {
+//   track: {
+//     name: string;
+//     album: {
+//       images: SpotifyImage[];
+//     };
+//   };
+// }
+
+// interface Artist {
+//   id: string;
+//   name: string;
+//   images: SpotifyImage[];
+// }
+
 interface RecentlyPlayedItem {
-  track: {
-    name: string;
-    album: {
-      images: SpotifyImage[];
-    };
-  };
+  songId: number;
+  title: string;
+  artistName: string;
+  album: string;
+  albumID: number;
+  thumbnailUrl: string;
+  duration: string;
+  audioUrl: string;
 }
 
 interface Artist {
-  id: string;
-  name: string;
-  images: SpotifyImage[];
+  artistId: number;
+  artistName: string;
+  totalPlays: number;
+  thumbnailUrl: string;
 }
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -133,6 +151,11 @@ const HomeScreen = () => {
         name: data.name ? {name: data.email} : undefined,
       };
 
+      console.log('User object:', user); // Log the user object for debugging
+      if (userProfile?.images?.[0]?.url?.includes('default-avatar.png')) {
+        user.images = undefined;
+      }
+
       setUserProfile(user);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -145,16 +168,15 @@ const HomeScreen = () => {
 
   const getRecentlyPlayedSongs = async () => {
     try {
-      const response = await fetch(
-        'http://10.0.2.2:5063/api/user/recently-played',
-      );
+      // const response = await fetch(
+      //   'http://10.0.2.2:5063/api/user/recently-played',
+      // );
+      const response = await api.get('/history/listening-history');
+      const data = response.data;
+      console.log('Recent data:', data); // Log the profile data for debugging
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const tracks = data.items;
+      //const data = await response.json();
+      const tracks = data;
       console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
       setRecentlyPlayed(tracks);
     } catch (err: any) {
@@ -180,13 +202,15 @@ const HomeScreen = () => {
       }}>
       <Image
         style={{height: 55, width: 55}}
-        source={{uri: item.track.album.images[0].url}}
+        //source={{uri: item.track.album.images[0].url}}
+        source={{uri: item.thumbnailUrl}}
       />
       <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
         <Text
           numberOfLines={2}
           style={{fontSize: 13, fontWeight: 'bold', color: 'white'}}>
-          {item.track.name}
+          {/* {item.track.name} */}
+          {item.artistName}
         </Text>
       </View>
     </Pressable>
@@ -194,17 +218,18 @@ const HomeScreen = () => {
 
   const getTopItems = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:5063/api/user/top-artists");
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      setTopArtists(data.items);
-      console.log("Top Artists:", data.items); // log để kiểm tra
+      // const response = await fetch('http://10.0.2.2:5063/api/user/top-artists');
+
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! Status: ${response.status}`);
+      // }
+      const response = await api.get('/history/top-artists');
+      const data = response.data;
+      console.log('Top artist:', data); // Log the profile data for debugging
+
+      setTopArtists(data);
     } catch (err: any) {
-      console.log("Error fetching top artists:", err.message);
+      console.log('Error fetching top artists:', err.message);
     }
   };
 
@@ -220,17 +245,20 @@ const HomeScreen = () => {
         <View>
           <View style={styles.header}>
             <View style={styles.avatarWrapper}>
-              {userProfile?.images?.length ? (
+              {/* {userProfile?.images?.length ? (
                 <Image
                   style={styles.avatar}
                   source={{uri: userProfile.images[0].url}}
                 />
               ) : (
                 <Ionicons name="person-circle" size={40} color="white" />
-              )}
+              )} */}
+              <Ionicons name="person-circle" size={40} color="white" />
             </View>
             <Text style={styles.greeting}>{message || 'No message'}</Text>
-            <Text style={{color: 'white', fontSize: 20}}>{userProfile?.name?.name}</Text>
+            <Text style={{color: 'white', fontSize: 20}}>
+              {userProfile?.name?.name}
+            </Text>
             <MaterialCommunityIcons
               name="lightning-bolt-outline"
               size={24}
@@ -280,11 +308,19 @@ const HomeScreen = () => {
         />
 
         <Text style={styles.sectionTitle}>Your Top Artists</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {topArtists.map((item, index) => (
             <ArtistCard item={item} key={index} />
           ))}
-        </ScrollView>
+        </ScrollView> */}
+
+        <FlatList
+          data={topArtists}
+          keyExtractor={(item, index) => index.toString()} // hoặc dùng item.id nếu có id
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({item}) => <ArtistCard item={item} />}
+        />
 
         <Text style={styles.sectionTitle}>Recently Played</Text>
         <FlatList
@@ -292,7 +328,7 @@ const HomeScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <RecentlyPlayedCard item={item} key={index} />
           )}
         />
@@ -301,7 +337,6 @@ const HomeScreen = () => {
     </LinearGradient>
   );
 };
-
 
 const styles = StyleSheet.create({
   header: {
@@ -382,6 +417,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
 
 export default HomeScreen;

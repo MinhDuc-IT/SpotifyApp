@@ -671,7 +671,7 @@ interface Props {
 const TrackListScreen: React.FC<Props> = ({
   title,
   tracks,
-  totalCount,
+  totalCount = 0,
   onEndReached,
   isLoading,
 }) => {
@@ -719,7 +719,7 @@ const TrackListScreen: React.FC<Props> = ({
                 setInput(text);
                 handleSearch(text);
               }}
-              placeholder="Tìm trong bài hát đã thích"
+              placeholder="Tìm trong danh sách"
               placeholderTextColor="lightgrey"
               style={styles.searchInput}
             />
@@ -728,6 +728,33 @@ const TrackListScreen: React.FC<Props> = ({
             <Text style={styles.sortButtonText}>Sắp xếp</Text>
           </Pressable>
         </Pressable>
+
+        {/* Song Image */}
+        {/* {currentTrack?.track?.album?.images?.[0]?.url ? (
+            <View style={{alignItems: 'center', marginVertical: 15}}>
+            <Image
+              source={{uri: currentTrack.track.album.images[0].url}}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 10,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+          ) : (
+            <View style={{alignItems: 'center', marginVertical: 15}}>
+            <Image
+              source={{uri: savedTracks[0]?.track?.album?.images?.[0]?.url}}
+              style={{
+                width: 200,
+                height: 200,
+                borderRadius: 10,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+          )} */}
 
         <View style={styles.titleContainer}>
           <Text style={styles.titleText}>{title}</Text>
@@ -775,7 +802,7 @@ const TrackListScreen: React.FC<Props> = ({
         )}
       </ScrollView>
 
-      <BottomModal
+      {/* <BottomModal
         visible={state.modalVisible}
         onClose={() => dispatch({ type: 'TOGGLE_MODAL' })}
       >
@@ -857,7 +884,7 @@ const TrackListScreen: React.FC<Props> = ({
             </View>
           </View>
         </ModalContent>
-      </BottomModal>
+      </BottomModal> */}
     </LinearGradient>
   );
 };

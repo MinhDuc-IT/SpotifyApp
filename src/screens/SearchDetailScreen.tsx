@@ -204,6 +204,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    marginTop: 40,
   },
   search_container: {
     paddingTop: 25,

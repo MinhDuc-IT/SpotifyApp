@@ -2,6 +2,16 @@ import React, { useCallback, useEffect, useState } from 'react';
 import TrackListScreen from '../components/TrackList';
 import api from '../services/api';
 
+interface LikedSong {
+  songId: number;
+  title: string;
+  artistName: string;
+  album: string;
+  thumbnailUrl: string;
+  duration: number;
+  audioUrl: string;
+}
+
 const LIMIT = 10;
 
 const LikedSongsScreen = () => {
@@ -17,38 +27,42 @@ const LikedSongsScreen = () => {
     setLoading(true);
 
     try {
-      const response = await api.get("/song", {
-        params: {
-          page,
-          limit: LIMIT,
-        },
-      });
+      // const response = await api.get("/song", {
+      //   params: {
+      //     page,
+      //     limit: LIMIT,
+      //   },
+      // });
+      const response = await api.get('/liked/liked-song');
       const data = response.data;
+      console.log('Kết quả tìm kiếm:', data);
 
-      if (data?.items?.length) {
-        const mappedTracks = data.items.map((song: any) => ({
-          track: {
-            id: song.songID,
-            name: song.songName,
-            preview_url: song.audio,
-            album: {
-              images: [{ url: song.image }],
-            },
-            artists: [{ name: song.artist || 'Unknown Artist' }],
-          },
-        }));
+      if (data?.length) {
+
+        // Map từ SongDto → format track
+    const mappedTracks = data.map((song: LikedSong) => ({
+      track: {
+        name: song.title,
+        id: song.songId,
+        preview_url: song.audioUrl,
+        album: {
+          images: [{ url: song.thumbnailUrl }],
+        },
+        artists: [{ name: song.artistName }],
+      },
+    }));
 
         setTracks((prev) => [...prev, ...mappedTracks]);
-        setTotalPages(data.totalPages);
-        setTotalItems(data.totalItems);
-        setPage((prev) => prev + 1);
+        // setTotalPages(data.totalPages);
+        setTotalItems(data.length);
+        // setPage((prev) => prev + 1);
       }
     } catch (error) {
       console.error('Lỗi khi gọi API bài hát:', error);
     } finally {
       setLoading(false);
     }
-  }, [page, loading, totalPages]);
+  }, [loading]);
 
   useEffect(() => {
     fetchTracks();
@@ -58,7 +72,7 @@ const LikedSongsScreen = () => {
     <TrackListScreen
       title="Liked Songs"
       tracks={tracks}
-      onEndReached={fetchTracks}
+      //onEndReached={fetchTracks}
       totalCount={totalItems}
       isLoading={loading}
     />

@@ -19,7 +19,6 @@ import {RootStackParamList} from '../types/navigation';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 
-
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -29,6 +28,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ArtistCard from '../components/ArtistCard';
 import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
+import Footer from '../components/Footer';
 
 import api from '../services/api';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -196,17 +196,17 @@ const HomeScreen = () => {
 
   const getTopItems = async () => {
     try {
-      const response = await fetch("http://10.0.2.2:5063/api/user/top-artists");
-  
+      const response = await fetch('http://10.0.2.2:5063/api/user/top-artists');
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       setTopArtists(data.items);
-      console.log("Top Artists:", data.items); // log để kiểm tra
+      console.log('Top Artists:', data.items); // log để kiểm tra
     } catch (err: any) {
-      console.log("Error fetching top artists:", err.message);
+      console.log('Error fetching top artists:', err.message);
     }
   };
 
@@ -232,7 +232,9 @@ const HomeScreen = () => {
               )}
             </View>
             <Text style={styles.greeting}>{message || 'No message'}</Text>
-            <Text style={{color: 'white', fontSize: 20}}>{userProfile?.name?.name}</Text>
+            <Text style={{color: 'white', fontSize: 20}}>
+              {userProfile?.name?.name}
+            </Text>
             <MaterialCommunityIcons
               name="lightning-bolt-outline"
               size={24}
@@ -279,14 +281,15 @@ const HomeScreen = () => {
           keyExtractor={(_, index) => index.toString()}
           numColumns={2}
           columnWrapperStyle={{justifyContent: 'space-between'}}
+          nestedScrollEnabled={true}
         />
 
         <Text style={styles.sectionTitle}>Your Top Artists</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {topArtists.map((item, index) => (
             <ArtistCard item={item} key={index} />
           ))}
-        </ScrollView>
+        </ScrollView> */}
 
         <Text style={styles.sectionTitle}>Recently Played</Text>
         <FlatList
@@ -294,16 +297,19 @@ const HomeScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item, index }) => (
+          renderItem={({item, index}) => (
             <RecentlyPlayedCard item={item} key={index} />
           )}
+          nestedScrollEnabled={true}
         />
+        {/* <View style={{marginBottom: 70}}> */}
         <Button title="Logout" onPress={handleLogout} color="#ff3b30" />
+        {/* </View> */}
+        <Footer />
       </ScrollView>
     </LinearGradient>
   );
 };
-
 
 const styles = StyleSheet.create({
   header: {
@@ -384,6 +390,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
 
 export default HomeScreen;

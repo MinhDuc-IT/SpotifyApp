@@ -172,8 +172,8 @@ const GlobalPlayer = () => {
       {state.currentTrack?.preview_url && (
         <Video
           ref={videoRef}
-          //source={{ uri: state.currentTrack.preview_url }}
-          source={{ uri: `http://10.0.2.2:5063/api/song/${state.currentTrack.id}/stream` }}
+          source={{ uri: state.currentTrack.preview_url }}
+          // source={{ uri: `http://10.0.2.2:5063/api/song/${state.currentTrack.id}/stream` }}
           paused={!state.isPlaying}
           onProgress={handleProgress}
           onLoad={handleLoad}

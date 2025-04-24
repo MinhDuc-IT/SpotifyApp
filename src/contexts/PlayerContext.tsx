@@ -130,6 +130,7 @@ const initialState: PlayerState = {
 const playerReducer = (state: PlayerState, action: Action): PlayerState => {
   switch (action.type) {
     case 'SET_CURRENT_TRACK':
+      console.log('Setting current track:', action.track);
       return {
         ...state,
         currentTrack: action.track,

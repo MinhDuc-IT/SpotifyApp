@@ -208,7 +208,7 @@ const HomeScreen = () => {
       <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
         <Text
           numberOfLines={2}
-          style={{fontSize: 13, fontWeight: 'bold', color: 'white'}}>
+          style={{fontSize: 13, fontWeight: 'bold', color: 'white', width: 105}}>
           {/* {item.track.name} */}
           {item.artistName}
         </Text>
@@ -303,8 +303,9 @@ const HomeScreen = () => {
           data={recentlyplayed}
           renderItem={renderItem}
           keyExtractor={(_, index) => index.toString()}
-          numColumns={2}
-          columnWrapperStyle={{justifyContent: 'space-between'}}
+          //numColumns={2}
+          horizontal={true}
+          //columnWrapperStyle={{justifyContent: 'space-between'}}
         />
 
         <Text style={styles.sectionTitle}>Your Top Artists</Text>

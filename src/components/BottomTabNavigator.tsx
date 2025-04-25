@@ -46,6 +46,7 @@ import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import SearchDetailScreen from '../screens/SearchDetailScreen';
 import {RootStackParamList} from '../types/navigation';
+import PlaylistScreen from '../screens/PlaylistScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 
@@ -64,6 +65,8 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
             iconName = focused ? 'search-outline' : 'search';
+          } else if (route.name === 'PlayList') {
+            iconName = focused ? 'library' : 'library-outline';
           }
 
           return <Ionicons name={iconName} size={20} color={color} />;
@@ -85,6 +88,7 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Library" component={LibraryScreen} />
+      <Tab.Screen name="PlayList" component={PlaylistScreen} />
       <Tab.Screen name="Premium" component={SearchDetailScreen} />
     </Tab.Navigator>
   );

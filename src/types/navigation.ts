@@ -12,5 +12,16 @@ export type RootStackParamList = {
     LibraryScreenTest: undefined;
     CreatePlaylist: undefined;
     Liked: undefined;
-    Info: undefined;
+    Info: {
+        item: {
+          songId: number;
+          title: string;
+          artistName: string;
+          album: string;
+          albumID: number;
+          thumbnailUrl: string;
+          duration: string;
+          audioUrl: string;
+        };
+      };      
 };

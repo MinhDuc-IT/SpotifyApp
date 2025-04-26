@@ -8,7 +8,8 @@ import {
   StyleSheet,
   Animated,
   FlatList,
-  ScrollView
+  ScrollView,
+  Dimensions
 } from 'react-native';
 import { usePlayer } from '../contexts/PlayerContextV2';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -16,11 +17,16 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useProgress } from 'react-native-track-player';
 import { ProgressBar } from './Player/ProgressBar';
 import { PlayerControls } from '../components/Player/PlayerControls';
+import LinearGradient from 'react-native-linear-gradient';
+import { ArtistInfoCard } from './Artist/ArtistInfoCard';
+import { ArtistDiscoverCard } from './Artist/ArtistDiscoverCard';
 
 interface Lyric {
   startTime: string;
   text: string;
 }
+
+const { width, height } = Dimensions.get('window');
 
 const PlayerModal = () => {
   //const { state, dispatch } = usePlayer();
@@ -148,14 +154,30 @@ const PlayerModal = () => {
     : [];
 
   const TrackInfo = React.memo(() => (
-    <View style={styles.trackInfo}>
-      <Text style={styles.trackTitle} numberOfLines={1}>
-        {currentTrack?.title}
-      </Text>
-      <Text style={styles.artist}>
-        {currentTrack?.artist}
-      </Text>
+    <View
+      style={styles.container}
+    >
+      <Image
+        source={{ uri: currentTrack?.artwork }}
+        style={styles.thumbnail}
+      />
+      <View style={styles.trackInfo}>
+        <Text style={styles.title} numberOfLines={1}>
+          {currentTrack?.title}
+        </Text>
+        <Text style={styles.artistinfo} numberOfLines={1}>
+          {currentTrack?.artist}
+        </Text>
+      </View>
     </View>
+    // <View style={styles.trackInfo}>
+    //   <Text style={styles.trackTitle} numberOfLines={1}>
+    //     {currentTrack?.title}
+    //   </Text>
+    //   <Text style={styles.artist}>
+    //     {currentTrack?.artist}
+    //   </Text>
+    // </View>
   ));
 
   if (!currentTrack) return null;
@@ -181,9 +203,10 @@ const PlayerModal = () => {
               style={styles.closeButton}
               onPress={hideModal}
             >
-              <AntDesign name="down" size={24} color="white" />
+              <AntDesign name="down" size={24} color="#FFFFFF" />
             </Pressable>
 
+            <View style={{width: width, height: height - 150}}>
             <Pressable onPress={handleFlip}>
               <Animated.View style={[
                 styles.flipCard,
@@ -198,6 +221,11 @@ const PlayerModal = () => {
                   source={{ uri: currentTrack?.artwork }}
                   style={styles.albumArt}
                 />
+                <LinearGradient
+    colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
+    style={StyleSheet.absoluteFillObject}
+    locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+  />
               </Animated.View>
 
               <Animated.View style={[
@@ -241,7 +269,7 @@ const PlayerModal = () => {
             </Pressable>
 
             <TrackInfo />
-            <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+            <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
               <ProgressBar />
             </View>
 
@@ -250,7 +278,7 @@ const PlayerModal = () => {
                 onPress={skipToPrevious}
                 accessibilityLabel="Previous track"
               >
-                <Ionicons name="play-skip-back" size={32} color="white" />
+                <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
               </Pressable>
 
               <Pressable
@@ -259,9 +287,9 @@ const PlayerModal = () => {
                 accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? (
-                  <Ionicons name="pause" size={48} color="white" />
+                  <Ionicons name="pause" size={30} color="black" />
                 ) : (
-                  <Ionicons name="play" size={48} color="white" />
+                  <Ionicons name="play" size={30} color="black" />
                 )}
               </Pressable>
 
@@ -269,30 +297,27 @@ const PlayerModal = () => {
                 onPress={skipToNext}
                 accessibilityLabel="Next track"
               >
-                <Ionicons name="play-skip-forward" size={32} color="white" />
+                <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
               </Pressable>
             </View>
-            <PlayerControls
+            </View>
+
+            {/* <PlayerControls
               isPlaying={isPlaying}
               onPlay={handlePlayPause}
               onPause={pause}
               onNext={skipToNext}
               onPrevious={skipToPrevious}
-            />
-            <Image
-              source={{ uri: currentTrack.artwork }}
-              style={{ width: 200, height: 200, marginVertical: 10 }} // Ví dụ
-            /><Image
-              source={{ uri: currentTrack.artwork }}
-              style={{ width: 200, height: 200, marginVertical: 10 }} // Ví dụ
-            /><Image
-              source={{ uri: currentTrack.artwork }}
-              style={{ width: 200, height: 200, marginVertical: 10 }} // Ví dụ
-            />
+            /> */}
+            <ArtistInfoCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
+            <ArtistDiscoverCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
           </View>
 
         </ScrollView>
       </View>
+        <View style={{height: 35, zIndex: 0}}>
+
+        </View>
     </Modal>
   );
 };
@@ -315,12 +340,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 24,
-    paddingTop: 40,
+    //paddingTop: 40,
     alignItems: 'center',
   },
   flipCard: {
-    width: 280,
-    height: 280,
+    width: width,
+    height: height - 150,
     backfaceVisibility: 'hidden',
     borderRadius: 8,
     overflow: 'hidden',
@@ -328,6 +353,7 @@ const styles = StyleSheet.create({
   albumArt: {
     width: '100%',
     height: '100%',
+    //resizeMode: 'cover',
   },
   lyricCard: {
     position: 'absolute',
@@ -355,18 +381,19 @@ const styles = StyleSheet.create({
   },
   trackInfo: {
     width: '100%',
-    alignItems: 'center',
+    //alignItems: 'center',
+    marginLeft: 20,
     marginTop: 20,
     marginBottom: 24,
   },
   trackTitle: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 22,
     fontWeight: '700',
     maxWidth: '90%',
   },
   artist: {
-    color: '#b3b3b3',
+    color: '#FFFFFF',
     fontSize: 16,
     marginTop: 8,
   },
@@ -374,11 +401,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '80%',
+    width: '100%',
     marginBottom: 24,
+    position: 'absolute',
+    bottom: -15,
+    paddingHorizontal: 20,
   },
   playButton: {
-    backgroundColor: '#1DB954',
+    backgroundColor: '#FFFFFF',
     borderRadius: 50,
     padding: 16,
     elevation: 5,
@@ -413,6 +443,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.1)',
+    zIndex: 10,
   },
   errorText: {
     color: '#666',
@@ -420,5 +451,96 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 20,
   },
+  container: {
+    height: 60,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    position: 'absolute',
+    bottom: 100,
+  },
+  thumbnail: {
+    width: 40,
+    height: 40,
+    borderRadius: 4,
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  artistinfo: {
+    color: '#FFFFFF'
+  }
 });
 export default PlayerModal;
+
+// MusicPlayerBottomSheet.tsx
+// import React, { useMemo, useRef, useEffect } from 'react';
+// import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+// import BottomSheet from '@gorhom/bottom-sheet';
+// import { usePlayer } from '../contexts/PlayerContextV2';
+
+// const PlayerModal = () => {
+//   const bottomSheetRef = useRef<BottomSheet>(null);
+//   const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal } = usePlayer();
+
+//   useEffect(() => {
+//     if (modalVisible) {
+//       bottomSheetRef.current?.expand();
+//     }
+//   }, [modalVisible]);
+
+//   // Các mốc kéo: 30% (mini) và 100% (full screen)
+//   const snapPoints = useMemo(() => ['30%', '100%'], []);
+
+//   return (
+//     <BottomSheet
+//       ref={bottomSheetRef}
+//       index={0}
+//       snapPoints={snapPoints}
+//       enablePanDownToClose={false}
+//       backgroundStyle={{ backgroundColor: '#121212' }}
+//       handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+//     >
+//       <View style={{ flex: 1 }}>
+//         <View style={{ alignItems: 'center', padding: 16 }}>
+//           {/* Ảnh nền */}
+//           <Image
+//             source={{ uri: currentTrack?.artwork }}
+//             style={{ width: 300, height: 300, borderRadius: 8 }}
+//             resizeMode="cover"
+//           />
+//           {/* Tiêu đề bài hát */}
+//           <Text style={{ color: 'white', fontSize: 20, marginTop: 12 }}>{currentTrack?.title}</Text>
+//           {/* Tên nghệ sĩ */}
+//           <Text style={{ color: 'gray', fontSize: 16 }}>{currentTrack?.artist}</Text>
+//         </View>
+
+//         {/* Nội dung scroll được */}
+//         <ScrollView contentContainerStyle={{ padding: 16 }}>
+//           <Text style={{ color: 'white', fontSize: 16 }}>
+//             {/* Lyrics hoặc thông tin thêm */}
+//             Đây là lời bài hát... Đây là lời bài hát... Đây là lời bài hát... Đây là lời bài hát...
+//           </Text>
+//         </ScrollView>
+
+//         {/* Thanh điều khiển nhạc */}
+//         <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 16 }}>
+//           <TouchableOpacity>
+//             <Text style={{ color: 'white' }}>⏮️</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity>
+//             <Text style={{ color: 'white', fontSize: 30 }}>▶️</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity>
+//             <Text style={{ color: 'white' }}>⏭️</Text>
+//           </TouchableOpacity>
+//         </View>
+//       </View>
+//     </BottomSheet>
+//   );
+// };
+
+// export default PlayerModal;

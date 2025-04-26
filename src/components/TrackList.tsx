@@ -10,7 +10,8 @@ import {
   FlatList,
   StyleSheet,
   Modal,
-  TouchableOpacity
+  TouchableOpacity,
+  KeyboardAvoidingView, Platform
 } from 'react-native';
 import { LinearGradient } from 'react-native-linear-gradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -153,19 +154,24 @@ const TrackListScreen: React.FC<Props> = ({
             </Pressable>
 
             <View style={styles.searchContainer}>
-              <View style={styles.searchInputContainer}>
-                <AntDesign name="search1" size={20} color="white" />
-                <TextInput
-                  value={input}
-                  onChangeText={text => {
-                    setInput(text);
-                    handleSearch(text);
-                  }}
-                  placeholder="Tìm trong danh sách"
-                  placeholderTextColor="lightgrey"
-                  style={styles.searchInput}
-                />
-              </View>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+              >
+                <View style={styles.searchInputContainer}>
+                  <AntDesign name="search1" size={20} color="white" />
+                  <TextInput
+                    value={input}
+                    onChangeText={text => {
+                      setInput(text);
+                      handleSearch(text);
+                    }}
+                    placeholder="Tìm trong danh sách"
+                    placeholderTextColor="lightgrey"
+                    style={styles.searchInput}
+                  />
+                </View>
+              </KeyboardAvoidingView>
               <Pressable onPress={() => setSortModalVisible(true)} style={styles.sortButton}>
                 <Text style={styles.sortButtonText}>Sắp xếp</Text>
               </Pressable>

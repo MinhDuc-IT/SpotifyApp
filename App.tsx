@@ -180,7 +180,7 @@ const App = () => {
                       component={SongInfoScreen}
                       options={{ headerShown: false }}
                     />
-                    <Stack.Screen
+                    {/* <Stack.Screen
                       name="PlayList"
                       component={PlaylistScreen}
                       options={{ headerShown: false }}
@@ -189,7 +189,7 @@ const App = () => {
                       name="Player"
                       component={PlayerScreen}
                       options={{ headerShown: false }}
-                    />
+                    /> */}
                   </Stack.Navigator>
                 </NavigationContainer>
                   <GlobalPlayer />

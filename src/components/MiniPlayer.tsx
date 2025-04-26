@@ -142,7 +142,9 @@ const MiniPlayer = () => {
       </Pressable>
 
       {/* ProgressBar separate below MiniPlayer */}
-      <ProgressBar />
+      <View style={{ top: 10}}>
+      <ProgressBar showTime={false} />
+      </View>
     </>
   );
 };
@@ -150,7 +152,7 @@ const MiniPlayer = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 4, // nhỏ hơn để progressBar chồng lên sát
+    bottom: 4,
     left: 0,
     right: 0,
     height: 60,
@@ -159,7 +161,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     zIndex: 10,
-    marginBottom: 6,
   },
   thumbnail: {
     width: 40,

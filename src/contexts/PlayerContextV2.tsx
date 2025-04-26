@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback } 
 import TrackPlayer, { State, Event, useTrackPlayerEvents, Track } from 'react-native-track-player';
 import { fetchLyrics } from '../services/lyric.service';
 import { Lyric } from '../types/player.d';
+import { getQueue } from 'react-native-track-player/lib/src/trackPlayer';
 
 type PlayerState = {
   isPlaying: boolean;
@@ -95,53 +96,59 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
   });
 
   const actions: PlayerActions = {
+    // play: async (track) => {
+    //   // Nếu track mới khác với track hiện tại → reset và add lại
+    //   if (track && track.id !== state.currentTrack?.id) {
+    //     await TrackPlayer.reset();
+    //     await TrackPlayer.add(track);
+    //     dispatch({ type: 'SET_TRACK', payload: track });
+    //     if (track.id) updateLyrics(track.id);
+    //   }
+
+    //   // Nếu đang paused → chỉ play tiếp
+    //   await TrackPlayer.play();
+    //   dispatch({ type: 'SET_PLAYING', payload: true });
+    // },
     play: async (track) => {
-      // Nếu track mới khác với track hiện tại → reset và add lại
-      if (track && track.id !== state.currentTrack?.id) {
-        await TrackPlayer.reset();
-        await TrackPlayer.add(track);
-        dispatch({ type: 'SET_TRACK', payload: track });
-        if (track.id) updateLyrics(track.id);
+      console.log("play" + track);
+      if (track) {
+        if (track && track.id !== state.currentTrack?.id) {
+          const currentQueue = await TrackPlayer.getQueue();
+          const trackIndex = currentQueue.findIndex(t => t.id === track.id);
+
+          if (trackIndex === -1) {
+            await TrackPlayer.reset();
+            await TrackPlayer.add(track);
+          } else {
+            await TrackPlayer.skip(trackIndex);
+          }
+        }
+
       }
-    
-      // Nếu đang paused → chỉ play tiếp
+
+      // Luôn đảm bảo cập nhật queue sau mọi thay đổi
+      const updatedQueue = await TrackPlayer.getQueue();
+      dispatch({ type: 'SET_QUEUE', payload: updatedQueue });
+
       await TrackPlayer.play();
       dispatch({ type: 'SET_PLAYING', payload: true });
     },
-    // play: async (track) => {
-    //   if (track) {
-    //     const currentQueue = await TrackPlayer.getQueue();
-    //     const trackIndex = currentQueue.findIndex(t => t.id === track.id);
-        
-    //     if (trackIndex === -1) {
-    //       await TrackPlayer.reset();
-    //       await TrackPlayer.add(track);
-    //     } else {
-    //       await TrackPlayer.skip(trackIndex);
-    //     }
-    //   }
-    
-    //   // Luôn đảm bảo cập nhật queue sau mọi thay đổi
-    //   const updatedQueue = await TrackPlayer.getQueue();
-    //   dispatch({ type: 'SET_QUEUE', payload: updatedQueue });
-    
-    //   await TrackPlayer.play();
-    //   dispatch({ type: 'SET_PLAYING', payload: true });
-    // },        
     pause: async () => {
       await TrackPlayer.pause();
       dispatch({ type: 'SET_PLAYING', payload: false });
-    },    
+    },
     skipToNext: async () => {
       console.log("next");
+      console.log(TrackPlayer.getQueue());
       await TrackPlayer.skipToNext()
     },
     skipToPrevious: async () => {
       console.log("previous");
+      console.log(TrackPlayer.getQueue());
       await TrackPlayer.skipToPrevious()
     },
     addToQueue: async (tracks) => {
-      console.log(tracks);
+      console.log('queue' + tracks);
       await TrackPlayer.add(tracks);
       dispatch({ type: 'SET_QUEUE', payload: [...state.queue, ...tracks] }); // cập nhật state.queue
     },

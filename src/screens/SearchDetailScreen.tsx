@@ -10,62 +10,33 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import axios from '../services/api';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {
+  getSearchResults,
+  createSearchHistory,
+  getAllSearches,
+  deleteSearchHistory,
+  deleteAllSearchHistory,
+} from '../services/searchService';
 
 type SearchItem = {
-  songID: number;
+  id: number;
   name: string;
   type: string;
-  songName: string;
   image: string;
+  audio: String;
 };
-
-const initialSearches: SearchItem[] = [
-  {
-    songID: 1,
-    name: 'FKA twigs',
-    type: 'Artist',
-    songName: 'Cellophane',
-    image: '',
-  },
-  {
-    songID: 2,
-    name: 'Hozier',
-    type: 'Artist',
-    songName: 'Take Me to Church',
-    image: '',
-  },
-  {songID: 3, name: 'Grimes', type: 'Artist', songName: 'Oblivion', image: ''},
-  {
-    songID: 4,
-    name: '1(Remastered)',
-    type: 'Album - The Beatles',
-    songName: 'Hey Jude',
-    image: '',
-  },
-  {
-    songID: 5,
-    name: 'HAYES',
-    type: 'Artist',
-    songName: 'I Wanna Be Your Girlfriend',
-    image: '',
-  },
-  {
-    songID: 6,
-    name: 'Led Zeppelin',
-    type: 'Artist',
-    songName: 'Stairway to Heaven',
-    image: '',
-  },
-];
 
 const SearchDetailScreen = () => {
   const [searchText, setSearchText] = useState('');
   const [searches, setSearches] = useState([]);
-  const [searchHistory, setSearchHistory] =
-    useState<SearchItem[]>(initialSearches);
+  const [searchHistory, setSearchHistory] = useState([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigation = useNavigation();
+
+  useEffect(() => {
+    fetchSearchHistory();
+  }, []);
 
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
@@ -84,27 +55,31 @@ const SearchDetailScreen = () => {
   }, [searchText]);
 
   const fetchSearchResults = async (keyword: string) => {
+    const response = await getSearchResults(keyword, 1, 10);
+    setSearches(response.items);
+  };
+
+  const fetchSearchHistory = async () => {
     try {
-      const response = await axios.get(`/song/search`, {
-        params: {
-          keyword,
-          page: 1,
-          limit: 10,
-        },
-      });
-      console.log('Kết quả tìm kiếm:', response.data.items);
-      setSearches(response.data.items);
+      const response = await getAllSearches();
+      setSearchHistory(response);
     } catch (error) {
-      console.error('Lỗi khi tìm kiếm bài hát:', error);
+      console.error('Error fetching search history:', error);
     }
   };
 
-  const handleDeleteItem = (id: number) => {
-    // setSearches(prev => prev.filter(item => item.id !== id));
+  const handleDeleteItem = async (id: number, type: string) => {
+    await deleteSearchHistory(id, type);
+    fetchSearchHistory();
   };
 
-  const handleClearAll = () => {
-    setSearches([]);
+  const handleShowMore = (id: number) => {
+    console.log('show more action');
+  };
+
+  const handleClearAll = async () => {
+    await deleteAllSearchHistory();
+    fetchSearchHistory();
   };
 
   const handleCancel = () => {
@@ -116,30 +91,48 @@ const SearchDetailScreen = () => {
     setSearchText('');
   };
 
+  const updateSearchHistory = async (item: SearchItem) => {
+    await createSearchHistory(item);
+    fetchSearchHistory();
+  };
+
   const renderItem = ({item}: {item: SearchItem}) => (
-    <View style={styles.itemContainer}>
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => updateSearchHistory(item)}>
       <Image
         source={
           item.image
             ? {uri: item.image}
             : require('../assets/images/sontung.jpg')
         }
-        style={styles.avatar}
+        style={item.type === 'Song' ? styles.avatar : styles.avatarArtist}
       />
       <View style={styles.textContainer}>
-        <Text style={styles.name}>{item.songName}</Text>
-        <Text style={styles.type}>Bài hát</Text>
+        <Text style={styles.name}>
+          {item.name}{' '}
+          {item.type === 'Artist' && (
+            <MaterialCommunityIcons
+              name="check-decagram"
+              size={10}
+              color="skyblue"
+            />
+          )}
+        </Text>
+        <Text style={styles.type}>
+          {item.type === 'Artist' ? 'Nghệ sĩ' : 'Bài hát'}
+        </Text>
       </View>
       {!searchText ? (
-        <TouchableOpacity onPress={() => handleDeleteItem(item.songID)}>
+        <TouchableOpacity onPress={() => handleDeleteItem(item.id, item.type)}>
           <Icon name="close" size={16} color="#888" />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity onPress={() => handleDeleteItem(item.songID)}>
+        <TouchableOpacity onPress={() => handleShowMore(item.id)}>
           <Icon name="ellipsis-horizontal" size={16} color="#888" />
         </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -174,28 +167,39 @@ const SearchDetailScreen = () => {
           <Text style={styles.cancelText}>Hủy</Text>
         </TouchableOpacity>
       </View>
-
-      {!searchText && (
-        <Text style={styles.recentTitle}>Nội dung tìm kiếm gần đây</Text>
-      )}
-
-      <FlatList
-        data={searchText ? searches : searchHistory}
-        keyExtractor={item => item.songID + ''}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        ListFooterComponent={
-          searchHistory.length > 0 && !searchText ? (
-            <TouchableOpacity
-              onPress={handleClearAll}
-              style={styles.clearAllButton}>
-              <Text style={styles.clearAllText}>
-                Xóa nội dung tìm kiếm gần đây
-              </Text>
-            </TouchableOpacity>
-          ) : null
-        }
-      />
+      <View style={styles.contentContainer}>
+        {searchText || searchHistory.length !== 0 ? (
+          <>
+            {searchHistory.length !== 0 && !searchText && (
+              <Text style={styles.recentTitle}>Nội dung tìm kiếm gần đây</Text>
+            )}
+            <FlatList
+              data={searchText ? searches : searchHistory}
+              keyExtractor={item => item.id + ''}
+              renderItem={renderItem}
+              contentContainerStyle={styles.list}
+              ListFooterComponent={
+                searchHistory.length > 0 && !searchText ? (
+                  <TouchableOpacity
+                    onPress={handleClearAll}
+                    style={styles.clearAllButton}>
+                    <Text style={styles.clearAllText}>
+                      Xóa nội dung tìm kiếm gần đây
+                    </Text>
+                  </TouchableOpacity>
+                ) : null
+              }
+            />
+          </>
+        ) : (
+          <View style={styles.preview}>
+            <Text style={styles.preTitle}>Phát nội dung bạn thích</Text>
+            <Text style={styles.preContent}>
+              Tìm kiếm nghệ sĩ, bài hát, podcast, v.v.
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -204,7 +208,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    marginTop: 40,
+    borderWidth: 1,
+    borderColor: '#fff',
   },
   search_container: {
     paddingTop: 25,
@@ -241,12 +246,30 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 12,
   },
+  contentContainer: {
+    flex: 1,
+  },
   recentTitle: {
     color: '#fff',
     marginTop: 8,
     marginLeft: 16,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  preview: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  preTitle: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  preContent: {
+    marginTop: 5,
+    fontSize: 11,
+    color: 'white',
   },
   list: {
     marginTop: 10,
@@ -261,6 +284,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 4,
+    marginRight: 12,
+  },
+  avatarArtist: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 12,
   },
   textContainer: {

@@ -8,15 +8,11 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-import Config from 'react-native-config';
 import { Dimensions } from 'react-native';
 import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 
@@ -83,7 +79,6 @@ const AuthButton = () => {
   };
 
   const handleSignUp = () => {
-    //Alert.alert('Thông báo', 'Sign up');
     navigation.navigate('SignUp');
   };
 
@@ -109,11 +104,6 @@ const AuthButton = () => {
       if (!data || !data.accessToken) {
         throw new Error('Không thể lấy access token từ Facebook');
       }
-      // const response = await fetch(
-      //   `https://graph.facebook.com/me?fields=id,name,email&access_token=${data.accessToken}`,
-      // );
-      // const userData = await response.json();
-      // console.log('📩 Thông tin từ Facebook:', userData);
 
       // Tạo credential từ access token
       const facebookCredential = auth.FacebookAuthProvider.credential(
@@ -136,9 +126,7 @@ const AuthButton = () => {
     }
   };
 
-
   const handleLogin = () => {
-    //Alert.alert('Thông báo', 'Đăng nhập');
     navigation.navigate('Login');
   };
 
@@ -153,8 +141,6 @@ const AuthButton = () => {
           style={styles.button}
           onPress={handleGoogleSignIn}
           disabled={isLoading}>
-          {/* <FontAwesomeIcon name="google" size={20} color="#000" style={styles.icon} /> */}
-          {/* <AntDesign name="google" size={20} color="#fff" style={styles.icon} /> */}
           <Image
             source={require('../assets/icons/icons8-google-48.png')}
             style={styles.icon}
@@ -163,20 +149,12 @@ const AuthButton = () => {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleFacebookSignIn}>
-          {/* <Icon name="facebook" size={20} color="#fff" style={styles.icon} /> */}
           <Image
             source={require('../assets/icons/icons8-facebook-logo-48.png')}
             style={styles.icon}
           />
           <Text style={styles.buttonText}>Continue with Facebook</Text>
         </TouchableOpacity>
-
-        {/* <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('LibraryScreenTest')}
-        >
-          <Text style={styles.buttonText}>Go to Library</Text>
-        </TouchableOpacity> */}
 
         <TouchableOpacity style={styles.loginContainer} onPress={handleLogin}>
           <Text style={styles.loginText}>Already have an account? </Text>
@@ -191,12 +169,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
-    // borderWidth: 1,
-    // borderColor: 'white'
   },
   content: {
     flex: 1,
-    //justifyContent: 'center',
     paddingHorizontal: 24,
     paddingTop: 25,
   },
@@ -209,7 +184,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 45,
-    //paddingVertical: 15,
     paddingHorizontal: 25,
     marginBottom: 10,
     width: BUTTON_WIDTH,

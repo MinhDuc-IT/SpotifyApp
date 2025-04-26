@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { usePlayer } from '../contexts/PlayerContextV2';
-import { Track } from '../types/player.d';
+import { SpotifyTrack } from '../types/player.d'; // Using SpotifyTrack for mock data
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 import { StackNavigationProp } from '@react-navigation/stack';
-import api from '../services/api';
+import { Track } from 'react-native-track-player';
 
 type PlayListScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -15,7 +15,8 @@ type PlayListScreenNavigationProp = StackNavigationProp<
 
 const PlaylistScreen = () => {
   const { play, currentTrack, isPlaying, queue, addToQueue } = usePlayer();
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [tracks, setTracks] = useState<SpotifyTrack[]>([]); // SpotifyTrack type for mock data
+  const [trackList, setTrackList] = useState<Track[]>([]); // Track type for actions
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation<PlayListScreenNavigationProp>();
 
@@ -23,36 +24,57 @@ const PlaylistScreen = () => {
   useEffect(() => {
     const fetchPlaylist = async () => {
       try {
-        // const response = await api.get('/song', {
-        //     params: {
-        //         page: 1,
-        //         limit: 10,
-        //     }
-        // });
-
-        // const data = await response.data;
-
         // Replace with actual API call
-        const mockData: Track[] = [
+        const mockData: SpotifyTrack[] = [
           {
-            id: '3',
-            title: 'Sóng gió',
-            artist: 'J97',
-            url: 'https://res.cloudinary.com/dswyuiiqp/raw/upload/v1745140340/spotify_audio/eag7duo4it4t60wyty7f.mp3',
-            artwork: 'https://res.cloudinary.com/dswyuiiqp/image/upload/v1745140313/spotify_images/wokqiqyyhtzaks1doeac.png',
-            duration: 180,
+            id: 3,
+            name: 'Sóng gió',
+            preview_url: 'https://res.cloudinary.com/dswyuiiqp/raw/upload/v1745140340/spotify_audio/eag7duo4it4t60wyty7f.mp3',
+            album: {
+              images: [
+                {
+                  url: 'https://res.cloudinary.com/dswyuiiqp/image/upload/v1745140313/spotify_images/wokqiqyyhtzaks1doeac.png',
+                },
+              ],
+            },
+            artists: [
+              {
+                name: 'J97',
+              },
+            ],
           },
           {
-            id: '4',
-            title: 'Đom đóm',
-            artist: 'J97',
-            url: 'https://res.cloudinary.com/dswyuiiqp/raw/upload/v1745142305/spotify_audio/q5xq0oxf7ukt96nrfp2m.mp3',
-            artwork: 'https://res.cloudinary.com/dswyuiiqp/image/upload/v1745142297/spotify_images/vzgoiy7tuvgxnpp5heg4.jpg',
-            duration: 210,
+            id: 4,
+            name: 'Đom đóm',
+            preview_url: 'https://res.cloudinary.com/dswyuiiqp/raw/upload/v1745142305/spotify_audio/q5xq0oxf7ukt96nrfp2m.mp3',
+            album: {
+              images: [
+                {
+                  url: 'https://res.cloudinary.com/dswyuiiqp/image/upload/v1745142297/spotify_images/vzgoiy7tuvgxnpp5heg4.jpg',
+                },
+              ],
+            },
+            artists: [
+              {
+                name: 'J97',
+              },
+            ],
           },
         ];
-        setTracks(mockData);
-        await addToQueue(mockData);
+
+        // Convert SpotifyTrack to Track
+        const convertedTrackList: Track[] = mockData.map(item => ({
+          id: String(item.id), // Convert id to string
+          url: item.preview_url || '', // Use preview_url from Spotify
+          title: item.name, // Use name as title
+          artist: item.artists.map(artist => artist.name).join(', '), // Join artists names
+          artwork: item.album.images[0]?.url || '', // Get artwork from album
+          duration: 180, // Example duration, replace with real data
+        }));
+
+        setTracks(mockData); // Set the mock data state for display
+        setTrackList(convertedTrackList); // Set the Track type list for actions
+        await addToQueue(convertedTrackList); // Add converted tracks to the queue
       } catch (error) {
         console.error('Failed to load playlist:', error);
       } finally {
@@ -70,7 +92,7 @@ const PlaylistScreen = () => {
 
   const renderItem = ({ item }: { item: Track }) => {
     const isCurrentTrack = currentTrack?.id === item.id;
-    
+
     return (
       <TouchableOpacity 
         style={[styles.trackItem, isCurrentTrack && styles.currentTrack]}
@@ -96,9 +118,6 @@ const PlaylistScreen = () => {
               color={isCurrentTrack ? '#1DB954' : '#666'} 
             />
           )}
-          <Text style={styles.trackDuration}>
-            {new Date(item.duration * 1000).toISOString().substr(14, 5)}
-          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -115,7 +134,7 @@ const PlaylistScreen = () => {
   return (
     <View style={styles.container}>
       <FlatList
-        data={tracks}
+        data={trackList} // Using the Track type list for FlatList rendering
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
@@ -175,12 +194,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
-  },
-  trackDuration: {
-    color: '#666',
-    fontSize: 14,
-    minWidth: 40,
-    textAlign: 'right',
   },
   emptyContainer: {
     flex: 1,

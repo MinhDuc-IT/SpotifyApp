@@ -9,6 +9,7 @@ type PlayerState = {
   queue: Track[];
   lyrics: Lyric[];
   currentLyricIndex: number;
+  modalVisible: boolean;
 };
 
 type PlayerActions = {
@@ -18,6 +19,8 @@ type PlayerActions = {
   skipToPrevious: () => Promise<void>;
   addToQueue: (tracks: Track[]) => Promise<number | void>;
   seekTo: (position: number) => Promise<void>;
+  showModal: () => void;
+  hideModal: () => void;
 };
 
 const PlayerContext = createContext<PlayerState & PlayerActions>(null!);
@@ -34,6 +37,8 @@ const playerReducer = (state: PlayerState, action: any): PlayerState => {
       return { ...state, lyrics: action.payload };
     case 'SET_LYRIC_INDEX':
       return { ...state, currentLyricIndex: action.payload };
+    case 'SET_MODAL_VISIBLE':
+      return { ...state, modalVisible: action.payload };
     default:
       return state;
   }
@@ -45,7 +50,8 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
     currentTrack: null,
     queue: [],
     lyrics: [],
-    currentLyricIndex: -1
+    currentLyricIndex: -1,
+    modalVisible: false,
   });
 
   // Xử lý lyrics
@@ -102,6 +108,26 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
       await TrackPlayer.play();
       dispatch({ type: 'SET_PLAYING', payload: true });
     },
+    // play: async (track) => {
+    //   if (track) {
+    //     const currentQueue = await TrackPlayer.getQueue();
+    //     const trackIndex = currentQueue.findIndex(t => t.id === track.id);
+        
+    //     if (trackIndex === -1) {
+    //       await TrackPlayer.reset();
+    //       await TrackPlayer.add(track);
+    //     } else {
+    //       await TrackPlayer.skip(trackIndex);
+    //     }
+    //   }
+    
+    //   // Luôn đảm bảo cập nhật queue sau mọi thay đổi
+    //   const updatedQueue = await TrackPlayer.getQueue();
+    //   dispatch({ type: 'SET_QUEUE', payload: updatedQueue });
+    
+    //   await TrackPlayer.play();
+    //   dispatch({ type: 'SET_PLAYING', payload: true });
+    // },        
     pause: async () => {
       await TrackPlayer.pause();
       dispatch({ type: 'SET_PLAYING', payload: false });
@@ -110,9 +136,19 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
       console.log("next");
       await TrackPlayer.skipToNext()
     },
-    skipToPrevious: async () => await TrackPlayer.skipToPrevious(),
-    addToQueue: async (tracks) => await TrackPlayer.add(tracks),
-    seekTo: async (position) => await TrackPlayer.seekTo(position)
+    skipToPrevious: async () => {
+      console.log("previous");
+      await TrackPlayer.skipToPrevious()
+    },
+    addToQueue: async (tracks) => {
+      console.log(tracks);
+      await TrackPlayer.add(tracks);
+      dispatch({ type: 'SET_QUEUE', payload: [...state.queue, ...tracks] }); // cập nhật state.queue
+    },
+    seekTo: async (position) => await TrackPlayer.seekTo(position),
+    showModal: () => dispatch({ type: 'SET_MODAL_VISIBLE', payload: true }),
+    hideModal: () => dispatch({ type: 'SET_MODAL_VISIBLE', payload: false }),
+
   };
 
   return (

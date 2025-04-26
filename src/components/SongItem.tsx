@@ -2,42 +2,54 @@ import React from "react";
 import { StyleSheet, Text, View, Pressable, Image } from "react-native";
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { usePlayer } from "../contexts/PlayerContext";
+//import { usePlayer } from "../contexts/PlayerContext";
+import { Track } from 'react-native-track-player';
 
 // Định nghĩa kiểu dữ liệu cho props
+// type SongItemProps = {
+//   item: {
+//     track: {
+//       id: number;
+//       name: string;
+//       preview_url: string | null;
+//       album: { images: { url: string }[] };
+//       artists: { name: string }[];
+//     };
+//   };
+//   onPress: (item: any) => void;
+//   isPlaying: boolean;
+// };
 type SongItemProps = {
-  item: {
-    track: {
-      id: number;
-      name: string;
-      preview_url: string | null;
-      album: { images: { url: string }[] };
-      artists: { name: string }[];
-    };
-  };
+  item: Track;
   onPress: (item: any) => void;
   isPlaying: boolean;
 };
 
 const SongItem: React.FC<SongItemProps> = ({ item, onPress, isPlaying }) => {
-  const { state, dispatch } = usePlayer();
-
+  // const { state, dispatch } = usePlayer();
+console.log(item);
   const handlePress = () => {
-    const track = item.track;
-    if (track && track.id && track.preview_url) {
-      dispatch({ type: 'SET_CURRENT_TRACK', track });
-    }
-    onPress(item);
+    // const track = item.track;
+    // const convertedTrack: Track = {
+    //   id: String(track.id), // Convert id to string
+    //   url: track.preview_url || '', // Use preview_url from Spotify
+    //   title: track.name, // Use name as title
+    //   artist: track.artists.map(artist => artist.name).join(', '), // Join artists names
+    //   artwork: track.album.images[0]?.url || '', // Get artwork from album
+    //   duration: 180, // Example duration, replace with real data
+    // };
+    // onPress(convertedTrack);
+    onPress(item)
   };
 
   return (
     <Pressable onPress={handlePress} style={styles.container}>
-      <Image style={styles.image} source={{ uri: item?.track?.album?.images[0].url }} />
+      <Image style={styles.image} source={{ uri: item.artwork }} />
       <View style={styles.textContainer}>
         <Text numberOfLines={1} style={isPlaying ? styles.textPlaying : styles.text}>
-          {item?.track?.name}
+          {item.title}
         </Text>
-        <Text style={styles.artistText}>{item?.track?.artists[0].name}</Text>
+        <Text style={styles.artistText}>{item.artist}</Text>
       </View>
       <View style={styles.iconsContainer}>
         <AntDesign name="heart" size={24} color="#1DB954" />

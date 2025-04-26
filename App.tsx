@@ -25,6 +25,7 @@ import { PlayerScreen } from './src/screens/PlayerScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
 
 const Stack = createNativeStackNavigator();
+registerPlaybackService();
 
 const App = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
@@ -97,7 +98,7 @@ const App = () => {
   useEffect(() => {
     const initialize = async () => {
       await setupPlayer();
-      registerPlaybackService();
+      //registerPlaybackService();
     };
     initialize();
   }, []);

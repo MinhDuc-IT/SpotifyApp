@@ -245,15 +245,15 @@ const HomeScreen = () => {
         <View>
           <View style={styles.header}>
             <View style={styles.avatarWrapper}>
-              {/* {userProfile?.images?.length ? (
+              {userProfile?.images?.length ? (
                 <Image
                   style={styles.avatar}
                   source={{uri: userProfile.images[0].url}}
                 />
               ) : (
                 <Ionicons name="person-circle" size={40} color="white" />
-              )} */}
-              <Ionicons name="person-circle" size={40} color="white" />
+              )}
+              {/* <Ionicons name="person-circle" size={40} color="white" /> */}
             </View>
             <Text style={styles.greeting}>{message || 'No message'}</Text>
             <Text style={{color: 'white', fontSize: 20}}>

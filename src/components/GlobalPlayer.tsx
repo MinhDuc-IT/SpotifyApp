@@ -35,7 +35,7 @@ const GlobalPlayer = () => {
     <View
       style={{
         position: 'absolute',
-        bottom: 60,
+        bottom: 70,
         left: 0,
         right: 0,
         zIndex: 10,

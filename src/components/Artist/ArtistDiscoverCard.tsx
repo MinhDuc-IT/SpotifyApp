@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import api from '../../services/api';
 
 interface ArtistDiscoverCardProps {
     artistName: string;
@@ -15,7 +16,7 @@ const mockRelatedArtists: RelatedArtist[] = [
     { name: "Nghệ sĩ B", image: "https://picsum.photos/200" },
     { name: "Nghệ sĩ C", image: "https://picsum.photos/200" },
     { name: "Nghệ sĩ D", image: "https://picsum.photos/200" },
-  ];
+];
 
 export const ArtistDiscoverCard: React.FC<ArtistDiscoverCardProps> = ({ artistName }) => {
     const [relatedArtists, setRelatedArtists] = useState<RelatedArtist[]>([]);
@@ -24,12 +25,18 @@ export const ArtistDiscoverCard: React.FC<ArtistDiscoverCardProps> = ({ artistNa
     useEffect(() => {
         const fetchRelatedArtists = async () => {
             try {
-                const response = await fetch(`https://api.example.com/artist/related?name=${encodeURIComponent(artistName)}`);
-                const data: { relatedArtists: RelatedArtist[] } = await response.json();
-                setRelatedArtists(data.relatedArtists);
+                const response = await api.get(`/artist/related/${encodeURIComponent(artistName)}`);
+                const dto = response.data;
+
+                const relatedArtists: RelatedArtist[] = dto.songs.map((song: any) => ({
+                    name: song.title,
+                    image: song.thumbnailUrl,
+                }));
+
+                setRelatedArtists(relatedArtists);
             } catch (error) {
                 console.error('Error fetching related artists:', error);
-                setRelatedArtists(mockRelatedArtists); 
+                setRelatedArtists(mockRelatedArtists);
             } finally {
                 setLoading(false);
             }
@@ -63,6 +70,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         marginBottom: 10,
+        width: '100%',
     },
     artistSectionTitle: {
         color: 'white',

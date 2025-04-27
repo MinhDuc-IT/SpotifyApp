@@ -30,7 +30,7 @@ const { width, height } = Dimensions.get('window');
 
 const PlayerModal = () => {
   //const { state, dispatch } = usePlayer();
-  const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal } = usePlayer();
+  const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics } = usePlayer();
   const { position, duration } = useProgress();
   //const progress = useRef(new Animated.Value(0)).current;
   const [lyricsCache, setLyricsCache] = useState<Record<string, Lyric[]>>({});
@@ -206,100 +206,100 @@ const PlayerModal = () => {
               <AntDesign name="down" size={24} color="#FFFFFF" />
             </Pressable>
 
-            <View style={{width: width, height: height - 150}}>
-            <Pressable onPress={handleFlip}>
-              <Animated.View style={[
-                styles.flipCard,
-                {
-                  transform: [
-                    { rotateY: frontInterpolate },
-                    { perspective: 1000 }
-                  ]
-                }
-              ]}>
-                <Image
-                  source={{ uri: currentTrack?.artwork }}
-                  style={styles.albumArt}
-                />
-                <LinearGradient
-    colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
-    style={StyleSheet.absoluteFillObject}
-    locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
-  />
-              </Animated.View>
-
-              <Animated.View style={[
-                styles.flipCard,
-                styles.lyricCard,
-                {
-                  transform: [
-                    { rotateY: backInterpolate },
-                    { perspective: 1000 }
-                  ]
-                }
-              ]}>
-                {currentLyrics.length > 0 ? (
-                  <FlatList
-                    ref={scrollRef}
-                    data={currentLyrics}
-                    keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item, index }) => (
-                      <Text
-                        style={[
-                          styles.lyricLine,
-                          index === currentLyricIndex && styles.activeLyric
-                        ]}
-                      >
-                        {item.text}
-                      </Text>
-                    )}
-                    getItemLayout={(_, index) => ({
-                      length: 35,
-                      offset: 35 * index,
-                      index
-                    })}
-                    initialScrollIndex={currentLyricIndex}
-                    contentContainerStyle={styles.lyricContainer}
-                    showsVerticalScrollIndicator={false}
+            <View style={{ width: width, height: height - 150 }}>
+              <Pressable onPress={handleFlip}>
+                <Animated.View style={[
+                  styles.flipCard,
+                  {
+                    transform: [
+                      { rotateY: frontInterpolate },
+                      { perspective: 1000 }
+                    ]
+                  }
+                ]}>
+                  <Image
+                    source={{ uri: currentTrack?.artwork }}
+                    style={styles.albumArt}
                   />
-                ) : (
-                  <Text style={styles.errorText}>Lyrics not available</Text>
-                )}
-              </Animated.View>
-            </Pressable>
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
+                    style={StyleSheet.absoluteFillObject}
+                    locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+                  />
+                </Animated.View>
 
-            <TrackInfo />
-            <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
-              <ProgressBar />
-            </View>
-
-            <View style={styles.controls}>
-              <Pressable
-                onPress={skipToPrevious}
-                accessibilityLabel="Previous track"
-              >
-                <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
+                <Animated.View style={[
+                  styles.flipCard,
+                  styles.lyricCard,
+                  {
+                    transform: [
+                      { rotateY: backInterpolate },
+                      { perspective: 1000 }
+                    ]
+                  }
+                ]}>
+                  {currentLyrics.length > 0 ? (
+                    <FlatList
+                      ref={scrollRef}
+                      data={currentLyrics}
+                      keyExtractor={(_, index) => index.toString()}
+                      renderItem={({ item, index }) => (
+                        <Text
+                          style={[
+                            styles.lyricLine,
+                            index === currentLyricIndex && styles.activeLyric
+                          ]}
+                        >
+                          {item.text}
+                        </Text>
+                      )}
+                      getItemLayout={(_, index) => ({
+                        length: 35,
+                        offset: 35 * index,
+                        index
+                      })}
+                      initialScrollIndex={currentLyricIndex}
+                      contentContainerStyle={styles.lyricContainer}
+                      showsVerticalScrollIndicator={false}
+                    />
+                  ) : (
+                    <Text style={styles.errorText}>Lyrics not available</Text>
+                  )}
+                </Animated.View>
               </Pressable>
 
-              <Pressable
-                onPress={handlePlayPause}
-                style={styles.playButton}
-                accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? (
-                  <Ionicons name="pause" size={30} color="black" />
-                ) : (
-                  <Ionicons name="play" size={30} color="black" />
-                )}
-              </Pressable>
+              <TrackInfo />
+              <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
+                <ProgressBar />
+              </View>
 
-              <Pressable
-                onPress={skipToNext}
-                accessibilityLabel="Next track"
-              >
-                <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
-              </Pressable>
-            </View>
+              <View style={styles.controls}>
+                <Pressable
+                  onPress={skipToPrevious}
+                  accessibilityLabel="Previous track"
+                >
+                  <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
+                </Pressable>
+
+                <Pressable
+                  onPress={handlePlayPause}
+                  style={styles.playButton}
+                  accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <Ionicons name="pause" size={30} color="black" />
+                  ) : (
+                    <Ionicons name="play" size={30} color="black" />
+                  )}
+                </Pressable>
+
+                <Pressable
+                  onPress={skipToNext}
+                  accessibilityLabel="Next track"
+                >
+                  <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
+                </Pressable>
+              </View>
             </View>
 
             {/* <PlayerControls
@@ -315,9 +315,9 @@ const PlayerModal = () => {
 
         </ScrollView>
       </View>
-        <View style={{height: 35, zIndex: 0}}>
+      <View style={{ height: 35, zIndex: 50 ,backgroundColor: 'black'}}>
 
-        </View>
+      </View>
     </Modal>
   );
 };

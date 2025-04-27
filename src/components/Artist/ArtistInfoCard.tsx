@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import api from '../../services/api';
 
 interface ArtistInfo {
   name: string;
@@ -26,8 +27,16 @@ export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) =>
   useEffect(() => {
     const fetchArtistInfo = async () => {
       try {
-        const response = await fetch(`https://api.example.com/artist/info?name=${encodeURIComponent(artistName)}`);
-        const data: ArtistInfo = await response.json();
+        const response = await api.get(`/artist/info/${encodeURIComponent(artistName)}`);
+        const dto = response.data;
+        const data: ArtistInfo = {
+          name: dto.artistName,
+          image: dto.image, 
+          monthlyListeners: "1M",
+          description: dto.bio || "", 
+        };
+    
+        console.log(data);
         setArtistInfo(data);
       } catch (error) {
         console.error('Error fetching artist info:', error);

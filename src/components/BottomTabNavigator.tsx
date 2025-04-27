@@ -80,7 +80,7 @@ const BottomTabNavigator = () => {
         ),
         tabBarStyle: {
           backgroundColor: '#000000',
-          height: 60,
+          height: 70,
           borderTopWidth: 0,
         },
         tabBarActiveTintColor: '#FFFFFF',

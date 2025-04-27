@@ -21,96 +21,91 @@ import LinearGradient from 'react-native-linear-gradient';
 import { ArtistInfoCard } from './Artist/ArtistInfoCard';
 import { ArtistDiscoverCard } from './Artist/ArtistDiscoverCard';
 
-interface Lyric {
-  startTime: string;
-  text: string;
-}
-
 const { width, height } = Dimensions.get('window');
 
 const PlayerModal = () => {
   //const { state, dispatch } = usePlayer();
-  const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics } = usePlayer();
+  const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics, currentLyricIndex} = usePlayer();
   const { position, duration } = useProgress();
   //const progress = useRef(new Animated.Value(0)).current;
-  const [lyricsCache, setLyricsCache] = useState<Record<string, Lyric[]>>({});
-  const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
+  // [lyricsCache, setLyricsCache] = useState<Record<string, Lyric[]>>({});
+  // const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const [showLyrics, setShowLyrics] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<FlatList>(null);
 
   // Lyric fetching with AbortController
-  useEffect(() => {
-    const abortController = new AbortController();
+  // useEffect(() => {
+  //   const abortController = new AbortController();
 
-    const fetchLyrics = async () => {
-      if (!currentTrack) return;
-      const trackId = currentTrack.id.toString();
+  //   const fetchLyrics = async () => {
+  //     if (!currentTrack) return;
+  //     const trackId = currentTrack.id.toString();
 
-      if (!lyricsCache[trackId]) {
-        try {
-          const resp = await fetch(
-            `http://10.0.2.2:5063/api/song/${trackId}/lyric`,
-            { signal: abortController.signal }
-          );
-          const data = await resp.json();
-          setLyricsCache(prev => ({ ...prev, [trackId]: data }));
-        } catch (err) {
-          if (!abortController.signal.aborted) {
-            console.error('Lyric fetch error:', err);
-          }
-        }
-      }
-    };
+  //     if (!lyricsCache[trackId]) {
+  //       try {
+  //         const resp = await fetch(
+  //           `http://10.0.2.2:5063/api/song/${trackId}/lyric`,
+  //           { signal: abortController.signal }
+  //         );
+  //         const data = await resp.json();
+  //         setLyricsCache(prev => ({ ...prev, [trackId]: data }));
+  //       } catch (err) {
+  //         if (!abortController.signal.aborted) {
+  //           console.error('Lyric fetch error:', err);
+  //         }
+  //       }
+  //     }
+  //   };
 
-    fetchLyrics();
-    return () => abortController.abort();
-  }, [currentTrack]);
+  //   fetchLyrics();
+  //   return () => abortController.abort();
+  // }, [currentTrack]);
 
   // Binary search for lyric timing
-  useEffect(() => {
-    if (!currentTrack) return;
+  // useEffect(() => {
+  //   if (!currentTrack) return;
 
-    const trackId = currentTrack.id.toString();
-    const lyrics = lyricsCache[trackId] || [];
-    if (!lyrics.length) return;
+  //   const trackId = currentTrack.id.toString();
+  //   const lyrics = lyricsCache[trackId] || [];
+  //   if (!lyrics.length) return;
 
-    const currentTime = position * duration;
-    const timePoints = lyrics.map(l => {
-      const [h, m, s] = l.startTime.split(':').map(Number);
-      return h * 3600 + m * 60 + s;
-    });
+  //   const currentTime = position * duration;
+  //   const timePoints = lyrics.map(l => {
+  //     const [h, m, s] = l.startTime.split(':').map(Number);
+  //     return h * 3600 + m * 60 + s;
+  //   });
 
-    // Binary search implementation
-    const findLyricIndex = () => {
-      let low = 0;
-      let high = timePoints.length - 1;
-      let result = -1;
+  //   // Binary search implementation
+  //   const findLyricIndex = () => {
+  //     let low = 0;
+  //     let high = timePoints.length - 1;
+  //     let result = -1;
 
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        if (timePoints[mid] <= currentTime) {
-          result = mid;
-          low = mid + 1;
-        } else {
-          high = mid - 1;
-        }
-      }
-      return result;
-    };
+  //     while (low <= high) {
+  //       const mid = Math.floor((low + high) / 2);
+  //       if (timePoints[mid] <= currentTime) {
+  //         result = mid;
+  //         low = mid + 1;
+  //       } else {
+  //         high = mid - 1;
+  //       }
+  //     }
+  //     return result;
+  //   };
 
-    const newIndex = findLyricIndex();
-    setCurrentLyricIndex(newIndex);
+  //   const newIndex = findLyricIndex();
+  //   setCurrentLyricIndex(newIndex);
 
-    // Scroll to current lyric
-    if (scrollRef.current && newIndex > -1) {
-      scrollRef.current.scrollToIndex({
-        index: newIndex,
-        animated: true,
-        viewPosition: 0.5
-      });
-    }
-  }, [position, lyricsCache, currentTrack, duration]);
+  //   // Scroll to current lyric
+  //   if (scrollRef.current && newIndex > -1) {
+  //     scrollRef.current.scrollToIndex({
+  //       index: newIndex,
+  //       animated: true,
+  //       viewPosition: 0.5
+  //     });
+  //   }
+  // }, [position, lyricsCache, currentTrack, duration]);
 
 
   // Memoized interpolations
@@ -149,9 +144,20 @@ const PlayerModal = () => {
     }).start(() => setShowLyrics(!showLyrics));
   };
 
-  const currentLyrics = currentTrack
-    ? lyricsCache[currentTrack.id.toString()] || []
-    : [];
+  // const currentLyrics = currentTrack
+  //   ? lyricsCache[currentTrack.id.toString()] || []
+  //   : [];
+
+  useEffect(() => {
+    console.log("currentIndexLyric" + currentLyricIndex);
+    if (scrollRef.current && currentLyricIndex >= 0 && lyrics.length > 0) {
+      scrollRef.current.scrollToIndex({
+        index: currentLyricIndex,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    }
+  }, [currentLyricIndex]);
 
   const TrackInfo = React.memo(() => (
     <View
@@ -197,7 +203,11 @@ const PlayerModal = () => {
       onRequestClose={hideModal}
     >
       <View style={styles.modalContainer}>
-        <ScrollView style={{ flex: 1 }}>
+        <FlatList
+        style={{ flex: 1 }}
+        data={[1]} // Just to show the content in a scrollable way
+        keyExtractor={(item) => item.toString()}
+        renderItem={() => (
           <View style={styles.modalContent}>
             <Pressable
               style={styles.closeButton}
@@ -238,10 +248,15 @@ const PlayerModal = () => {
                     ]
                   }
                 ]}>
-                  {currentLyrics.length > 0 ? (
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,9)', 'black']}
+                    style={StyleSheet.absoluteFillObject}
+                    locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+                  />
+                  {lyrics.length > 0 ? (
                     <FlatList
                       ref={scrollRef}
-                      data={currentLyrics}
+                      data={lyrics}
                       keyExtractor={(_, index) => index.toString()}
                       renderItem={({ item, index }) => (
                         <Text
@@ -313,7 +328,12 @@ const PlayerModal = () => {
             <ArtistDiscoverCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
           </View>
 
-        </ScrollView>
+        )}
+        />
+
+        {/* <ScrollView style={{ flex: 1 }}>
+
+        </ScrollView> */}
       </View>
       <View style={{ height: 35, zIndex: 50 ,backgroundColor: 'black'}}>
 

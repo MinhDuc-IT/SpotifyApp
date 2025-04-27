@@ -59,6 +59,7 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
   const updateLyrics = useCallback(async (trackId: string) => {
     try {
       const lyrics = await fetchLyrics(trackId);
+      console.log("Lyrics:", lyrics);
       dispatch({ type: 'SET_LYRICS', payload: lyrics });
     } catch (error) {
       console.error('Error loading lyrics:', error);
@@ -70,11 +71,13 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
     const interval = setInterval(async () => {
       if (state.isPlaying && state.currentTrack) {
         const position = await TrackPlayer.getPosition();
+        console.log('Current position:', position); 
         const currentIndex = state.lyrics.findIndex(
           (lyric, index) =>
             lyric.startTime <= position &&
             (state.lyrics[index + 1]?.startTime > position || index === state.lyrics.length - 1)
         );
+        console.log('Current lyric index:', currentIndex);
         if (currentIndex !== state.currentLyricIndex) {
           dispatch({ type: 'SET_LYRIC_INDEX', payload: currentIndex });
         }
@@ -91,6 +94,7 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
       if (track?.id) updateLyrics(track.id);
     }
     if (event.type === Event.PlaybackState) {
+      console.log('Lyric index has changed, dispatching new index');
       dispatch({ type: 'SET_PLAYING', payload: event.state === State.Playing });
     }
   });
@@ -110,7 +114,7 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
     //   dispatch({ type: 'SET_PLAYING', payload: true });
     // },
     play: async (track) => {
-      console.log("play" + track);
+      console.log("current play" + track);
       if (track) {
         if (track && track.id !== state.currentTrack?.id) {
           const currentQueue = await TrackPlayer.getQueue();

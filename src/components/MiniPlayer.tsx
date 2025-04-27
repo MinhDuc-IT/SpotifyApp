@@ -96,9 +96,10 @@ import { ProgressBar } from './Player/ProgressBar';
 
 const MiniPlayer = () => {
   const { showModal, currentTrack, isPlaying, play, pause } = usePlayer();
-
+  
+  console.log("miniplayer1");
   if (!currentTrack) return null;
-  console.log("miniplayer");
+  console.log("miniplayer2");
 
   const handlePlayPause = () => {
     if (isPlaying) {

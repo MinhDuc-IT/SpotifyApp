@@ -7,9 +7,11 @@ import {
   Image,
   TouchableOpacity,
   Animated,
+  Modal,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import TrackPlayer from 'react-native-track-player';
 
 const newContent = [
   {id: '1', title: '#v-pop', image: require('../assets/images/sontung.jpg')},
@@ -19,6 +21,19 @@ const newContent = [
     image: require('../assets/images/sontung.jpg'),
   },
   {id: '3', title: '#dopamine', image: require('../assets/images/sontung.jpg')},
+];
+
+const downloadedSongs = [
+  {
+    id: '1',
+    title: 'Bài Hát 1',
+    path: '/storage/emulated/0/Download/baihat1.mp3',
+  },
+  {
+    id: '2',
+    title: 'Bài Hát 2',
+    path: '/storage/emulated/0/Download/baihat2.mp3',
+  },
 ];
 
 const categories = [
@@ -96,9 +111,31 @@ const categories = [
   },
 ];
 
+interface Song {
+  id: string;
+  title: string;
+  path: string;
+}
+
 const SearchScreen = () => {
   const [scrollY] = useState(new Animated.Value(0));
+  const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
+
+  const handleClick = () => {
+    setModalVisible(true);
+  };
+  
+  const handlePlaySong = async (song: Song): Promise<void> => {
+    await TrackPlayer.reset(); // reset player
+    await TrackPlayer.add({
+      id: song.id,
+      url: `file://${song.path}`, // Phải thêm file:// phía trước
+      title: song.title,
+    });
+    await TrackPlayer.play();
+    setModalVisible(false);
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -134,7 +171,9 @@ const SearchScreen = () => {
         )}
         scrollEventThrottle={16}>
         <Animated.View style={styles.header}>
-          <View style={styles.avatar}></View>
+          <TouchableOpacity
+            onPress={() => handleClick()}
+            style={styles.avatar}></TouchableOpacity>
           <Text style={styles.headerTitle}>Tìm kiếm</Text>
         </Animated.View>
         <Text style={[styles.sectionTitle, {marginTop: 70}]}>
@@ -165,6 +204,43 @@ const SearchScreen = () => {
           ))}
         </View>
       </ScrollView>
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+          }}>
+          <View
+            style={{
+              margin: 20,
+              backgroundColor: 'white',
+              borderRadius: 10,
+              padding: 20,
+            }}>
+            <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
+              Danh sách đã tải
+            </Text>
+            {downloadedSongs.map(song => (
+              <TouchableOpacity
+                key={song.id}
+                onPress={() => handlePlaySong(song)}
+                style={{marginBottom: 10}}>
+                <Text style={{fontSize: 16}}>{song.title}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={{marginTop: 20}}>
+              <Text style={{textAlign: 'center', color: 'red'}}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

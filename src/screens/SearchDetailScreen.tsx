@@ -7,10 +7,13 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  Button,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import ActionSheet from '../components/ActionSheet';
 import {
   getSearchResults,
   createSearchHistory,
@@ -24,13 +27,15 @@ type SearchItem = {
   name: string;
   type: string;
   image: string;
-  audio: String;
+  audio: string;
 };
 
 const SearchDetailScreen = () => {
   const [searchText, setSearchText] = useState('');
   const [searches, setSearches] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
+  const [openActionSheet, setOpenActionSheet] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigation = useNavigation();
 
@@ -73,8 +78,9 @@ const SearchDetailScreen = () => {
     fetchSearchHistory();
   };
 
-  const handleShowMore = (id: number) => {
-    console.log('show more action');
+  const handleOpenActionSheet = (item: SearchItem) => {
+    setSelectedItem(item);
+    setOpenActionSheet(true);
   };
 
   const handleClearAll = async () => {
@@ -94,6 +100,11 @@ const SearchDetailScreen = () => {
   const updateSearchHistory = async (item: SearchItem) => {
     await createSearchHistory(item);
     fetchSearchHistory();
+  };
+
+  const handleOptionSelect = (option: string) => {
+    console.log('Tùy chọn đã chọn:', option);
+    setOpenActionSheet(false); // Đóng ActionSheet sau khi chọn
   };
 
   const renderItem = ({item}: {item: SearchItem}) => (
@@ -128,9 +139,11 @@ const SearchDetailScreen = () => {
           <Icon name="close" size={16} color="#888" />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity onPress={() => handleShowMore(item.id)}>
-          <Icon name="ellipsis-horizontal" size={16} color="#888" />
-        </TouchableOpacity>
+        item.type == 'Song' && (
+          <TouchableOpacity onPress={() => handleOpenActionSheet(item)}>
+            <Icon name="ellipsis-horizontal" size={16} color="#888" />
+          </TouchableOpacity>
+        )
       )}
     </TouchableOpacity>
   );
@@ -200,6 +213,12 @@ const SearchDetailScreen = () => {
           </View>
         )}
       </View>
+      <ActionSheet
+        isVisible={openActionSheet}
+        onClose={() => setOpenActionSheet(false)}
+        onOptionSelect={handleOptionSelect}
+        selectedItem={selectedItem}
+      />
     </View>
   );
 };
@@ -208,8 +227,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    borderWidth: 1,
-    borderColor: '#fff',
   },
   search_container: {
     paddingTop: 25,

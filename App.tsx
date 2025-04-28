@@ -19,8 +19,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PlayerProvider } from './src/contexts/PlayerContext';
 import SongInfoScreen from './src/screens/SongInfoScreen';
 import GlobalPlayer from './src/components/GlobalPlayer';
+import { PlayerProviderV2 } from './src/contexts/PlayerContextV2';
+import { setupPlayer, registerPlaybackService } from './src/services/trackPlayer.service';
+import { PlayerScreen } from './src/screens/PlayerScreen';
+import PlaylistScreen from './src/screens/PlaylistScreen';
 
 const Stack = createNativeStackNavigator();
+registerPlaybackService();
 
 const App = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
@@ -90,6 +95,14 @@ const App = () => {
     return subscriber;
   }, []);
 
+  useEffect(() => {
+    const initialize = async () => {
+      await setupPlayer();
+      //registerPlaybackService();
+    };
+    initialize();
+  }, []);
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -102,75 +115,87 @@ const App = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthContext.Provider value={{ user, roles }}>
         <PlayerProvider>
-          <LibraryProvider>
-            <View style={{flex: 1}}>
-              <NavigationContainer>
-                <Stack.Navigator>
-                  {!isEmailVerifiedOrFacebook() ? (
-                    <>
-                      <Stack.Screen
-                        name="Start"
-                        component={StartScreen}
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="Login"
-                        component={LoginScreen}
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="SignUp"
-                        component={SignUpScreen}
-                        options={{ headerShown: false }}
-                      />
-                    </>
-                  ) : roles.includes('Admin') ? (
-                    <>
-                      <Stack.Screen
-                        name="Admin"
-                        component={AdminScreen}
-                        options={{ headerShown: false }}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Stack.Screen
-                        name="MainApp"
-                        component={BottomTabNavigator}
-                        options={{ headerShown: false }}
-                      />
-                    </>
-                  )}
-                  <Stack.Screen
-                    name="LibraryScreenTest"
-                    component={LibraryScreenTest}
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="CreatePlaylist"
-                    component={CreatePlaylistScreen}
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="SearchDetail"
-                    component={SearchDetailScreen}
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="Liked"
-                    component={LikedSongsScreen}
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="Info"
-                    component={SongInfoScreen}
-                    options={{ headerShown: false }}
-                  />
-                </Stack.Navigator>
-              </NavigationContainer>
-                <GlobalPlayer />
-            </View>
-          </LibraryProvider>
+          <PlayerProviderV2>
+            <LibraryProvider>
+              <View style={{flex: 1}}>
+                <NavigationContainer>
+                  <Stack.Navigator>
+                    {!isEmailVerifiedOrFacebook() ? (
+                      <>
+                        <Stack.Screen
+                          name="Start"
+                          component={StartScreen}
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="Login"
+                          component={LoginScreen}
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name="SignUp"
+                          component={SignUpScreen}
+                          options={{ headerShown: false }}
+                        />
+                      </>
+                    ) : roles.includes('Admin') ? (
+                      <>
+                        <Stack.Screen
+                          name="Admin"
+                          component={AdminScreen}
+                          options={{ headerShown: false }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Stack.Screen
+                          name="MainApp"
+                          component={BottomTabNavigator}
+                          options={{ headerShown: false }}
+                        />
+                      </>
+                    )}
+                    <Stack.Screen
+                      name="LibraryScreenTest"
+                      component={LibraryScreenTest}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="CreatePlaylist"
+                      component={CreatePlaylistScreen}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="SearchDetail"
+                      component={SearchDetailScreen}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="Liked"
+                      component={LikedSongsScreen}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="Info"
+                      component={SongInfoScreen}
+                      options={{ headerShown: false }}
+                    />
+                    {/* <Stack.Screen
+                      name="PlayList"
+                      component={PlaylistScreen}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="Player"
+                      component={PlayerScreen}
+                      options={{ headerShown: false }}
+                    /> */}
+                  </Stack.Navigator>
+                </NavigationContainer>
+                  <GlobalPlayer />
+              </View>
+            </LibraryProvider>
+          </PlayerProviderV2>
         </PlayerProvider>
       </AuthContext.Provider>
     </GestureHandlerRootView>

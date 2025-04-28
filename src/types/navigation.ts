@@ -23,5 +23,7 @@ export type RootStackParamList = {
           duration: string;
           audioUrl: string;
         };
-      };      
+      }; 
+    PlayList: undefined;
+    Player: undefined;     
 };

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,28 +9,33 @@ import {
   Image,
   FlatList,
   StyleSheet,
+  Modal,
+  TouchableOpacity,
+  KeyboardAvoidingView, Platform
 } from 'react-native';
-import {LinearGradient} from 'react-native-linear-gradient';
+import { LinearGradient } from 'react-native-linear-gradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
-import {useNavigation} from '@react-navigation/native';
-import {debounce} from 'lodash';
-import {usePlayer} from '../contexts/PlayerContext';
+import { useNavigation } from '@react-navigation/native';
+import { debounce } from 'lodash';
+//import {usePlayer} from '../contexts/PlayerContext';
 import SongItem from './SongItem';
-import {BottomModal} from './BottomModal';
-import {ModalContent} from './ModalContent';
+import { BottomModal } from './BottomModal';
+import { ModalContent } from './ModalContent';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { Track } from 'react-native-track-player';
+import { usePlayer } from '../contexts/PlayerContextV2';
 
 type SavedTrack = {
   track: {
     id: number;
     name: string;
     preview_url: string | null;
-    album: {images: {url: string}[]};
-    artists: {name: string}[];
+    album: { images: { url: string }[] };
+    artists: { name: string }[];
   };
 };
 
@@ -50,26 +55,74 @@ const TrackListScreen: React.FC<Props> = ({
   isLoading,
 }) => {
   const navigation = useNavigation();
-  const {state, dispatch} = usePlayer();
-  const [searchedTracks, setSearchedTracks] = useState<SavedTrack[]>([]);
+  const { play, currentTrack, isPlaying, queue, addToQueue } = usePlayer();
+  //const [tracks, setTracks] = useState<SavedTrack[]>([]); // SpotifyTrack type for mock data
+  const [trackList, setTrackList] = useState<Track[]>([]);
+  const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
   const [input, setInput] = useState('');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [currentSort, setCurrentSort] = useState<string>('title');
+  const [isShuffle, setIsShuffle] = useState<boolean>(false);
 
   useEffect(() => {
-    const formattedTracks = tracks.map(t => t.track);
-    dispatch({type: 'SET_QUEUE', queue: formattedTracks});
-    setSearchedTracks(tracks);
+    const fetchPlaylist = async () => {
+      try {
+        // Convert SavedTrack to Track
+        const convertedTrackList: Track[] = tracks.map(item => ({
+          id: String(item.track.id), // Convert id to string
+          url: item.track.preview_url || '', // Use preview_url from Spotify
+          title: item.track.name, // Use name as title
+          artist: item.track.artists.map(artist => artist.name).join(', '), // Join artists names
+          artwork: item.track.album.images[0]?.url || '', // Get artwork from album
+          duration: 180, // Example duration, replace with real data
+        }));
+
+        //setTracks(mockData); // Set the mock data state for display
+        setTrackList(convertedTrackList); // Set the Track type list for actions
+        await addToQueue(convertedTrackList); // Add converted tracks to the queue
+        setSearchedTracks(convertedTrackList);
+      } catch (error) {
+        console.error('Failed to load playlist:', error);
+      }
+    };
+
+    fetchPlaylist();
   }, [tracks]);
 
-  const play = (track: SavedTrack) => {
-    dispatch({type: 'PLAY', track: track.track});
+  const handleTrackPress = async (track: Track) => {
+    await play(track);
   };
 
-  const handleSearch = debounce((text: string) => {
-    const filtered = tracks.filter(item =>
-      item.track.name.toLowerCase().includes(text.toLowerCase()),
+  const handleSearch = useCallback(
+    debounce((text: string) => {
+      if (text.trim() === '') {
+        setSearchedTracks(trackList);
+        return;
+      }
+      const filtered = trackList.filter(track =>
+        track.title?.toLowerCase().includes(text.toLowerCase())
+      );
+      setSearchedTracks(filtered);
+    }, 300),
+    [trackList]
+  );
+
+  const handleShuffle = async () => {
+    const shuffled = [...trackList].sort(() => Math.random() - 0.5);
+    await addToQueue(shuffled);
+    if (shuffled.length > 0) {
+      await play(shuffled[0]);
+    }
+    setIsShuffle(!isShuffle);
+  };
+
+  const handleSort = (type: 'title' | 'artist') => {
+    const sorted = [...searchedTracks].sort((a, b) =>
+      (a[type] ?? '').localeCompare(b[type] ?? '')
     );
-    setSearchedTracks(filtered);
-  }, 500);
+    setSearchedTracks(sorted);
+    setSortModalVisible(false);
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -79,186 +132,14 @@ const TrackListScreen: React.FC<Props> = ({
 
   return (
     <LinearGradient colors={['#614385', '#516395']} style={styles.container}>
-      {/* <ScrollView style={styles.scrollView}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </Pressable>
-
-        <Pressable style={styles.searchContainer}>
-          <Pressable style={styles.searchInputContainer}>
-            <AntDesign name="search1" size={20} color="white" />
-            <TextInput
-              value={input}
-              onChangeText={(text) => {
-                setInput(text);
-                handleSearch(text);
-              }}
-              placeholder="Tìm trong danh sách"
-              placeholderTextColor="lightgrey"
-              style={styles.searchInput}
-            />
-          </Pressable>
-          <Pressable style={styles.sortButton}>
-            <Text style={styles.sortButtonText}>Sắp xếp</Text>
-          </Pressable>
-        </Pressable>
-
-        {state.currentTrack?.album?.images?.[0]?.url ? (
-            <View style={{alignItems: 'center', marginVertical: 15}}>
-            <Image
-              source={{uri: state.currentTrack?.album.images[0].url}}
-              style={{
-                width: 200,
-                height: 200,
-                borderRadius: 10,
-              }}
-              resizeMode="cover"
-            />
-          </View>
-          ) : (
-            <View style={{alignItems: 'center', marginVertical: 15}}>
-            <Image
-              source={{uri: state.queue[0]?.album?.images?.[0]?.url}}
-              style={{
-                width: 200,
-                height: 200,
-                borderRadius: 10,
-              }}
-              resizeMode="cover"
-            />
-          </View>
-          )}
-
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>{title}</Text>
-          {totalCount > 0 && (
-            <Text style={styles.countText}>{totalCount} bài hát</Text>
-          )}
-        </View>
-
-        <Pressable style={styles.playHeader}>
-          <Pressable style={styles.downloadButton}>
-            <AntDesign name="arrowdown" size={20} color="white" />
-          </Pressable>
-          <View style={styles.playControls}>
-            <MaterialCommunityIcons
-              name="cross-bolnisi"
-              size={24}
-              color="#1DB954"
-            />
-            <Pressable 
-              onPress={() => tracks[0] && play(tracks[0])} 
-              style={styles.playButton}
-            >
-              <Entypo name="controller-play" size={24} color="white" />
-            </Pressable>
-          </View>
-        </Pressable>
-
-        {isLoading ? (
-          <ActivityIndicator size="large" color="gray" />
-        ) : (
-          <FlatList
-            data={searchedTracks}
-            keyExtractor={(item) => item.track.id.toString()}
-            renderItem={({ item }) => (
-              <SongItem
-                item={item}
-                onPress={play}
-                isPlaying={item.track.id === state.currentTrack?.id}
-              />
-            )}
-            onEndReached={onEndReached}
-            onEndReachedThreshold={0.5}
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-      </ScrollView> */}
-
-      {/* <FlatList
-        data={searchedTracks}
-        keyExtractor={item => item.track.id.toString()}
-        renderItem={({item}) => (
-          <SongItem
-            item={item}
-            onPress={play}
-            isPlaying={item.track.id === state.currentTrack?.id}
-          />
-        )}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={() => (
-          <>
-            <Pressable
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </Pressable>
-
-            <Pressable style={styles.searchContainer}>
-              <View style={styles.searchInputContainer}>
-                <AntDesign name="search1" size={20} color="white" />
-                <TextInput
-                  value={input}
-                  onChangeText={text => {
-                    setInput(text);
-                    handleSearch(text);
-                  }}
-                  placeholder="Tìm trong bài hát đã thích"
-                  placeholderTextColor="lightgrey"
-                  style={styles.searchInput}
-                />
-              </View>
-              <Pressable style={styles.sortButton}>
-                <Text style={styles.sortButtonText}>Sắp xếp</Text>
-              </Pressable>
-            </Pressable>
-
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>{title}</Text>
-              {totalCount > 0 && (
-                <Text style={styles.countText}>{totalCount} bài hát</Text>
-              )}
-            </View>
-
-            <Pressable style={styles.playHeader}>
-              <Pressable style={styles.downloadButton}>
-                <AntDesign name="arrowdown" size={20} color="white" />
-              </Pressable>
-              <View style={styles.playControls}>
-                <MaterialCommunityIcons
-                  name="cross-bolnisi"
-                  size={24}
-                  color="#1DB954"
-                />
-                <Pressable
-                  onPress={() => tracks[0] && play(tracks[0])}
-                  style={styles.playButton}>
-                  <Entypo name="controller-play" size={24} color="white" />
-                </Pressable>
-              </View>
-            </Pressable>
-
-            {isLoading && (
-              <ActivityIndicator
-                size="large"
-                color="gray"
-                style={{margin: 20}}
-              />
-            )}
-          </>
-        )}
-      /> */}
-
       <FlatList
         data={searchedTracks}
-        keyExtractor={item => item.track.id.toString()}
-        renderItem={({item}) => (
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
           <SongItem
             item={item}
-            onPress={play}
-            isPlaying={item.track.id === state.currentTrack?.id}
+            onPress={handleTrackPress}
+            isPlaying={item.id == currentTrack?.id}
           />
         )}
         onEndReached={onEndReached}
@@ -273,39 +154,28 @@ const TrackListScreen: React.FC<Props> = ({
             </Pressable>
 
             <View style={styles.searchContainer}>
-              <View style={styles.searchInputContainer}>
-                <AntDesign name="search1" size={20} color="white" />
-                <TextInput
-                  value={input}
-                  onChangeText={text => {
-                    setInput(text);
-                    handleSearch(text);
-                  }}
-                  placeholder="Tìm trong danh sách"
-                  placeholderTextColor="lightgrey"
-                  style={styles.searchInput}
-                />
-              </View>
-              <Pressable style={styles.sortButton}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+              >
+                <View style={styles.searchInputContainer}>
+                  <AntDesign name="search1" size={20} color="white" />
+                  <TextInput
+                    value={input}
+                    onChangeText={text => {
+                      setInput(text);
+                      handleSearch(text);
+                    }}
+                    placeholder="Tìm trong danh sách"
+                    placeholderTextColor="lightgrey"
+                    style={styles.searchInput}
+                  />
+                </View>
+              </KeyboardAvoidingView>
+              <Pressable onPress={() => setSortModalVisible(true)} style={styles.sortButton}>
                 <Text style={styles.sortButtonText}>Sắp xếp</Text>
               </Pressable>
             </View>
-
-            {/* <View style={{alignItems: 'center', marginVertical: 15}}>
-              <Image
-                source={{
-                  uri:
-                    state.currentTrack?.album.images?.[0]?.url ||
-                    state.queue[0]?.album.images?.[0]?.url,
-                }}
-                style={{
-                  width: 200,
-                  height: 200,
-                  borderRadius: 10,
-                }}
-                resizeMode="cover"
-              />
-            </View> */}
 
             <View
               style={{
@@ -317,8 +187,8 @@ const TrackListScreen: React.FC<Props> = ({
               <Image
                 source={{
                   uri:
-                    state.currentTrack?.album.images?.[0]?.url ||
-                    state.queue[0]?.album.images?.[0]?.url,
+                    currentTrack?.artwork ||
+                    queue[0]?.artwork,
                 }}
                 style={{
                   width: 250,
@@ -339,7 +209,7 @@ const TrackListScreen: React.FC<Props> = ({
                   textAlign: 'center',
                   marginBottom: 4,
                 }}>
-                Song: {state.currentTrack?.name || state.queue[0]?.name}
+                Song: {currentTrack?.title || queue[0]?.title}
               </Text>
 
               {/* Tên ca sĩ */}
@@ -350,8 +220,8 @@ const TrackListScreen: React.FC<Props> = ({
                   color: '#ccc',
                   textAlign: 'center',
                 }}>
-                Artist: {state.currentTrack?.artists?.[0]?.name ||
-                  state.queue[0]?.artists?.[0]?.name}
+                Artist: {currentTrack?.artist ||
+                  queue[0]?.artist}
               </Text>
             </View>
 
@@ -367,15 +237,20 @@ const TrackListScreen: React.FC<Props> = ({
                 <AntDesign name="arrowdown" size={20} color="white" />
               </Pressable>
               <View style={styles.playControls}>
-                <MaterialCommunityIcons
-                  name="cross-bolnisi"
-                  size={24}
-                  color="#1DB954"
-                />
+                <Pressable onPress={handleShuffle}>
+                  <MaterialCommunityIcons name="cross-bolnisi" size={24} color={isShuffle ? "#1DB954" : "#ffffff"} />
+                </Pressable>
                 <Pressable
-                  onPress={() => tracks[0] && play(tracks[0])}
+                  onPress={() => {
+                    if (searchedTracks.length > 0) play(searchedTracks[0]);
+                  }}
                   style={styles.playButton}>
-                  <Entypo name="controller-play" size={24} color="white" />
+                  {
+                    isPlaying ?
+                      <Entypo name="controller-paus" size={24} color="white" />
+                      :
+                      <Entypo name="controller-play" size={24} color="white" />
+                  }
                 </Pressable>
               </View>
             </View>
@@ -384,100 +259,47 @@ const TrackListScreen: React.FC<Props> = ({
               <ActivityIndicator
                 size="large"
                 color="gray"
-                style={{marginVertical: 20}}
+                style={{ marginVertical: 20 }}
               />
             )}
           </>
         )}
       />
 
-      {/* <BottomModal
-        visible={state.modalVisible}
-        onClose={() => dispatch({ type: 'TOGGLE_MODAL' })}
+      {/* Modal sắp xếp */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSortModalVisible(false)}
       >
-        <ModalContent style={styles.modalContent}>
-          <View style={styles.modalInner}>
-            <Pressable 
-              style={styles.modalHeader}
-              onPress={() => dispatch({ type: 'TOGGLE_MODAL' })}
-            >
-              <AntDesign name="down" size={24} color="white" />
-              <Text style={styles.modalTitle}>{state.currentTrack?.name}</Text>
-              <Entypo name="dots-three-vertical" size={24} color="white" />
-            </Pressable>
-
-            <View style={styles.modalBody}>
-              <Image
-                style={styles.albumArt}
-                source={{ uri: state.currentTrack?.album.images[0]?.url }}
-              />
-
-              <View style={styles.songInfoContainer}>
-                <View>
-                  <Text style={styles.songTitle}>{state.currentTrack?.name}</Text>
-                  <Text style={styles.artistName}>
-                    {state.currentTrack?.artists[0]?.name}
-                  </Text>
-                </View>
-                <AntDesign name="heart" size={24} color="#1DB954" />
-              </View>
-
-              <View style={styles.modalProgressContainer}>
-                <View style={styles.modalProgressBar}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: `${state.progress * 100}%` },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.modalProgressCircle,
-                      { left: `${state.progress * 100}%` },
-                    ]}
-                  />
-                </View>
-                <View style={styles.timeContainer}>
-                  <Text style={styles.timeText}>
-                    {formatTime(state.progress * state.duration)}
-                  </Text>
-                  <Text style={styles.timeText}>
-                    {formatTime(state.duration)}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.playerControls}>
-                <Pressable>
-                  <FontAwesome name="arrows" size={30} color="#03C03C" />
-                </Pressable>
-                <Pressable onPress={() => dispatch({ type: 'PREV_TRACK' })}>
-                  <Ionicons name="play-skip-back" size={30} color="white" />
-                </Pressable>
-                <Pressable onPress={() => dispatch({ type: 'TOGGLE_PLAY' })}>
-                  {state.isPlaying ? (
-                    <AntDesign name="pausecircle" size={60} color="white" />
-                  ) : (
-                    <Pressable style={styles.playButtonBig}>
-                      <Entypo name="controller-play" size={26} color="black" />
-                    </Pressable>
-                  )}
-                </Pressable>
-                <Pressable onPress={() => dispatch({ type: 'NEXT_TRACK' })}>
-                  <Ionicons name="play-skip-forward" size={30} color="white" />
-                </Pressable>
-                <Pressable>
-                  <Feather name="repeat" size={30} color="#03C03C" />
-                </Pressable>
-              </View>
-            </View>
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.headerText}>Sắp xếp theo</Text>
+            {[
+              { label: 'Tiêu đề', value: 'title' },
+              { label: 'Nghệ sĩ', value: 'artist' },
+            ].map(option => (
+              <TouchableOpacity
+                key={option.value}
+                style={styles.option}
+                onPress={() => {
+                  setCurrentSort(option.value)
+                  handleSort(option.value == "title" ? "title" : "artist");
+                }}
+              >
+                <Text style={styles.optionText}>{option.label}</Text>
+                {currentSort === option.value && (
+                  <Text style={styles.checkmark}>✔️</Text>
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
-        </ModalContent>
-      </BottomModal> */}
+        </TouchableOpacity>
+      </Modal>
     </LinearGradient>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -567,11 +389,11 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 100,
   },
-  modalContent: {
-    height: '100%',
-    width: '100%',
-    backgroundColor: '#5072A7',
-  },
+  // modalContent: {
+  //   height: '100%',
+  //   width: '100%',
+  //   backgroundColor: '#5072A7',
+  // },
   modalInner: {
     height: '100%',
     width: '100%',
@@ -661,6 +483,398 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#121212',
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 30,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 20,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  optionText: {
+    fontSize: 16,
+    color: 'white',
+  },
+  checkmark: {
+    fontSize: 18,
+    color: 'green',
+  },
 });
+
+// import React, { useEffect, useState, useCallback } from 'react';
+// import {
+//   ActivityIndicator,
+//   StyleSheet,
+//   FlatList,
+//   Image,
+//   Modal,
+//   Pressable,
+//   Text,
+//   TextInput,
+//   View,
+//   TouchableOpacity,
+//   Dimensions,
+// } from 'react-native';
+// import LinearGradient from 'react-native-linear-gradient';
+// import { useNavigation } from '@react-navigation/native';
+// import { debounce } from 'lodash';
+// import Ionicons from 'react-native-vector-icons/Ionicons';
+// import AntDesign from 'react-native-vector-icons/AntDesign';
+// import Entypo from 'react-native-vector-icons/Entypo';
+// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// import { usePlayer } from '../contexts/PlayerContextV2';
+// import SongItem from '../components/SongItem';
+// import { Track } from 'react-native-track-player';
+
+// const { width } = Dimensions.get('window');
+// type SavedTrack = {
+//   track: {
+//     id: number;
+//     name: string;
+//     preview_url: string | null;
+//     album: { images: { url: string }[] };
+//     artists: { name: string }[];
+//   };
+// };
+
+// interface Props {
+//   title: string;
+//   tracks: SavedTrack[];
+//   onEndReached?: () => void;
+//   totalCount: number;
+//   isLoading?: boolean;
+// }
+
+// const TrackListScreen: React.FC<Props> = ({
+//   title,
+//   tracks,
+//   totalCount = 0,
+//   onEndReached,
+//   isLoading,
+// }) => {
+//   const navigation = useNavigation();
+//   const { play, currentTrack, isPlaying, queue, addToQueue } = usePlayer();
+
+//   const [trackList, setTrackList] = useState<Track[]>([]);
+//   const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
+//   const [input, setInput] = useState('');
+//   const [sortModalVisible, setSortModalVisible] = useState(false);
+
+//   useEffect(() => {
+//     const initialize = async () => {
+//       const converted = tracks.map(item => ({
+//         id: String(item.track.id),
+//         url: item.track.preview_url || '',
+//         title: item.track.name,
+//         artist: item.track.artists.map(a => a.name).join(', '),
+//         artwork: item.track.album.images[0]?.url || '',
+//         duration: 180,
+//       }));
+
+//       setTrackList(converted);
+//       setFilteredTracks(converted);
+//       await addToQueue(converted);
+//     };
+
+//     initialize();
+//   }, [tracks, addToQueue]);
+
+//   const handleTrackPress = async (track: Track) => {
+//     await play(track);
+//   };
+
+//   const handleSearch = useCallback(
+//     debounce((text: string) => {
+//       if (text.trim() === '') {
+//         setFilteredTracks(trackList);
+//         return;
+//       }
+//       const filtered = trackList.filter(track =>
+//         track.name.toLowerCase().includes(text.toLowerCase())
+//       );
+//       setFilteredTracks(filtered);
+//     }, 300),
+//     [trackList]
+//   );
+
+//   const handleShuffle = async () => {
+//     const shuffled = [...trackList].sort(() => Math.random() - 0.5);
+//     await addToQueue(shuffled);
+//     if (shuffled.length > 0) {
+//       await play(shuffled[0]);
+//     }
+//   };
+
+//   const handleSort = (type: 'title' | 'artist') => {
+//     const sorted = [...filteredTracks].sort((a, b) =>
+//       (a[type] ?? '').localeCompare(b[type] ?? '')
+//     );
+//     setFilteredTracks(sorted);
+//     setSortModalVisible(false);
+//   };  
+
+//   const renderHeader = () => (
+//     <>
+//       <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+//         <Ionicons name="arrow-back" size={24} color="white" />
+//       </Pressable>
+
+//       <View style={styles.searchContainer}>
+//         <View style={styles.searchInputContainer}>
+//           <AntDesign name="search1" size={20} color="white" />
+//           <TextInput
+//             value={input}
+//             onChangeText={text => {
+//               setInput(text);
+//               handleSearch(text);
+//             }}
+//             placeholder="Tìm trong danh sách"
+//             placeholderTextColor="lightgrey"
+//             style={styles.searchInput}
+//           />
+//         </View>
+//         <Pressable onPress={() => setSortModalVisible(true)} style={styles.sortButton}>
+//           <Text style={styles.sortButtonText}>Sắp xếp</Text>
+//         </Pressable>
+//       </View>
+
+//       <View style={styles.currentTrackInfo}>
+//         <Image
+//           source={{ uri: currentTrack?.artwork || queue[0]?.artwork }}
+//           style={styles.artwork}
+//           resizeMode="cover"
+//         />
+//         <Text numberOfLines={1} style={styles.songTitle}>
+//           Song: {currentTrack?.title || queue[0]?.title}
+//         </Text>
+//         <Text numberOfLines={1} style={styles.songArtist}>
+//           Artist: {currentTrack?.artist || queue[0]?.artist}
+//         </Text>
+//       </View>
+
+//       <View style={styles.titleContainer}>
+//         <Text style={styles.titleText}>{title}</Text>
+//         {totalCount > 0 && (
+//           <Text style={styles.countText}>{totalCount} bài hát</Text>
+//         )}
+//       </View>
+
+//       <View style={styles.playHeader}>
+//         <Pressable style={styles.downloadButton}>
+//           <AntDesign name="arrowdown" size={20} color="white" />
+//         </Pressable>
+//         <View style={styles.playControls}>
+//           <Pressable onPress={handleShuffle}>
+//             <MaterialCommunityIcons name="cross-bolnisi" size={24} color="#1DB954" />
+//           </Pressable>
+//           <Pressable
+//             onPress={() => {
+//               if (filteredTracks.length > 0) play(filteredTracks[0]);
+//             }}
+//             style={styles.playButton}
+//           >
+//             <Entypo name="controller-play" size={24} color="white" />
+//           </Pressable>
+//         </View>
+//       </View>
+
+//       {isLoading && (
+//         <ActivityIndicator size="large" color="gray" style={{ marginVertical: 20 }} />
+//       )}
+//     </>
+//   );
+
+//   return (
+//     <LinearGradient colors={['#614385', '#516395']} style={styles.container}>
+//       <FlatList
+//         data={filteredTracks}
+//         keyExtractor={item => item.id}
+//         renderItem={({ item }) => (
+//           <SongItem
+//             item={item}
+//             onPress={handleTrackPress}
+//             isPlaying={item.id === currentTrack?.id}
+//           />
+//         )}
+//         onEndReached={onEndReached}
+//         onEndReachedThreshold={0.5}
+//         contentContainerStyle={styles.listContent}
+//         ListHeaderComponent={renderHeader}
+//       />
+
+//       {/* Modal sắp xếp */}
+//       <Modal
+//         visible={sortModalVisible}
+//         transparent
+//         animationType="slide"
+//         onRequestClose={() => setSortModalVisible(false)}
+//       >
+//         <TouchableOpacity style={styles.modalOverlay} onPress={() => setSortModalVisible(false)}>
+//           <View style={styles.modalContent}>
+//             <Text style={styles.modalTitle}>Sắp xếp theo</Text>
+//             <Pressable onPress={() => handleSort('title')} style={styles.modalOption}>
+//               <Text style={styles.modalOptionText}>Tên bài hát</Text>
+//             </Pressable>
+//             <Pressable onPress={() => handleSort('artist')} style={styles.modalOption}>
+//               <Text style={styles.modalOptionText}>Nghệ sĩ</Text>
+//             </Pressable>
+//           </View>
+//         </TouchableOpacity>
+//       </Modal>
+//     </LinearGradient>
+//   );
+// };
+
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     paddingHorizontal: 12,
+//     paddingTop: 50,
+//   },
+//   backButton: {
+//     position: 'absolute',
+//     top: 50,
+//     left: 20,
+//     zIndex: 10,
+//   },
+//   searchContainer: {
+//     marginTop: 20,
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     gap: 10,
+//   },
+//   searchInputContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     backgroundColor: '#3D3D3D',
+//     borderRadius: 20,
+//     paddingHorizontal: 10,
+//     flex: 1,
+//     height: 40,
+//   },
+//   searchInput: {
+//     flex: 1,
+//     marginLeft: 8,
+//     color: 'white',
+//     fontSize: 16,
+//   },
+//   sortButton: {
+//     backgroundColor: '#3D3D3D',
+//     borderRadius: 20,
+//     paddingVertical: 8,
+//     paddingHorizontal: 12,
+//   },
+//   sortButtonText: {
+//     color: 'white',
+//     fontSize: 14,
+//   },
+//   currentTrackInfo: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     marginTop: 20,
+//     gap: 12,
+//   },
+//   artwork: {
+//     width: 60,
+//     height: 60,
+//     borderRadius: 8,
+//     backgroundColor: '#555',
+//   },
+//   songTitle: {
+//     flex: 1,
+//     fontSize: 16,
+//     fontWeight: '600',
+//     color: 'white',
+//   },
+//   songArtist: {
+//     flex: 1,
+//     fontSize: 14,
+//     color: 'lightgrey',
+//   },
+//   titleContainer: {
+//     marginTop: 20,
+//     alignItems: 'center',
+//   },
+//   titleText: {
+//     fontSize: 22,
+//     fontWeight: 'bold',
+//     color: 'white',
+//   },
+//   countText: {
+//     marginTop: 4,
+//     fontSize: 14,
+//     color: 'lightgrey',
+//   },
+//   playHeader: {
+//     marginTop: 20,
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//   },
+//   downloadButton: {
+//     backgroundColor: '#1DB954',
+//     padding: 8,
+//     borderRadius: 50,
+//   },
+//   playControls: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     gap: 20,
+//   },
+//   playButton: {
+//     backgroundColor: '#1DB954',
+//     padding: 12,
+//     borderRadius: 50,
+//   },
+//   listContent: {
+//     paddingBottom: 80,
+//   },
+//   modalOverlay: {
+//     flex: 1,
+//     justifyContent: 'flex-end',
+//     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+//   },
+//   modalContent: {
+//     backgroundColor: '#2C2C2C',
+//     borderTopLeftRadius: 20,
+//     borderTopRightRadius: 20,
+//     padding: 20,
+//   },
+//   modalTitle: {
+//     fontSize: 18,
+//     fontWeight: 'bold',
+//     color: 'white',
+//     marginBottom: 20,
+//     textAlign: 'center',
+//   },
+//   modalOption: {
+//     paddingVertical: 15,
+//     borderBottomWidth: 1,
+//     borderBottomColor: '#444',
+//   },
+//   modalOptionText: {
+//     fontSize: 16,
+//     color: 'white',
+//     textAlign: 'center',
+//   },
+// });
 
 export default TrackListScreen;

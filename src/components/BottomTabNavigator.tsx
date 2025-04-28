@@ -38,22 +38,24 @@
 
 // export default BottomTabNavigator;
 import React from 'react';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Text, View} from 'react-native';
+import { Text, View } from 'react-native';
 import LibraryScreen from '../screens/LibraryScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SearchScreen from '../screens/SearchScreen';
 import SearchDetailScreen from '../screens/SearchDetailScreen';
-import {RootStackParamList} from '../types/navigation';
+import { RootStackParamList } from '../types/navigation';
+import PlaylistScreen from '../screens/PlaylistScreen';
+import LikedSongsScreen from '../screens/LikedSongsScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 
 const BottomTabNavigator = () => {
   return (
     <Tab.Navigator
-      screenOptions={({route}) => ({
-        tabBarIcon: ({color, size, focused}) => {
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size, focused }) => {
           let iconName = '';
 
           if (route.name === 'Home') {
@@ -64,18 +66,21 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
             iconName = focused ? 'search-outline' : 'search';
-          }
+          } 
+          // else if (route.name === 'PlayList') {
+          //   iconName = focused ? 'library' : 'library-outline';
+          // }
 
           return <Ionicons name={iconName} size={20} color={color} />;
         },
-        tabBarLabel: ({focused, color}) => (
-          <Text style={{color: focused ? '#FFFFFF' : '#E5E5E5', fontSize: 10}}>
+        tabBarLabel: ({ focused, color }) => (
+          <Text style={{ color: focused ? '#FFFFFF' : '#E5E5E5', fontSize: 10 }}>
             {route.name}
           </Text>
         ),
         tabBarStyle: {
           backgroundColor: '#000000',
-          height: 60,
+          height: 70,
           borderTopWidth: 0,
         },
         tabBarActiveTintColor: '#FFFFFF',
@@ -85,7 +90,16 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Library" component={LibraryScreen} />
+      {/* <Tab.Screen name="PlayList" component={PlaylistScreen} /> */}
       <Tab.Screen name="Premium" component={SearchDetailScreen} />
+      <Tab.Screen
+        name="Liked"
+        component={LikedSongsScreen}
+        options={{
+          tabBarButton: () => null, 
+          // tabBarStyle: { display: 'none' }
+        }}
+      />
     </Tab.Navigator>
   );
 };

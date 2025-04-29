@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import TrackListScreen from '../components/TrackList';
 import api from '../services/api';
 
@@ -23,7 +23,7 @@ const LikedSongsScreen = () => {
 
   const fetchTracks = useCallback(async () => {
     if (loading || page > totalPages) return;
-    
+
     setLoading(true);
 
     try {
@@ -38,21 +38,20 @@ const LikedSongsScreen = () => {
       console.log('Kết quả tìm kiếm:', data);
 
       if (data?.length) {
-
         // Map từ SongDto → format track
-    const mappedTracks = data.map((song: LikedSong) => ({
-      track: {
-        name: song.title,
-        id: song.songId,
-        preview_url: song.audioUrl,
-        album: {
-          images: [{ url: song.thumbnailUrl }],
-        },
-        artists: [{ name: song.artistName }],
-      },
-    }));
+        const mappedTracks = data.map((song: LikedSong) => ({
+          track: {
+            name: song.title,
+            id: song.songId,
+            preview_url: song.audioUrl,
+            album: {
+              images: [{url: song.thumbnailUrl}],
+            },
+            artists: [{name: song.artistName}],
+          },
+        }));
 
-        setTracks((prev) => [...prev, ...mappedTracks]);
+        setTracks(prev => [...prev, ...mappedTracks]);
         // setTotalPages(data.totalPages);
         setTotalItems(data.length);
         // setPage((prev) => prev + 1);

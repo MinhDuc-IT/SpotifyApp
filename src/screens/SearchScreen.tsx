@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -134,7 +134,8 @@ const SearchScreen = () => {
         )}
         scrollEventThrottle={16}>
         <Animated.View style={styles.header}>
-          <View style={styles.avatar}></View>
+          <TouchableOpacity
+            style={styles.avatar}></TouchableOpacity>
           <Text style={styles.headerTitle}>Tìm kiếm</Text>
         </Animated.View>
         <Text style={[styles.sectionTitle, {marginTop: 70}]}>

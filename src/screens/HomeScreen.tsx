@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import AuthContext from '../contexts/AuthContext';
-import {StackNavigationProp} from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-import {RootStackParamList} from '../types/navigation';
-import {useNavigation} from '@react-navigation/native';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
-import {ScrollView} from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -76,7 +76,7 @@ interface Artist {
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
-  const {user, roles} = useContext(AuthContext);
+  const { user, roles } = useContext(AuthContext);
   const [data, setData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<HomeScreenNavigationProp>();
@@ -101,40 +101,40 @@ const HomeScreen = () => {
     fetchData();
   }, []);
 
-  // useEffect(() => {
-  //   getTopItems();
-  // }, []);
+  useEffect(() => {
+    getTopItems();
+  }, []);
 
-  // const getTopItems = async () => {
-  //   try {
-  //     const response = await api.get('/history/top-artists');
-  //     const data = response.data;
-  //     console.log('Top artist:', data); // Log the profile data for debugging
+  const getTopItems = async () => {
+    try {
+      const response = await api.get('/history/top-artists');
+      const data = response.data;
+      console.log('Top artist:', data); // Log the profile data for debugging
 
-  //     setTopArtists(data);
-  //   } catch (err: any) {
-  //     console.log('Error fetching top artists:', err.message);
-  //   }
-  // };
+      setTopArtists(data);
+    } catch (err: any) {
+      console.log('Error fetching top artists:', err.message);
+    }
+  };
 
-  // useEffect(() => {
-  //   getRecentlyPlayedSongs();
-  // }, []);
+  useEffect(() => {
+    getRecentlyPlayedSongs();
+  }, []);
 
-  // const getRecentlyPlayedSongs = async () => {
-  //   try {
-  //     const response = await api.get('/history/listening-history');
-  //     const data = response.data;
-  //     console.log('Recent data:', data); // Log the profile data for debugging
+  const getRecentlyPlayedSongs = async () => {
+    try {
+      const response = await api.get('/history/listening-history');
+      const data = response.data;
+      console.log('Recent data:', data); // Log the profile data for debugging
 
-  //     //const data = await response.json();
-  //     const tracks = data;
-  //     console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
-  //     setRecentlyPlayed(tracks);
-  //   } catch (err: any) {
-  //     console.log('Error fetching recently played:', err.message);
-  //   }
-  // };
+      //const data = await response.json();
+      const tracks = data;
+      console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
+      setRecentlyPlayed(tracks);
+    } catch (err: any) {
+      console.log('Error fetching recently played:', err.message);
+    }
+  };
 
   useEffect(() => {
     getProfile();
@@ -148,8 +148,8 @@ const HomeScreen = () => {
       console.log('Profile data:', data); // Log the profile data for debugging
 
       const user: SpotifyUser = {
-        images: data.avatar ? [{url: data.avatar}] : [],
-        name: data.fullName ? {name: data.email} : undefined,
+        images: data.avatar ? [{ url: data.avatar }] : [],
+        name: data.fullName ? { name: data.email } : undefined,
       };
 
       console.log('User object:', user); // Log the user object for debugging
@@ -163,7 +163,7 @@ const HomeScreen = () => {
     }
   };
 
-  const renderItem = ({item}: ListRenderItemInfo<RecentlyPlayedItem>) => (
+  const renderItem = ({ item }: ListRenderItemInfo<RecentlyPlayedItem>) => (
     <Pressable
       style={{
         flex: 1,
@@ -176,11 +176,11 @@ const HomeScreen = () => {
         elevation: 3,
       }}>
       <Image
-        style={{height: 55, width: 55}}
+        style={{ height: 55, width: 55 }}
         //source={{uri: item.track.album.images[0].url}}
-        source={{uri: item.thumbnailUrl}}
+        source={{ uri: item.thumbnailUrl }}
       />
-      <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
+      <View style={{ flex: 1, marginHorizontal: 8, justifyContent: 'center' }}>
         <Text
           numberOfLines={2}
           style={{
@@ -202,13 +202,17 @@ const HomeScreen = () => {
         <View style={styles.header}>
           <TouchableOpacity style={styles.avatarWrapper} onPress={() => navigation.openDrawer()}>
             {userProfile?.images ? (
+              // <Image
+              //   style={styles.avatar}
+              //   source={
+              //     require('../assets/images/sontung.jpg') || {
+              //     uri: userProfile.images[0].url,
+              //   }
+              //   }
+              // />
               <Image
                 style={styles.avatar}
-                source={
-                  require('../assets/images/sontung.jpg') || {
-                    uri: userProfile.images[0].url,
-                  }
-                }
+                source={{ uri: userProfile.images[0].url }}
               />
             ) : (
               <Ionicons name="person-circle" size={40} color="white" />
@@ -239,8 +243,8 @@ const HomeScreen = () => {
 
           <View style={styles.card}>
             <Image
-              style={{width: 55, height: 55}}
-              source={{uri: 'https://i.pravatar.cc/150?img=12'}}
+              style={{ width: 55, height: 55 }}
+              source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
             />
             <View>
               <Text style={styles.cardText}>Hiphop Tamhiza</Text>
@@ -255,7 +259,7 @@ const HomeScreen = () => {
         keyExtractor={(_, index) => index.toString()}
         //numColumns={2}
         horizontal={true}
-        //columnWrapperStyle={{justifyContent: 'space-between'}}
+      //columnWrapperStyle={{justifyContent: 'space-between'}}
       />
 
       <Text style={styles.sectionTitle}>Your Top Artists</Text>
@@ -270,7 +274,7 @@ const HomeScreen = () => {
         keyExtractor={(item, index) => index.toString()} // hoặc dùng item.id nếu có id
         horizontal
         showsHorizontalScrollIndicator={false}
-        renderItem={({item}) => <ArtistCard item={item} />}
+        renderItem={({ item }) => <ArtistCard item={item} />}
       />
 
       <Text style={styles.sectionTitle}>Recently Played</Text>
@@ -279,7 +283,7 @@ const HomeScreen = () => {
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, index) => index.toString()}
-        renderItem={({item, index}) => (
+        renderItem={({ item, index }) => (
           <RecentlyPlayedCard item={item} key={index} />
         )}
       />

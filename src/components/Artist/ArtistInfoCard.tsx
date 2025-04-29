@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import api from '../../services/api';
 
 interface ArtistInfo {
+  id: number,
   name: string;
   image: string;
   monthlyListeners: string;
   description: string;
+  isFollowed: boolean;
 }
 
 interface ArtistInfoCardProps {
@@ -14,10 +16,12 @@ interface ArtistInfoCardProps {
 }
 
 const mockArtistInfo: ArtistInfo = {
+  id: 1,
   name: "Nghệ sĩ ẩn danh",
   image: "https://picsum.photos/200",
   monthlyListeners: "0",
   description: "Chưa có thông tin",
+  isFollowed: false,
 };
 
 export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) => {
@@ -30,13 +34,15 @@ export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) =>
         const response = await api.get(`/artist/info/${encodeURIComponent(artistName)}`);
         const dto = response.data;
         const data: ArtistInfo = {
+          id: dto.artistID,
           name: dto.artistName,
-          image: dto.image, 
+          image: dto.image,
           monthlyListeners: "1M",
-          description: dto.bio || "", 
+          description: dto.bio || "",
+          isFollowed: dto.isFollowed,
         };
-    
-        console.log(data);
+
+        console.log('ArtistInfo', data);
         setArtistInfo(data);
       } catch (error) {
         console.error('Error fetching artist info:', error);
@@ -48,6 +54,40 @@ export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) =>
 
     fetchArtistInfo();
   }, [artistName]);
+
+  const followArtist = async (id: number) => {
+    try {
+      const response = await api.post('/ArtistFollow/follow', {
+        artistID: id
+      })
+
+      const data = response.data;
+      Alert.alert('Thông báo', data);
+
+      if(artistInfo) {
+        setArtistInfo({...artistInfo, isFollowed: true});
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+
+  const unFollowArtist = async (id: number) => {
+    try {
+      const response = await api.post('/ArtistFollow/unfollow', {
+        artistID: id
+      })
+
+      const data = response.data;
+      Alert.alert('Thông báo', data);
+
+      if(artistInfo) {
+        setArtistInfo({...artistInfo, isFollowed: false})
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
   if (loading) {
     return <ActivityIndicator color="white" />;
@@ -66,9 +106,19 @@ export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) =>
         <Text style={styles.artistMonthlyListeners}>{artistInfo.monthlyListeners} người nghe hàng tháng</Text>
         <Text style={styles.artistDescription}>{artistInfo.description}</Text>
 
-        <TouchableOpacity style={styles.artistFollowButton}>
+        {
+          artistInfo.isFollowed ?
+            <TouchableOpacity style={styles.artistFollowButton} onPress={() => unFollowArtist(artistInfo.id)}>
+              <Text style={styles.artistFollowButtonText}>Đang theo dõi</Text>
+            </TouchableOpacity>
+            :
+            <TouchableOpacity style={styles.artistFollowButton} onPress={() => followArtist(artistInfo.id)}>
+              <Text style={styles.artistFollowButtonText}>Theo dõi</Text>
+            </TouchableOpacity>
+        }
+        {/* <TouchableOpacity style={styles.artistFollowButton} onPress={() => followArtist(artistInfo.id)}>
           <Text style={styles.artistFollowButtonText}>Theo dõi</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

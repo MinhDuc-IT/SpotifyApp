@@ -428,9 +428,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   downloadButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 25,
+    height: 25,
+    borderRadius: 13,
     backgroundColor: '#1fd662',
     justifyContent: 'center',
     alignItems: 'center',

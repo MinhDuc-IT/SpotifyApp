@@ -1,26 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import api from '../../services/api';
+import { Track } from 'react-native-track-player';
+import { usePlayer } from '../../contexts/PlayerContextV2';
 
 interface ArtistDiscoverCardProps {
     artistName: string;
 }
 
-interface RelatedArtist {
-    name: string;
-    image: string;
+interface Song {
+    songId: string;
+    title: string;
+    artistName: string;
+    album: string | null;
+    albumId: string | null;
+    thumbnailUrl: string;
+    duration: number;
+    audioUrl: string;
 }
 
-const mockRelatedArtists: RelatedArtist[] = [
-    { name: "Nghệ sĩ A", image: "https://picsum.photos/200" },
-    { name: "Nghệ sĩ B", image: "https://picsum.photos/200" },
-    { name: "Nghệ sĩ C", image: "https://picsum.photos/200" },
-    { name: "Nghệ sĩ D", image: "https://picsum.photos/200" },
+
+interface ArtistWithSongs {
+    artistName: string;
+    image: string;
+    songs: Song[];
+}
+
+const mockRelatedArtists: ArtistWithSongs[] = [
+    { artistName: "Nghệ sĩ A", image: "https://picsum.photos/200", songs: [] },
+    { artistName: "Nghệ sĩ B", image: "https://picsum.photos/200", songs: [] },
+    { artistName: "Nghệ sĩ C", image: "https://picsum.photos/200", songs: [] },
+    { artistName: "Nghệ sĩ D", image: "https://picsum.photos/200", songs: [] },
 ];
 
 export const ArtistDiscoverCard: React.FC<ArtistDiscoverCardProps> = ({ artistName }) => {
-    const [relatedArtists, setRelatedArtists] = useState<RelatedArtist[]>([]);
+    const [relatedArtists, setRelatedArtists] = useState<ArtistWithSongs[]>([]);
     const [loading, setLoading] = useState(true);
+    const { play } = usePlayer();
 
     useEffect(() => {
         const fetchRelatedArtists = async () => {
@@ -28,12 +44,12 @@ export const ArtistDiscoverCard: React.FC<ArtistDiscoverCardProps> = ({ artistNa
                 const response = await api.get(`/artist/related/${encodeURIComponent(artistName)}`);
                 const dto = response.data;
 
-                const relatedArtists: RelatedArtist[] = dto.songs.map((song: any) => ({
-                    name: song.title,
-                    image: song.thumbnailUrl,
-                }));
+                // const relatedArtists: RelatedArtist[] = dto.songs.map((song: any) => ({
+                //     name: song.title,
+                //     image: song.thumbnailUrl,
+                // }));
 
-                setRelatedArtists(relatedArtists);
+                setRelatedArtists(dto);
             } catch (error) {
                 console.error('Error fetching related artists:', error);
                 setRelatedArtists(mockRelatedArtists);
@@ -45,6 +61,18 @@ export const ArtistDiscoverCard: React.FC<ArtistDiscoverCardProps> = ({ artistNa
         fetchRelatedArtists();
     }, [artistName]);
 
+    const handlePlay = (artistName: string, song: Song) => {
+        const convertedTrack: Track = {
+            id: String(song.songId),
+            url: song.audioUrl || '',
+            title: song.title,
+            artist: artistName,
+            artwork: song.thumbnailUrl,
+            duration: 180,
+        };
+
+        play(convertedTrack);
+    }
     if (loading) {
         return <ActivityIndicator color="white" />;
     }
@@ -54,10 +82,12 @@ export const ArtistDiscoverCard: React.FC<ArtistDiscoverCardProps> = ({ artistNa
             <Text style={styles.artistSectionTitle}>Khám phá {artistName}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.artistDiscoverScroll}>
                 {relatedArtists.map((item, index) => (
-                    <View key={index} style={styles.artistDiscoverItem}>
-                        <Image source={{ uri: item.image }} style={styles.artistDiscoverImage} />
-                        <Text style={styles.artistDiscoverText}>{item.name}</Text>
-                    </View>
+                    item.songs.map((s, i) => (
+                        <Pressable key={i} style={styles.artistDiscoverItem} onPress={() => handlePlay(item.artistName, s)}>
+                            <Image source={{ uri: s.thumbnailUrl }} style={styles.artistDiscoverImage} />
+                            <Text style={styles.artistDiscoverText}>{s.title}</Text>
+                        </Pressable>
+                    ))
                 ))}
             </ScrollView>
         </View>

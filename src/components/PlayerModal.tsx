@@ -23,90 +23,219 @@ import { ArtistDiscoverCard } from './Artist/ArtistDiscoverCard';
 
 const { width, height } = Dimensions.get('window');
 
+// const PlayerModal = () => {
+//   const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics, currentLyricIndex } = usePlayer();
+//   const { position, duration } = useProgress();
+//   const [showLyrics, setShowLyrics] = useState(false);
+//   const flipAnim = useRef(new Animated.Value(0)).current;
+//   const scrollRef = useRef<FlatList>(null);
+
+//   // Memoized interpolations
+//   const frontInterpolate = useMemo(() =>
+//     flipAnim.interpolate({
+//       inputRange: [0, 180],
+//       outputRange: ['0deg', '180deg'],
+//     }),
+//     [flipAnim]
+//   );
+
+//   const backInterpolate = useMemo(() =>
+//     flipAnim.interpolate({
+//       inputRange: [0, 180],
+//       outputRange: ['180deg', '360deg'],
+//     }),
+//     [flipAnim]
+//   );
+
+//   const handleFlip = () => {
+//     Animated.spring(flipAnim, {
+//       toValue: showLyrics ? 0 : 180,
+//       friction: 8,
+//       tension: 10,
+//       useNativeDriver: true,
+//     }).start(() => setShowLyrics(!showLyrics));
+//   };
+
+//   useEffect(() => {
+//     console.log("currentIndexLyric" + currentLyricIndex);
+//     if (scrollRef.current && currentLyricIndex >= 0 && lyrics.length > 0) {
+//       scrollRef.current.scrollToIndex({
+//         index: currentLyricIndex,
+//         animated: true,
+//         viewPosition: 0.5,
+//       });
+//     }
+//   }, [currentLyricIndex]);
+
+//   const TrackInfo = React.memo(() => (
+//     <View
+//       style={styles.container}
+//     >
+//       <Image
+//         source={{ uri: currentTrack?.artwork }}
+//         style={styles.thumbnail}
+//       />
+//       <View style={styles.trackInfo}>
+//         <Text style={styles.title} numberOfLines={1}>
+//           {currentTrack?.title}
+//         </Text>
+//         <Text style={styles.artistinfo} numberOfLines={1}>
+//           {currentTrack?.artist}
+//         </Text>
+//       </View>
+//     </View>
+//   ));
+
+//   if (!currentTrack) return null;
+
+//   const handlePlayPause = () => {
+//     if (isPlaying) {
+//       pause();
+//     } else {
+//       play(currentTrack);
+//     }
+//   };
+
+//   return (
+//     <Modal
+//       visible={modalVisible}
+//       transparent
+//       onRequestClose={hideModal}
+//     >
+//       <View style={styles.modalContainer}>
+//         <FlatList
+//           style={{ flex: 1 }}
+//           data={[1]}
+//           keyExtractor={(item) => item.toString()}
+//           renderItem={() => (
+//             <View style={styles.modalContent}>
+//               <Pressable
+//                 style={styles.closeButton}
+//                 onPress={hideModal}
+//               >
+//                 <AntDesign name="down" size={24} color="#FFFFFF" />
+//               </Pressable>
+
+//               <View style={{ width: width, height: height - 150 }}>
+//                 <Pressable onPress={handleFlip}>
+//                   <Animated.View style={[
+//                     styles.flipCard,
+//                     {
+//                       transform: [
+//                         { rotateY: frontInterpolate },
+//                         { perspective: 1000 }
+//                       ]
+//                     }
+//                   ]}>
+//                     <Image
+//                       source={{ uri: currentTrack?.artwork }}
+//                       style={styles.albumArt}
+//                     />
+//                     <LinearGradient
+//                       colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
+//                       style={StyleSheet.absoluteFillObject}
+//                       locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+//                     />
+//                   </Animated.View>
+
+//                   <Animated.View style={[
+//                     styles.flipCard,
+//                     styles.lyricCard,
+//                     {
+//                       transform: [
+//                         { rotateY: backInterpolate },
+//                         { perspective: 1000 }
+//                       ]
+//                     }
+//                   ]}>
+//                     <LinearGradient
+//                       colors={['transparent', 'rgba(0,0,0,9)', 'black']}
+//                       style={StyleSheet.absoluteFillObject}
+//                       locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+//                     />
+//                     {lyrics.length > 0 ? (
+//                       <FlatList
+//                         ref={scrollRef}
+//                         data={lyrics}
+//                         keyExtractor={(_, index) => index.toString()}
+//                         renderItem={({ item, index }) => (
+//                           <Text
+//                             style={[
+//                               styles.lyricLine,
+//                               index === currentLyricIndex && styles.activeLyric
+//                             ]}
+//                           >
+//                             {item.text}
+//                           </Text>
+//                         )}
+//                         getItemLayout={(_, index) => ({
+//                           length: 35,
+//                           offset: 35 * index,
+//                           index
+//                         })}
+//                         initialScrollIndex={currentLyricIndex}
+//                         contentContainerStyle={styles.lyricContainer}
+//                         showsVerticalScrollIndicator={false}
+//                       />
+//                     ) : (
+//                       <Text style={styles.errorText}>Lyrics not available</Text>
+//                     )}
+//                   </Animated.View>
+//                 </Pressable>
+
+//                 <TrackInfo />
+//                 <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
+//                   <ProgressBar />
+//                 </View>
+
+//                 <View style={styles.controls}>
+//                   <Pressable
+//                     onPress={skipToPrevious}
+//                     accessibilityLabel="Previous track"
+//                   >
+//                     <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
+//                   </Pressable>
+
+//                   <Pressable
+//                     onPress={handlePlayPause}
+//                     style={styles.playButton}
+//                     accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
+//                   >
+//                     {isPlaying ? (
+//                       <Ionicons name="pause" size={30} color="black" />
+//                     ) : (
+//                       <Ionicons name="play" size={30} color="black" />
+//                     )}
+//                   </Pressable>
+
+//                   <Pressable
+//                     onPress={skipToNext}
+//                     accessibilityLabel="Next track"
+//                   >
+//                     <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
+//                   </Pressable>
+//                 </View>
+//               </View>
+//               <ArtistInfoCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
+//               <ArtistDiscoverCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
+//             </View>
+
+//           )}
+//         />
+//       </View>
+//       <View style={{ height: 35, zIndex: 50, backgroundColor: 'black' }}>
+
+//       </View>
+//     </Modal>
+//   );
+// };
+
 const PlayerModal = () => {
-  //const { state, dispatch } = usePlayer();
-  const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics, currentLyricIndex} = usePlayer();
+  const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics, currentLyricIndex } = usePlayer();
   const { position, duration } = useProgress();
-  //const progress = useRef(new Animated.Value(0)).current;
-  // [lyricsCache, setLyricsCache] = useState<Record<string, Lyric[]>>({});
-  // const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const [showLyrics, setShowLyrics] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
-  const scrollRef = useRef<FlatList>(null);
-
-  // Lyric fetching with AbortController
-  // useEffect(() => {
-  //   const abortController = new AbortController();
-
-  //   const fetchLyrics = async () => {
-  //     if (!currentTrack) return;
-  //     const trackId = currentTrack.id.toString();
-
-  //     if (!lyricsCache[trackId]) {
-  //       try {
-  //         const resp = await fetch(
-  //           `http://10.0.2.2:5063/api/song/${trackId}/lyric`,
-  //           { signal: abortController.signal }
-  //         );
-  //         const data = await resp.json();
-  //         setLyricsCache(prev => ({ ...prev, [trackId]: data }));
-  //       } catch (err) {
-  //         if (!abortController.signal.aborted) {
-  //           console.error('Lyric fetch error:', err);
-  //         }
-  //       }
-  //     }
-  //   };
-
-  //   fetchLyrics();
-  //   return () => abortController.abort();
-  // }, [currentTrack]);
-
-  // Binary search for lyric timing
-  // useEffect(() => {
-  //   if (!currentTrack) return;
-
-  //   const trackId = currentTrack.id.toString();
-  //   const lyrics = lyricsCache[trackId] || [];
-  //   if (!lyrics.length) return;
-
-  //   const currentTime = position * duration;
-  //   const timePoints = lyrics.map(l => {
-  //     const [h, m, s] = l.startTime.split(':').map(Number);
-  //     return h * 3600 + m * 60 + s;
-  //   });
-
-  //   // Binary search implementation
-  //   const findLyricIndex = () => {
-  //     let low = 0;
-  //     let high = timePoints.length - 1;
-  //     let result = -1;
-
-  //     while (low <= high) {
-  //       const mid = Math.floor((low + high) / 2);
-  //       if (timePoints[mid] <= currentTime) {
-  //         result = mid;
-  //         low = mid + 1;
-  //       } else {
-  //         high = mid - 1;
-  //       }
-  //     }
-  //     return result;
-  //   };
-
-  //   const newIndex = findLyricIndex();
-  //   setCurrentLyricIndex(newIndex);
-
-  //   // Scroll to current lyric
-  //   if (scrollRef.current && newIndex > -1) {
-  //     scrollRef.current.scrollToIndex({
-  //       index: newIndex,
-  //       animated: true,
-  //       viewPosition: 0.5
-  //     });
-  //   }
-  // }, [position, lyricsCache, currentTrack, duration]);
-
+  const scrollRef = useRef<ScrollView>(null);
 
   // Memoized interpolations
   const frontInterpolate = useMemo(() =>
@@ -125,16 +254,6 @@ const PlayerModal = () => {
     [flipAnim]
   );
 
-  // Progress animation
-  // useEffect(() => {
-  //   Animated.timing(progress, {
-  //     toValue: state.progress * 100,
-  //     duration: 500,
-  //     useNativeDriver: false,
-  //   }).start();
-  // }, [state.progress]);
-
-
   const handleFlip = () => {
     Animated.spring(flipAnim, {
       toValue: showLyrics ? 0 : 180,
@@ -144,25 +263,24 @@ const PlayerModal = () => {
     }).start(() => setShowLyrics(!showLyrics));
   };
 
-  // const currentLyrics = currentTrack
-  //   ? lyricsCache[currentTrack.id.toString()] || []
-  //   : [];
-
   useEffect(() => {
-    console.log("currentIndexLyric" + currentLyricIndex);
     if (scrollRef.current && currentLyricIndex >= 0 && lyrics.length > 0) {
-      scrollRef.current.scrollToIndex({
-        index: currentLyricIndex,
-        animated: true,
-        viewPosition: 0.5,
-      });
+      const itemHeight = 35; // Chiều cao mỗi dòng
+      const offset = itemHeight * currentLyricIndex; // Vị trí cuộn đến
+      const screenHeight = height - 350;
+      const middleOffset = offset - screenHeight / 2 + itemHeight / 2; // Đảm bảo lyric nằm ở giữa
+
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: middleOffset, // Cuộn đến vị trí giữa
+          animated: true,
+        });
+      }, 50);
     }
-  }, [currentLyricIndex]);
+  }, [currentLyricIndex, lyrics]);
 
   const TrackInfo = React.memo(() => (
-    <View
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <Image
         source={{ uri: currentTrack?.artwork }}
         style={styles.thumbnail}
@@ -176,14 +294,6 @@ const PlayerModal = () => {
         </Text>
       </View>
     </View>
-    // <View style={styles.trackInfo}>
-    //   <Text style={styles.trackTitle} numberOfLines={1}>
-    //     {currentTrack?.title}
-    //   </Text>
-    //   <Text style={styles.artist}>
-    //     {currentTrack?.artist}
-    //   </Text>
-    // </View>
   ));
 
   if (!currentTrack) return null;
@@ -197,146 +307,102 @@ const PlayerModal = () => {
   };
 
   return (
-    <Modal
-      visible={modalVisible}
-      transparent
-      onRequestClose={hideModal}
-    >
+    <Modal visible={modalVisible} transparent onRequestClose={hideModal}>
       <View style={styles.modalContainer}>
         <FlatList
-        style={{ flex: 1 }}
-        data={[1]} // Just to show the content in a scrollable way
-        keyExtractor={(item) => item.toString()}
-        renderItem={() => (
-          <View style={styles.modalContent}>
-            <Pressable
-              style={styles.closeButton}
-              onPress={hideModal}
-            >
-              <AntDesign name="down" size={24} color="#FFFFFF" />
-            </Pressable>
-
-            <View style={{ width: width, height: height - 150 }}>
-              <Pressable onPress={handleFlip}>
-                <Animated.View style={[
-                  styles.flipCard,
-                  {
-                    transform: [
-                      { rotateY: frontInterpolate },
-                      { perspective: 1000 }
-                    ]
-                  }
-                ]}>
-                  <Image
-                    source={{ uri: currentTrack?.artwork }}
-                    style={styles.albumArt}
-                  />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
-                    style={StyleSheet.absoluteFillObject}
-                    locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
-                  />
-                </Animated.View>
-
-                <Animated.View style={[
-                  styles.flipCard,
-                  styles.lyricCard,
-                  {
-                    transform: [
-                      { rotateY: backInterpolate },
-                      { perspective: 1000 }
-                    ]
-                  }
-                ]}>
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,9)', 'black']}
-                    style={StyleSheet.absoluteFillObject}
-                    locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
-                  />
-                  {lyrics.length > 0 ? (
-                    <FlatList
-                      ref={scrollRef}
-                      data={lyrics}
-                      keyExtractor={(_, index) => index.toString()}
-                      renderItem={({ item, index }) => (
-                        <Text
-                          style={[
-                            styles.lyricLine,
-                            index === currentLyricIndex && styles.activeLyric
-                          ]}
-                        >
-                          {item.text}
-                        </Text>
-                      )}
-                      getItemLayout={(_, index) => ({
-                        length: 35,
-                        offset: 35 * index,
-                        index
-                      })}
-                      initialScrollIndex={currentLyricIndex}
-                      contentContainerStyle={styles.lyricContainer}
-                      showsVerticalScrollIndicator={false}
-                    />
-                  ) : (
-                    <Text style={styles.errorText}>Lyrics not available</Text>
-                  )}
-                </Animated.View>
+          style={{ flex: 1 }}
+          data={[1]}
+          keyExtractor={(item) => item.toString()}
+          renderItem={() => (
+            <View style={styles.modalContent}>
+              <Pressable style={styles.closeButton} onPress={hideModal}>
+                <AntDesign name="down" size={24} color="#FFFFFF" />
               </Pressable>
 
-              <TrackInfo />
-              <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
-                <ProgressBar />
+              <View style={{ width: width, height: height - 150 }}>
+                <Pressable onPress={handleFlip}>
+                  <Animated.View
+                    style={[
+                      styles.flipCard,
+                      {
+                        transform: [{ rotateY: frontInterpolate }, { perspective: 1000 }],
+                      },
+                    ]}
+                  >
+                    <Image source={{ uri: currentTrack?.artwork }} style={styles.albumArt} />
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
+                      style={StyleSheet.absoluteFillObject}
+                      locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+                    />
+                  </Animated.View>
+
+                  <Animated.View
+                    style={[
+                      styles.flipCard,
+                      styles.lyricCard,
+                      {
+                        transform: [{ rotateY: backInterpolate }, { perspective: 1000 }],
+                      },
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,9)', 'black']}
+                      style={StyleSheet.absoluteFillObject}
+                      locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
+                    />
+                    {lyrics.length > 0 ? (
+                      <ScrollView
+                        ref={scrollRef}
+                        contentContainerStyle={styles.lyricContainer}
+                        showsVerticalScrollIndicator={false}
+                      >
+                        {lyrics.map((item, index) => (
+                          <Text
+                            key={index}
+                            style={[
+                              styles.lyricLine,
+                              index === currentLyricIndex && styles.activeLyric,
+                            ]}
+                          >
+                            {item.text}
+                          </Text>
+                        ))}
+                      </ScrollView>
+                    ) : (
+                      <Text style={styles.errorText}>Lyrics not available</Text>
+                    )}
+                  </Animated.View>
+                </Pressable>
+
+                <TrackInfo />
+                <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
+                  <ProgressBar />
+                </View>
+
+                <View style={styles.controls}>
+                  <Pressable onPress={skipToPrevious} accessibilityLabel="Previous track">
+                    <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
+                  </Pressable>
+
+                  <Pressable onPress={handlePlayPause} style={styles.playButton} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
+                    {isPlaying ? (
+                      <Ionicons name="pause" size={30} color="black" />
+                    ) : (
+                      <Ionicons name="play" size={30} color="black" />
+                    )}
+                  </Pressable>
+
+                  <Pressable onPress={skipToNext} accessibilityLabel="Next track">
+                    <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
+                  </Pressable>
+                </View>
               </View>
-
-              <View style={styles.controls}>
-                <Pressable
-                  onPress={skipToPrevious}
-                  accessibilityLabel="Previous track"
-                >
-                  <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
-                </Pressable>
-
-                <Pressable
-                  onPress={handlePlayPause}
-                  style={styles.playButton}
-                  accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
-                >
-                  {isPlaying ? (
-                    <Ionicons name="pause" size={30} color="black" />
-                  ) : (
-                    <Ionicons name="play" size={30} color="black" />
-                  )}
-                </Pressable>
-
-                <Pressable
-                  onPress={skipToNext}
-                  accessibilityLabel="Next track"
-                >
-                  <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
-                </Pressable>
-              </View>
+              <ArtistInfoCard artistName={currentTrack?.artist ?? 'Kai Dinh'} />
+              <ArtistDiscoverCard artistName={currentTrack?.artist ?? 'Kai Dinh'} />
             </View>
-
-            {/* <PlayerControls
-              isPlaying={isPlaying}
-              onPlay={handlePlayPause}
-              onPause={pause}
-              onNext={skipToNext}
-              onPrevious={skipToPrevious}
-            /> */}
-            <ArtistInfoCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
-            <ArtistDiscoverCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
-          </View>
-
-        )}
+          )}
         />
-
-        {/* <ScrollView style={{ flex: 1 }}>
-
-        </ScrollView> */}
-      </View>
-      <View style={{ height: 35, zIndex: 50 ,backgroundColor: 'black'}}>
-
       </View>
     </Modal>
   );
@@ -383,6 +449,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     minHeight: 280,
     justifyContent: 'center',
+    paddingBottom: 200,
   },
   lyricLine: {
     color: '#888',
@@ -392,12 +459,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   activeLyric: {
-    color: '#1DB954',
+    //color: '#1DB954',
     fontSize: 18,
     fontWeight: '600',
     textShadowColor: 'rgba(29, 185, 84, 0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
+    transform: [{ scale: 1.1 }], // Thêm hiệu ứng phóng to nhẹ
+    color: '#FFFFFF', // Đổi màu chữ thành trắng khi đang được highlight
   },
   trackInfo: {
     width: '100%',

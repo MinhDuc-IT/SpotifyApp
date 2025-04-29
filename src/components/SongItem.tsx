@@ -54,7 +54,7 @@ const SongItem: React.FC<SongItemProps> = ({item, onPress, isPlaying}) => {
         <Text style={styles.artistText}>{item.artist}</Text>
       </View>
       <View style={styles.iconsContainer}>
-        <AntDesign name="heart" size={24} color="#1DB954" />
+        <AntDesign name="checkcircle" size={24} color="#1fd662" />
         <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" />
       </View>
     </Pressable>
@@ -83,9 +83,9 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   textPlaying: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    color: '#3FFF00',
+    fontWeight: "bold",
+    fontSize: 15,
+    color: "#22dc71",
   },
   artistText: {
     marginTop: 4,

@@ -60,7 +60,7 @@ const TrackListScreen: React.FC<Props> = ({
   isLoading,
 }) => {
   const navigation = useNavigation();
-  const {play, currentTrack, isPlaying, queue, addToQueue} = usePlayer();
+  const { play, currentTrack, isPlaying, queue, addToQueue, pause } = usePlayer();
   //const [tracks, setTracks] = useState<SavedTrack[]>([]); // SpotifyTrack type for mock data
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
@@ -174,7 +174,11 @@ const TrackListScreen: React.FC<Props> = ({
   };
 
   return (
-    <LinearGradient colors={['#614385', '#516395']} style={styles.container}>
+    <LinearGradient 
+      colors={['#2a41a9', '#121212']}
+      locations={[0, 0.5]} 
+      style={styles.container}
+    >
       <FlatList
         data={searchedTracks}
         keyExtractor={item => item.id}
@@ -289,14 +293,23 @@ const TrackListScreen: React.FC<Props> = ({
                 </Pressable>
                 <Pressable
                   onPress={() => {
-                    if (searchedTracks.length > 0) play(searchedTracks[0]);
-                  }}
+                    if (isPlaying) {
+                      pause();
+                    } else {
+                      if (currentTrack) {
+                        play(currentTrack);
+                      } else if (searchedTracks.length > 0) {
+                        play(searchedTracks[0]);
+                      }
+                    }
+                  }}                  
                   style={styles.playButton}>
-                  {isPlaying ? (
-                    <Entypo name="controller-paus" size={24} color="white" />
-                  ) : (
-                    <Entypo name="controller-play" size={24} color="white" />
-                  )}
+                  {
+                    isPlaying ?
+                      <Entypo name="controller-paus" size={20} color="white" />
+                      :
+                      <Entypo name="controller-play" size={20} color="white" />
+                  }
                 </Pressable>
               </View>
             </View>
@@ -353,6 +366,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 60, // Space for mini player
     paddingTop: 50,
+    backgroundColor: '#121212'
   },
   scrollView: {
     marginTop: 50,
@@ -371,22 +385,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#42275a',
+    backgroundColor: '#3a4889',
     padding: 9,
     flex: 1,
     borderRadius: 3,
     height: 38,
   },
   searchInput: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
     color: 'white',
     width: '100%',
     height: 37,
   },
   sortButton: {
     marginHorizontal: 10,
-    backgroundColor: '#42275a',
+    backgroundColor: '#3a4889',
     padding: 10,
     borderRadius: 3,
     height: 38,
@@ -417,7 +431,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#1DB954',
+    backgroundColor: '#1fd662',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -427,12 +441,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   playButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1DB954',
+    backgroundColor: '#1fd662',
   },
   listContent: {
     paddingBottom: 100,

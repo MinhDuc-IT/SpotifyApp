@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,10 @@ import {
   Image,
   Modal,
 } from 'react-native';
-import {createDrawerNavigator} from '@react-navigation/drawer';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import auth from '@react-native-firebase/auth';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   getDownloadedSongsByUser,
@@ -30,6 +30,8 @@ interface Song {
 const CustomDrawerContent = (props: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [downloadedSongs, setDownloadedSongs] = useState<Song[]>([]);
+
+  const userProfile = auth().currentUser;
 
   useEffect(() => {
     const loadDownloadedSongs = async () => {
@@ -113,14 +115,26 @@ const CustomDrawerContent = (props: any) => {
   return (
     <View style={styles.drawerContainer}>
       <TouchableOpacity style={styles.profile} onPress={handleSettings}>
-        <Image
-          source={require('../assets/images/sontung.jpg')}
-          style={styles.profileImage}
-        />
-        <View style={styles.profileInfo}>
-          <Text style={styles.name}>Đức Hoàng</Text>
-          <Text style={styles.description}>Xem hồ sơ</Text>
-        </View>
+        {userProfile?.photoURL ?
+          (<Image
+            source={{ uri: userProfile?.photoURL }}
+            style={styles.profileImage}
+          />)
+          : (<Image
+            source={require('../assets/images/sontung.jpg')}
+            style={styles.profileImage}
+          />)
+        }
+        {userProfile?.displayName ?
+          <View style={styles.profileInfo}>
+            <Text style={styles.name}>{userProfile?.displayName}</Text>
+            <Text style={styles.description}>Xem hồ sơ</Text>
+          </View>
+          : <View style={styles.profileInfo}>
+            <Text style={styles.name}>Đức Hoàng</Text>
+            <Text style={styles.description}>Xem hồ sơ</Text>
+          </View>
+        }
       </TouchableOpacity>
       <TouchableOpacity style={styles.drawerButton} onPress={handleSettings}>
         <MaterialCommunityIcons name="plus" size={24} color="white" />
@@ -170,26 +184,26 @@ const CustomDrawerContent = (props: any) => {
               borderRadius: 10,
               padding: 20,
             }}>
-            <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
               Danh sách đã tải
             </Text>
             {downloadedSongs.map(song => (
               <TouchableOpacity
                 key={song.id}
                 onPress={() => handlePlaySong(song)}
-                style={{marginBottom: 10}}>
-                <Text style={{fontSize: 16}}>{song.title}</Text>
+                style={{ marginBottom: 10 }}>
+                <Text style={{ fontSize: 16 }}>{song.title}</Text>
               </TouchableOpacity>
             ))}
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              style={{marginTop: 20}}>
-              <Text style={{textAlign: 'center', color: 'red'}}>Đóng</Text>
+              style={{ marginTop: 20 }}>
+              <Text style={{ textAlign: 'center', color: 'red' }}>Đóng</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={{marginTop: 20}}
+              style={{ marginTop: 20 }}
               onPress={() => handleDeleteSong()}>
-              <Text style={{textAlign: 'center', color: 'red'}}>Xóa</Text>
+              <Text style={{ textAlign: 'center', color: 'red' }}>Xóa</Text>
             </TouchableOpacity>
           </View>
         </View>

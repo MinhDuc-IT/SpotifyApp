@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import TrackPlayer, { State, Event, useTrackPlayerEvents, Track } from 'react-native-track-player';
 import { fetchLyrics } from '../services/lyric.service';
 import { Lyric } from '../types/player.d';
 import { getQueue } from 'react-native-track-player/lib/src/trackPlayer';
+import { addListeningHistory } from '../services/listeningHistoryService';
+import { Platform } from 'react-native';
 
 type PlayerState = {
   isPlaying: boolean;
@@ -46,6 +48,8 @@ const playerReducer = (state: PlayerState, action: any): PlayerState => {
 };
 
 export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) => {
+  const hasLoggedRef = useRef(false);
+
   const [state, dispatch] = useReducer(playerReducer, {
     isPlaying: false,
     currentTrack: null,
@@ -54,6 +58,10 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
     currentLyricIndex: -1,
     modalVisible: false,
   });
+
+  useEffect(() => {
+    hasLoggedRef.current = false;
+  }, [state.currentTrack?.id]);
 
   // Xử lý lyrics
   const updateLyrics = useCallback(async (trackId: string) => {
@@ -71,6 +79,8 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
     const interval = setInterval(async () => {
       if (state.isPlaying && state.currentTrack) {
         const position = await TrackPlayer.getPosition();
+        const duration = await TrackPlayer.getDuration();
+
         console.log('Current position:', position); 
         const currentIndex = state.lyrics.findIndex(
           (lyric, index) =>
@@ -80,6 +90,18 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
         console.log('Current lyric index:', currentIndex);
         if (currentIndex !== state.currentLyricIndex) {
           dispatch({ type: 'SET_LYRIC_INDEX', payload: currentIndex });
+        }
+
+        if(duration > 0 && position > duration*0.5 &&
+          !hasLoggedRef.current && state.currentTrack?.id
+        ) {
+          try {
+            addListeningHistory(state.currentTrack?.id, Platform.OS);
+            hasLoggedRef.current = true;
+            console.log('Listening history logged');
+          } catch (err) {
+            console.error('Failed to log listening history:', err);
+          }
         }
       }
     }, 500);

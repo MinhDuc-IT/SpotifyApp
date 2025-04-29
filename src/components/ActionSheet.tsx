@@ -1,10 +1,11 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
 } from '@gorhom/bottom-sheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNFS from 'react-native-fs';
 
 interface ActionSheetProps {
@@ -50,6 +51,23 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
 
       if (result.statusCode === 200) {
         console.log('Tải thành công:', localFilePath);
+        // Thêm bài hát mới vào danh sách đã tải
+        // Lấy danh sách bài hát đã tải từ AsyncStorage
+        const downloadedSongsJson = await AsyncStorage.getItem(
+          'downloadedSongs',
+        );
+        const currentSongs = downloadedSongsJson
+          ? JSON.parse(downloadedSongsJson)
+          : [];
+        const newSong = {
+          id: selectedItem?.id.toString(),
+          title: selectedItem?.name || 'Bài hát không tên',
+          path: localFilePath,
+        };
+        await AsyncStorage.setItem(
+          'downloadedSongs',
+          JSON.stringify([...currentSongs, newSong]),
+        );
       } else {
         console.log('Lỗi tải file:', result.statusCode);
       }

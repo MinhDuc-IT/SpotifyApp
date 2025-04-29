@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import AuthContext from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import AdminScreen from './src/screens/AdminScreen';
@@ -13,16 +13,22 @@ import BottomTabNavigator from './src/components/BottomTabNavigator';
 import LibraryScreenTest from './src/screens/LibraryScreenTest';
 import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
 import SearchDetailScreen from './src/screens/SearchDetailScreen';
-import { LibraryProvider } from './src/contexts/LibraryContext';
+import {LibraryProvider} from './src/contexts/LibraryContext';
 import LikedSongsScreen from './src/screens/LikedSongsScreen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { PlayerProvider } from './src/contexts/PlayerContext';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {PlayerProvider} from './src/contexts/PlayerContext';
 import SongInfoScreen from './src/screens/SongInfoScreen';
 import GlobalPlayer from './src/components/GlobalPlayer';
-import { PlayerProviderV2 } from './src/contexts/PlayerContextV2';
-import { setupPlayer, registerPlaybackService } from './src/services/trackPlayer.service';
-import { PlayerScreen } from './src/screens/PlayerScreen';
+import {PlayerProviderV2} from './src/contexts/PlayerContextV2';
+import {
+  setupPlayer,
+  registerPlaybackService,
+} from './src/services/trackPlayer.service';
+import {PlayerScreen} from './src/screens/PlayerScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
+import {createTables} from './src/sqlite/database';
+import {checkAndCreateUser} from './src/sqlite/userService';
+import DrawerNavigator from './src/navigation/DrawerNavigator';
 
 const Stack = createNativeStackNavigator();
 registerPlaybackService();
@@ -36,17 +42,30 @@ const App = () => {
   const handleAuthStateChanged = async (
     user: FirebaseAuthTypes.User | null,
   ) => {
-    console.log('[Auth] User state changed:', user ? user.email : 'null');
+    // console.log('[Auth] User state changed:', user ? user.email : 'null');
     if (
       user &&
       (user.emailVerified || user.providerData[0]?.providerId !== 'password')
     ) {
       try {
         setLoading(true);
-        const tokenResult = await user.getIdTokenResult(true);
-        console.log('Token fetched:', tokenResult.token);
+        const firebaseId = user.uid;
+        const name = user.displayName || 'Unknown User';
+        const email = user.email || 'unknown@example.com';
 
-        await api.post('/auth/setCustomClaims', { IdToken: tokenResult.token });
+        console.log('Firebase User ID:', firebaseId);
+
+        try {
+          // Kiểm tra và tạo user trong SQLite
+          await checkAndCreateUser(firebaseId, name, email);
+          console.log('User checked/created in SQLite');
+        } catch (error) {
+          console.error('Error checking/creating user in SQLite:', error);
+        }
+        const tokenResult = await user.getIdTokenResult(true);
+        // console.log('Token fetched:', tokenResult.token);
+
+        await api.post('/auth/setCustomClaims', {IdToken: tokenResult.token});
         //await api.post('/auth/setCustomClaims', { userId: user.uid });
 
         // Chờ một chút trước khi làm mới token (tránh việc claims chưa cập nhật)
@@ -55,7 +74,7 @@ const App = () => {
         // Force refresh token để nhận claims mới nhất
         const updatedTokenResult = await user.getIdTokenResult(true);
 
-        console.log('Updated token result:', updatedTokenResult);
+        // console.log('Updated token result:', updatedTokenResult);
 
         // Xác định roles dựa trên claim 'roles'
         setRoles(updatedTokenResult.claims.roles || []);
@@ -91,6 +110,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    createTables();
     const subscriber = auth().onAuthStateChanged(handleAuthStateChanged);
     return subscriber;
   }, []);
@@ -105,15 +125,15 @@ const App = () => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthContext.Provider value={{ user, roles }}>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <AuthContext.Provider value={{user, roles}}>
         <PlayerProvider>
           <PlayerProviderV2>
             <LibraryProvider>
@@ -125,17 +145,17 @@ const App = () => {
                         <Stack.Screen
                           name="Start"
                           component={StartScreen}
-                          options={{ headerShown: false }}
+                          options={{headerShown: false}}
                         />
                         <Stack.Screen
                           name="Login"
                           component={LoginScreen}
-                          options={{ headerShown: false }}
+                          options={{headerShown: false}}
                         />
                         <Stack.Screen
                           name="SignUp"
                           component={SignUpScreen}
-                          options={{ headerShown: false }}
+                          options={{headerShown: false}}
                         />
                       </>
                     ) : roles.includes('Admin') ? (
@@ -143,42 +163,42 @@ const App = () => {
                         <Stack.Screen
                           name="Admin"
                           component={AdminScreen}
-                          options={{ headerShown: false }}
+                          options={{headerShown: false}}
                         />
                       </>
                     ) : (
                       <>
                         <Stack.Screen
                           name="MainApp"
-                          component={BottomTabNavigator}
-                          options={{ headerShown: false }}
+                          component={DrawerNavigator}
+                          options={{headerShown: false}}
                         />
                       </>
                     )}
                     <Stack.Screen
                       name="LibraryScreenTest"
                       component={LibraryScreenTest}
-                      options={{ headerShown: false }}
+                      options={{headerShown: false}}
                     />
                     <Stack.Screen
                       name="CreatePlaylist"
                       component={CreatePlaylistScreen}
-                      options={{ headerShown: false }}
+                      options={{headerShown: false}}
                     />
                     <Stack.Screen
                       name="SearchDetail"
                       component={SearchDetailScreen}
-                      options={{ headerShown: false }}
+                      options={{headerShown: false}}
                     />
                     <Stack.Screen
                       name="Liked"
                       component={LikedSongsScreen}
-                      options={{ headerShown: false }}
+                      options={{headerShown: false}}
                     />
                     <Stack.Screen
                       name="Info"
                       component={SongInfoScreen}
-                      options={{ headerShown: false }}
+                      options={{headerShown: false}}
                     />
                     {/* <Stack.Screen
                       name="PlayList"
@@ -192,7 +212,7 @@ const App = () => {
                     /> */}
                   </Stack.Navigator>
                 </NavigationContainer>
-                  <GlobalPlayer />
+                <GlobalPlayer />
               </View>
             </LibraryProvider>
           </PlayerProviderV2>

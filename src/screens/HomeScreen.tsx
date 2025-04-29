@@ -2,27 +2,23 @@ import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
-  Button,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   Image,
   Pressable,
   FlatList,
   ListRenderItemInfo,
+  TouchableOpacity,
 } from 'react-native';
 import AuthContext from '../contexts/AuthContext';
-import auth from '@react-native-firebase/auth';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import {RootStackParamList} from '../types/navigation';
 import {useNavigation} from '@react-navigation/native';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import {ScrollView} from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ArtistCard from '../components/ArtistCard';
@@ -34,9 +30,11 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 interface SpotifyImage {
   url: string;
 }
+
 interface SpotifyName {
   name: string;
 }
+
 interface SpotifyUser {
   images?: SpotifyImage[];
   name?: SpotifyName;
@@ -82,6 +80,11 @@ const HomeScreen = () => {
   const [data, setData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const [userProfile, setUserProfile] = useState<SpotifyUser | null>(null);
+  const [topArtists, setTopArtists] = useState<Artist[]>([]);
+  const [recentlyplayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
+    [],
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,46 +101,44 @@ const HomeScreen = () => {
     fetchData();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      const user = auth().currentUser;
-      if (user) {
-        const gguser = await GoogleSignin.getCurrentUser();
+  // useEffect(() => {
+  //   getTopItems();
+  // }, []);
 
-        if (gguser) {
-          await GoogleSignin.revokeAccess();
-          await GoogleSignin.signOut();
-        }
+  // const getTopItems = async () => {
+  //   try {
+  //     const response = await api.get('/history/top-artists');
+  //     const data = response.data;
+  //     console.log('Top artist:', data); // Log the profile data for debugging
 
-        await auth().signOut();
-      } else {
-        Alert.alert(
-          'No user logged in',
-          'There is no user currently logged in.',
-        );
-        navigation.navigate('Start');
-      }
-    } catch (error) {
-      Alert.alert('Logout Error', 'Failed to sign out');
-      console.error(error);
-    }
-  };
+  //     setTopArtists(data);
+  //   } catch (err: any) {
+  //     console.log('Error fetching top artists:', err.message);
+  //   }
+  // };
 
-  const [userProfile, setUserProfile] = useState<SpotifyUser | null>(null);
-  const [recentlyplayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
-    [],
-  );
+  // useEffect(() => {
+  //   getRecentlyPlayedSongs();
+  // }, []);
 
-  const [topArtists, setTopArtists] = useState<Artist[]>([]);
+  // const getRecentlyPlayedSongs = async () => {
+  //   try {
+  //     const response = await api.get('/history/listening-history');
+  //     const data = response.data;
+  //     console.log('Recent data:', data); // Log the profile data for debugging
 
-  const greetingMessage = () => {
-    const currentTime = new Date().getHours();
-    if (currentTime < 12) return 'Good Morning';
-    if (currentTime < 16) return 'Good Afternoon';
-    return 'Good Evening';
-  };
+  //     //const data = await response.json();
+  //     const tracks = data;
+  //     console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
+  //     setRecentlyPlayed(tracks);
+  //   } catch (err: any) {
+  //     console.log('Error fetching recently played:', err.message);
+  //   }
+  // };
 
-  const message = greetingMessage();
+  useEffect(() => {
+    getProfile();
+  }, []);
 
   const getProfile = async () => {
     console.log('Fetching profile...'); // Log to check if the function is called
@@ -148,7 +149,7 @@ const HomeScreen = () => {
 
       const user: SpotifyUser = {
         images: data.avatar ? [{url: data.avatar}] : [],
-        name: data.name ? {name: data.email} : undefined,
+        name: data.fullName ? {name: data.email} : undefined,
       };
 
       console.log('User object:', user); // Log the user object for debugging
@@ -161,32 +162,6 @@ const HomeScreen = () => {
       console.error('Error fetching profile:', error);
     }
   };
-
-  useEffect(() => {
-    getProfile();
-  }, []);
-
-  const getRecentlyPlayedSongs = async () => {
-    try {
-      // const response = await fetch(
-      //   'http://10.0.2.2:5063/api/user/recently-played',
-      // );
-      const response = await api.get('/history/listening-history');
-      const data = response.data;
-      console.log('Recent data:', data); // Log the profile data for debugging
-
-      //const data = await response.json();
-      const tracks = data;
-      console.log('Recently played tracks:', tracks); // Log the recently played tracks for debugging
-      setRecentlyPlayed(tracks);
-    } catch (err: any) {
-      console.log('Error fetching recently played:', err.message);
-    }
-  };
-
-  useEffect(() => {
-    getRecentlyPlayedSongs();
-  }, []);
 
   const renderItem = ({item}: ListRenderItemInfo<RecentlyPlayedItem>) => (
     <Pressable
@@ -208,7 +183,12 @@ const HomeScreen = () => {
       <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
         <Text
           numberOfLines={2}
-          style={{fontSize: 13, fontWeight: 'bold', color: 'white', width: 105}}>
+          style={{
+            fontSize: 13,
+            fontWeight: 'bold',
+            color: 'white',
+            width: 105,
+          }}>
           {/* {item.track.name} */}
           {item.artistName}
         </Text>
@@ -216,130 +196,103 @@ const HomeScreen = () => {
     </Pressable>
   );
 
-  const getTopItems = async () => {
-    try {
-      // const response = await fetch('http://10.0.2.2:5063/api/user/top-artists');
-
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! Status: ${response.status}`);
-      // }
-      const response = await api.get('/history/top-artists');
-      const data = response.data;
-      console.log('Top artist:', data); // Log the profile data for debugging
-
-      setTopArtists(data);
-    } catch (err: any) {
-      console.log('Error fetching top artists:', err.message);
-    }
-  };
-
-  useEffect(() => {
-    getTopItems();
-  }, []);
-
   return (
-    <LinearGradient
-      colors={['#040306', '#0a0a10', '#131624']}
-      style={{flex: 1}}>
-      <ScrollView style={{marginTop: 50}}>
-        <View>
-          <View style={styles.header}>
-            <View style={styles.avatarWrapper}>
-              {userProfile?.images?.length ? (
-                <Image
-                  style={styles.avatar}
-                  source={{uri: userProfile.images[0].url}}
-                />
-              ) : (
-                <Ionicons name="person-circle" size={40} color="white" />
-              )}
-              {/* <Ionicons name="person-circle" size={40} color="white" /> */}
-            </View>
-            <Text style={styles.greeting}>{message || 'No message'}</Text>
-            <Text style={{color: 'white', fontSize: 20}}>
-              {userProfile?.name?.name}
-            </Text>
-            <MaterialCommunityIcons
-              name="lightning-bolt-outline"
-              size={24}
-              color="white"
-            />
-          </View>
-
-          <View style={styles.filterRow}>
-            <Pressable style={styles.filterButton}>
-              <Text style={styles.filterText}>Music</Text>
-            </Pressable>
-            <Pressable style={styles.filterButton}>
-              <Text style={styles.filterText}>Podcasts & Shows</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.cardRow}>
-            <Pressable
-              onPress={() => navigation.navigate('Liked')}
-              style={styles.card}>
-              <LinearGradient colors={['#33006F', '#FFFFFF']}>
-                <Pressable style={styles.cardIcon}>
-                  <AntDesign name="heart" size={24} color="white" />
-                </Pressable>
-              </LinearGradient>
-              <Text style={styles.cardText}>Liked Songs</Text>
-            </Pressable>
-
-            <View style={styles.card}>
+    <ScrollView style={styles.wrapper}>
+      <View>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.avatarWrapper} onPress={() => navigation.openDrawer()}>
+            {userProfile?.images ? (
               <Image
-                style={{width: 55, height: 55}}
-                source={{uri: 'https://i.pravatar.cc/150?img=12'}}
+                style={styles.avatar}
+                source={
+                  require('../assets/images/sontung.jpg') || {
+                    uri: userProfile.images[0].url,
+                  }
+                }
               />
-              <View>
-                <Text style={styles.cardText}>Hiphop Tamhiza</Text>
-              </View>
+            ) : (
+              <Ionicons name="person-circle" size={40} color="white" />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.filterRow}>
+          <Pressable style={styles.filterButton}>
+            <Text style={styles.filterText}>Music</Text>
+          </Pressable>
+          <Pressable style={styles.filterButton}>
+            <Text style={styles.filterText}>Podcasts & Shows</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.cardRow}>
+          <Pressable
+            onPress={() => navigation.navigate('Liked')}
+            style={styles.card}>
+            <LinearGradient colors={['#33006F', '#FFFFFF']}>
+              <Pressable style={styles.cardIcon}>
+                <AntDesign name="heart" size={24} color="white" />
+              </Pressable>
+            </LinearGradient>
+            <Text style={styles.cardText}>Liked Songs</Text>
+          </Pressable>
+
+          <View style={styles.card}>
+            <Image
+              style={{width: 55, height: 55}}
+              source={{uri: 'https://i.pravatar.cc/150?img=12'}}
+            />
+            <View>
+              <Text style={styles.cardText}>Hiphop Tamhiza</Text>
             </View>
           </View>
         </View>
+      </View>
 
-        <FlatList
-          data={recentlyplayed}
-          renderItem={renderItem}
-          keyExtractor={(_, index) => index.toString()}
-          //numColumns={2}
-          horizontal={true}
-          //columnWrapperStyle={{justifyContent: 'space-between'}}
-        />
+      <FlatList
+        data={recentlyplayed}
+        renderItem={renderItem}
+        keyExtractor={(_, index) => index.toString()}
+        //numColumns={2}
+        horizontal={true}
+        //columnWrapperStyle={{justifyContent: 'space-between'}}
+      />
 
-        <Text style={styles.sectionTitle}>Your Top Artists</Text>
-        {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <Text style={styles.sectionTitle}>Your Top Artists</Text>
+      {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {topArtists.map((item, index) => (
             <ArtistCard item={item} key={index} />
           ))}
         </ScrollView> */}
 
-        <FlatList
-          data={topArtists}
-          keyExtractor={(item, index) => index.toString()} // hoặc dùng item.id nếu có id
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({item}) => <ArtistCard item={item} />}
-        />
+      <FlatList
+        data={topArtists}
+        keyExtractor={(item, index) => index.toString()} // hoặc dùng item.id nếu có id
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        renderItem={({item}) => <ArtistCard item={item} />}
+      />
 
-        <Text style={styles.sectionTitle}>Recently Played</Text>
-        <FlatList
-          data={recentlyplayed}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({item, index}) => (
-            <RecentlyPlayedCard item={item} key={index} />
-          )}
-        />
-        <Button title="Logout" onPress={handleLogout} color="#ff3b30" />
-      </ScrollView>
-    </LinearGradient>
+      <Text style={styles.sectionTitle}>Recently Played</Text>
+      <FlatList
+        data={recentlyplayed}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({item, index}) => (
+          <RecentlyPlayedCard item={item} key={index} />
+        )}
+      />
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#000',
+    paddingTop: 30,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

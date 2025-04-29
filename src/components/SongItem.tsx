@@ -1,9 +1,9 @@
-import React from "react";
-import { StyleSheet, Text, View, Pressable, Image } from "react-native";
+import React from 'react';
+import {StyleSheet, Text, View, Pressable, Image} from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 //import { usePlayer } from "../contexts/PlayerContext";
-import { Track } from 'react-native-track-player';
+import {Track} from 'react-native-track-player';
 
 // Định nghĩa kiểu dữ liệu cho props
 // type SongItemProps = {
@@ -25,9 +25,9 @@ type SongItemProps = {
   isPlaying: boolean;
 };
 
-const SongItem: React.FC<SongItemProps> = ({ item, onPress, isPlaying }) => {
+const SongItem: React.FC<SongItemProps> = ({item, onPress, isPlaying}) => {
   // const { state, dispatch } = usePlayer();
-console.log(item);
+  // console.log(item);
   const handlePress = () => {
     // const track = item.track;
     // const convertedTrack: Track = {
@@ -39,14 +39,16 @@ console.log(item);
     //   duration: 180, // Example duration, replace with real data
     // };
     // onPress(convertedTrack);
-    onPress(item)
+    onPress(item);
   };
 
   return (
     <Pressable onPress={handlePress} style={styles.container}>
-      <Image style={styles.image} source={{ uri: item.artwork }} />
+      <Image style={styles.image} source={{uri: item.artwork}} />
       <View style={styles.textContainer}>
-        <Text numberOfLines={1} style={isPlaying ? styles.textPlaying : styles.text}>
+        <Text
+          numberOfLines={1}
+          style={isPlaying ? styles.textPlaying : styles.text}>
           {item.title}
         </Text>
         <Text style={styles.artistText}>{item.artist}</Text>
@@ -63,8 +65,8 @@ export default SongItem;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
   },
   image: {
@@ -76,22 +78,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   text: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 14,
-    color: "white",
+    color: 'white',
   },
   textPlaying: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 14,
-    color: "#3FFF00",
+    color: '#3FFF00',
   },
   artistText: {
     marginTop: 4,
-    color: "#989898",
+    color: '#989898',
   },
   iconsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 7,
     marginHorizontal: 10,
   },

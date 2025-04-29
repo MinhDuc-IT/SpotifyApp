@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -11,31 +11,36 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  KeyboardAvoidingView, Platform
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { LinearGradient } from 'react-native-linear-gradient';
+import {LinearGradient} from 'react-native-linear-gradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { useNavigation } from '@react-navigation/native';
-import { debounce } from 'lodash';
+import {useNavigation} from '@react-navigation/native';
+import {debounce} from 'lodash';
 //import {usePlayer} from '../contexts/PlayerContext';
 import SongItem from './SongItem';
-import { BottomModal } from './BottomModal';
-import { ModalContent } from './ModalContent';
+import {BottomModal} from './BottomModal';
+import {ModalContent} from './ModalContent';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { Track } from 'react-native-track-player';
-import { usePlayer } from '../contexts/PlayerContextV2';
+import {Track} from 'react-native-track-player';
+import {usePlayer} from '../contexts/PlayerContextV2';
+import auth from '@react-native-firebase/auth';
+import {findUserByUid} from '../sqlite/userService';
+import {saveLikedSong} from '../sqlite/songService';
+import {downloadSong} from '../utils/index';
 
 type SavedTrack = {
   track: {
     id: number;
     name: string;
     preview_url: string | null;
-    album: { images: { url: string }[] };
-    artists: { name: string }[];
+    album: {images: {url: string}[]};
+    artists: {name: string}[];
   };
 };
 
@@ -55,7 +60,7 @@ const TrackListScreen: React.FC<Props> = ({
   isLoading,
 }) => {
   const navigation = useNavigation();
-  const { play, currentTrack, isPlaying, queue, addToQueue } = usePlayer();
+  const {play, currentTrack, isPlaying, queue, addToQueue} = usePlayer();
   //const [tracks, setTracks] = useState<SavedTrack[]>([]); // SpotifyTrack type for mock data
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
@@ -100,11 +105,11 @@ const TrackListScreen: React.FC<Props> = ({
         return;
       }
       const filtered = trackList.filter(track =>
-        track.title?.toLowerCase().includes(text.toLowerCase())
+        track.title?.toLowerCase().includes(text.toLowerCase()),
       );
       setSearchedTracks(filtered);
     }, 300),
-    [trackList]
+    [trackList],
   );
 
   const handleShuffle = async () => {
@@ -118,7 +123,7 @@ const TrackListScreen: React.FC<Props> = ({
 
   const handleSort = (type: 'title' | 'artist') => {
     const sorted = [...searchedTracks].sort((a, b) =>
-      (a[type] ?? '').localeCompare(b[type] ?? '')
+      (a[type] ?? '').localeCompare(b[type] ?? ''),
     );
     setSearchedTracks(sorted);
     setSortModalVisible(false);
@@ -130,12 +135,50 @@ const TrackListScreen: React.FC<Props> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleDownload = async () => {
+    console.log(tracks);
+    const user = auth().currentUser;
+    if (user) {
+      console.log('User UID:', user.uid);
+
+      try {
+        // Tìm user trong SQLite
+        const userData = await findUserByUid(user.uid);
+        if (userData) {
+          console.log('User found in SQLite:', userData);
+
+          // Lưu từng bài hát đã thích vào SQLite
+          for (const track of tracks) {
+            const song = {
+              id: track.track.id,
+              name: track.track.name,
+              artist: track.track.artists.map(artist => artist.name).join(', '),
+              image_url: track.track.album.images[0]?.url || '',
+              audio_url: track.track.preview_url || '',
+            };
+
+            await downloadSong(userData.id, song);
+            console.log(`Saved song: ${song.name}`);
+          }
+
+          console.log('All liked songs have been saved.');
+        } else {
+          console.log('User not found in SQLite');
+        }
+      } catch (error) {
+        console.error('Error saving liked songs:', error);
+      }
+    } else {
+      console.log('No user is logged in');
+    }
+  };
+
   return (
     <LinearGradient colors={['#614385', '#516395']} style={styles.container}>
       <FlatList
         data={searchedTracks}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
+        renderItem={({item}) => (
           <SongItem
             item={item}
             onPress={handleTrackPress}
@@ -156,8 +199,7 @@ const TrackListScreen: React.FC<Props> = ({
             <View style={styles.searchContainer}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-              >
+                style={{flex: 1}}>
                 <View style={styles.searchInputContainer}>
                   <AntDesign name="search1" size={20} color="white" />
                   <TextInput
@@ -172,7 +214,9 @@ const TrackListScreen: React.FC<Props> = ({
                   />
                 </View>
               </KeyboardAvoidingView>
-              <Pressable onPress={() => setSortModalVisible(true)} style={styles.sortButton}>
+              <Pressable
+                onPress={() => setSortModalVisible(true)}
+                style={styles.sortButton}>
                 <Text style={styles.sortButtonText}>Sắp xếp</Text>
               </Pressable>
             </View>
@@ -186,9 +230,7 @@ const TrackListScreen: React.FC<Props> = ({
               {/* Ảnh ở giữa */}
               <Image
                 source={{
-                  uri:
-                    currentTrack?.artwork ||
-                    queue[0]?.artwork,
+                  uri: currentTrack?.artwork || queue[0]?.artwork,
                 }}
                 style={{
                   width: 250,
@@ -220,8 +262,7 @@ const TrackListScreen: React.FC<Props> = ({
                   color: '#ccc',
                   textAlign: 'center',
                 }}>
-                Artist: {currentTrack?.artist ||
-                  queue[0]?.artist}
+                Artist: {currentTrack?.artist || queue[0]?.artist}
               </Text>
             </View>
 
@@ -233,24 +274,29 @@ const TrackListScreen: React.FC<Props> = ({
             </View>
 
             <View style={styles.playHeader}>
-              <Pressable style={styles.downloadButton}>
+              <Pressable
+                style={styles.downloadButton}
+                onPress={() => handleDownload()}>
                 <AntDesign name="arrowdown" size={20} color="white" />
               </Pressable>
               <View style={styles.playControls}>
                 <Pressable onPress={handleShuffle}>
-                  <MaterialCommunityIcons name="cross-bolnisi" size={24} color={isShuffle ? "#1DB954" : "#ffffff"} />
+                  <MaterialCommunityIcons
+                    name="cross-bolnisi"
+                    size={24}
+                    color={isShuffle ? '#1DB954' : '#ffffff'}
+                  />
                 </Pressable>
                 <Pressable
                   onPress={() => {
                     if (searchedTracks.length > 0) play(searchedTracks[0]);
                   }}
                   style={styles.playButton}>
-                  {
-                    isPlaying ?
-                      <Entypo name="controller-paus" size={24} color="white" />
-                      :
-                      <Entypo name="controller-play" size={24} color="white" />
-                  }
+                  {isPlaying ? (
+                    <Entypo name="controller-paus" size={24} color="white" />
+                  ) : (
+                    <Entypo name="controller-play" size={24} color="white" />
+                  )}
                 </Pressable>
               </View>
             </View>
@@ -259,7 +305,7 @@ const TrackListScreen: React.FC<Props> = ({
               <ActivityIndicator
                 size="large"
                 color="gray"
-                style={{ marginVertical: 20 }}
+                style={{marginVertical: 20}}
               />
             )}
           </>
@@ -271,23 +317,24 @@ const TrackListScreen: React.FC<Props> = ({
         visible={sortModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setSortModalVisible(false)}
-      >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setSortModalVisible(false)}>
+        onRequestClose={() => setSortModalVisible(false)}>
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setSortModalVisible(false)}>
           <View style={styles.modalContent}>
             <Text style={styles.headerText}>Sắp xếp theo</Text>
             {[
-              { label: 'Tiêu đề', value: 'title' },
-              { label: 'Nghệ sĩ', value: 'artist' },
+              {label: 'Tiêu đề', value: 'title'},
+              {label: 'Nghệ sĩ', value: 'artist'},
             ].map(option => (
               <TouchableOpacity
                 key={option.value}
                 style={styles.option}
                 onPress={() => {
-                  setCurrentSort(option.value)
-                  handleSort(option.value == "title" ? "title" : "artist");
-                }}
-              >
+                  setCurrentSort(option.value);
+                  handleSort(option.value == 'title' ? 'title' : 'artist');
+                }}>
                 <Text style={styles.optionText}>{option.label}</Text>
                 {currentSort === option.value && (
                   <Text style={styles.checkmark}>✔️</Text>
@@ -300,6 +347,7 @@ const TrackListScreen: React.FC<Props> = ({
     </LinearGradient>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -628,7 +676,7 @@ const styles = StyleSheet.create({
 //     );
 //     setFilteredTracks(sorted);
 //     setSortModalVisible(false);
-//   };  
+//   };
 
 //   const renderHeader = () => (
 //     <>
@@ -741,7 +789,6 @@ const styles = StyleSheet.create({
 //     </LinearGradient>
 //   );
 // };
-
 
 // const styles = StyleSheet.create({
 //   container: {

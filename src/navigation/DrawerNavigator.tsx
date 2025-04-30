@@ -87,6 +87,10 @@ const CustomDrawerContent = (props: any) => {
     setModalVisible(true);
   };
 
+  const openProfile = () => {
+    props.navigation.navigate('Profile');
+  }
+
   const handleLogout = async () => {
     try {
       const user = auth().currentUser;
@@ -104,7 +108,7 @@ const CustomDrawerContent = (props: any) => {
           'No user logged in',
           'There is no user currently logged in.',
         );
-        navigation.navigate('Start');
+        props.navigation.navigate('Start');
       }
     } catch (error) {
       Alert.alert('Logout Error', 'Failed to sign out');
@@ -114,7 +118,7 @@ const CustomDrawerContent = (props: any) => {
 
   return (
     <View style={styles.drawerContainer}>
-      <TouchableOpacity style={styles.profile} onPress={handleSettings}>
+      <TouchableOpacity style={styles.profile} onPress={openProfile}>
         {userProfile?.photoURL ?
           (<Image
             source={{ uri: userProfile?.photoURL }}

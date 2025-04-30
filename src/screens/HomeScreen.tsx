@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ArtistCard from '../components/ArtistCard';
 import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
+import { useFocusEffect } from '@react-navigation/native';
 
 import api from '../services/api';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -101,9 +102,22 @@ const HomeScreen = () => {
     fetchData();
   }, []);
 
+  // useEffect(() => {
+  //   getTopItems();
+  // }, []);
+
   useEffect(() => {
     getTopItems();
+    getRecentlyPlayedSongs();
   }, []);
+
+  // Gọi lại khi quay lại màn hình
+  useFocusEffect(
+    useCallback(() => {
+      getTopItems();
+      getRecentlyPlayedSongs();
+    }, [])
+  );
 
   const getTopItems = async () => {
     try {
@@ -117,9 +131,9 @@ const HomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    getRecentlyPlayedSongs();
-  }, []);
+  // useEffect(() => {
+  //   getRecentlyPlayedSongs();
+  // }, []);
 
   const getRecentlyPlayedSongs = async () => {
     try {

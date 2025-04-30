@@ -29,6 +29,8 @@ import PlaylistScreen from './src/screens/PlaylistScreen';
 import {createTables} from './src/sqlite/database';
 import {checkAndCreateUser} from './src/sqlite/userService';
 import DrawerNavigator from './src/navigation/DrawerNavigator';
+import ProfileScreen from './src/screens/ProfileScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
 
 const Stack = createNativeStackNavigator();
 registerPlaybackService();
@@ -176,9 +178,14 @@ const App = () => {
                       </>
                     )}
                     <Stack.Screen
-                      name="LibraryScreenTest"
-                      component={LibraryScreenTest}
+                      name="Profile"
+                      component={ProfileScreen}
                       options={{headerShown: false}}
+                    />
+                    <Stack.Screen 
+                      name="EditProfile" 
+                      component={EditProfileScreen} 
+                      options={{headerShown: false}}                    
                     />
                     <Stack.Screen
                       name="CreatePlaylist"

@@ -107,6 +107,7 @@ const HomeScreen = () => {
   // }, []);
 
   useEffect(() => {
+    getProfile();
     getTopItems();
     getRecentlyPlayedSongs();
   }, []);
@@ -114,6 +115,7 @@ const HomeScreen = () => {
   // Gọi lại khi quay lại màn hình
   useFocusEffect(
     useCallback(() => {
+      getProfile();
       getTopItems();
       getRecentlyPlayedSongs();
     }, [])
@@ -150,9 +152,9 @@ const HomeScreen = () => {
     }
   };
 
-  useEffect(() => {
-    getProfile();
-  }, []);
+  // useEffect(() => {
+  //   getProfile();
+  // }, []);
 
   const getProfile = async () => {
     console.log('Fetching profile...'); // Log to check if the function is called

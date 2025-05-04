@@ -14,10 +14,11 @@ import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
-  getDownloadedSongsByUser,
+  getDownloadedLikedSongsByUser,
   deleteLikedSongsByUser,
 } from '../sqlite/songService';
 import TrackPlayer from 'react-native-track-player';
+import {useNavigation} from '@react-navigation/native';
 
 const Drawer = createDrawerNavigator();
 
@@ -30,6 +31,7 @@ interface Song {
 const CustomDrawerContent = (props: any) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [downloadedSongs, setDownloadedSongs] = useState<Song[]>([]);
+  const navigation = useNavigation();
 
   const userProfile = auth().currentUser;
 
@@ -39,7 +41,7 @@ const CustomDrawerContent = (props: any) => {
         const user = auth().currentUser;
         if (user) {
           console.log('Fetching downloaded songs for user:', user.uid);
-          const songs = await getDownloadedSongsByUser(user.uid);
+          const songs = await getDownloadedLikedSongsByUser(user.uid);
           console.log('Downloaded songs from SQLite:', songs);
           setDownloadedSongs(songs);
         } else {
@@ -83,9 +85,13 @@ const CustomDrawerContent = (props: any) => {
     Alert.alert('Cài đặt', 'Bạn đã nhấn vào nút Cài đặt');
   };
 
-  const handleOpenDownload = () => {
+  const handleOpenDownloadOld = () => {
     setModalVisible(true);
   };
+
+  const handleOpenDownload = () => {
+    navigation.navigate('DownLoad');
+  }
 
   const openProfile = () => {
     props.navigation.navigate('Profile');
@@ -155,6 +161,12 @@ const CustomDrawerContent = (props: any) => {
       <TouchableOpacity style={styles.drawerButton} onPress={handleSettings}>
         <MaterialCommunityIcons name="history" size={24} color="white" />
         <Text style={styles.drawerButtonText}>Gần đây</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.drawerButton}
+        onPress={handleOpenDownloadOld}>
+        <MaterialCommunityIcons name="download" size={24} color="white" />
+        <Text style={styles.drawerButtonText}>Bài hát đã tải cũ</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.drawerButton}

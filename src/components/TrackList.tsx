@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  ScrollView,
   ActivityIndicator,
   Image,
   FlatList,
@@ -21,18 +20,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Entypo from 'react-native-vector-icons/Entypo';
 import {useNavigation} from '@react-navigation/native';
 import {debounce} from 'lodash';
-//import {usePlayer} from '../contexts/PlayerContext';
 import SongItem from './SongItem';
-import {BottomModal} from './BottomModal';
-import {ModalContent} from './ModalContent';
-import Feather from 'react-native-vector-icons/Feather';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {Track} from 'react-native-track-player';
 import {usePlayer} from '../contexts/PlayerContextV2';
 import auth from '@react-native-firebase/auth';
 import {findUserByUid} from '../sqlite/userService';
-import {saveLikedSong} from '../sqlite/songService';
 import {downloadSong} from '../utils/index';
+import DownloadProgressModal from './DownLoad/DownloadProgressModal';
 
 type SavedTrack = {
   track: {
@@ -60,14 +54,16 @@ const TrackListScreen: React.FC<Props> = ({
   isLoading,
 }) => {
   const navigation = useNavigation();
-  const { play, currentTrack, isPlaying, queue, addToQueue, pause } = usePlayer();
-  //const [tracks, setTracks] = useState<SavedTrack[]>([]); // SpotifyTrack type for mock data
+  const {play, currentTrack, isPlaying, queue, addToQueue, pause} = usePlayer();
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
   const [input, setInput] = useState('');
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [currentSort, setCurrentSort] = useState<string>('title');
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
+  const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -129,48 +125,54 @@ const TrackListScreen: React.FC<Props> = ({
     setSortModalVisible(false);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const handleDownload = async () => {
-    console.log(tracks);
     const user = auth().currentUser;
-    if (user) {
-      console.log('User UID:', user.uid);
-
-      try {
-        // Tìm user trong SQLite
-        const userData = await findUserByUid(user.uid);
-        if (userData) {
-          console.log('User found in SQLite:', userData);
-
-          // Lưu từng bài hát đã thích vào SQLite
-          for (const track of tracks) {
-            const song = {
-              id: track.track.id,
-              name: track.track.name,
-              artist: track.track.artists.map(artist => artist.name).join(', '),
-              image_url: track.track.album.images[0]?.url || '',
-              audio_url: track.track.preview_url || '',
-            };
-
-            await downloadSong(userData.id, song);
-            console.log(`Saved song: ${song.name}`);
-          }
-
-          console.log('All liked songs have been saved.');
-        } else {
-          console.log('User not found in SQLite');
-        }
-      } catch (error) {
-        console.error('Error saving liked songs:', error);
-      }
-    } else {
+    if (!user) {
       console.log('No user is logged in');
+      return;
     }
+    setShowDownloadModal(true);
+    setIsDownloading(true);
+    setProgress(0);
+
+    try {
+      const userData = await findUserByUid(user.uid);
+      if (!userData) {
+        console.log('User not found in SQLite');
+        setIsDownloading(false);
+        return;
+      }
+
+      let totalSteps = tracks.length * 100;
+
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i];
+        const song = {
+          id: track.track.id,
+          name: track.track.name,
+          artist: track.track.artists.map(artist => artist.name).join(', '),
+          image_url: track.track.album.images[0]?.url || '',
+          audio_url: track.track.preview_url || '',
+        };
+
+        await downloadSong(userData.id, song, percent => {
+          const songProgress = i * 100 + percent;
+          const overallPercent = Math.floor((songProgress / totalSteps) * 100);
+          setProgress(overallPercent);
+        });
+
+        console.log(`Saved song: ${song.name}`);
+      }
+
+      console.log('All liked songs have been saved.');
+    } catch (error) {
+      console.error('Error saving liked songs:', error);
+    }
+
+    setIsDownloading(false);
+    setTimeout(() => {
+      setShowDownloadModal(false);
+    }, 1000);
   };
 
   return (
@@ -323,6 +325,13 @@ const TrackListScreen: React.FC<Props> = ({
             )}
           </>
         )}
+      />
+
+      <DownloadProgressModal
+        visible={showDownloadModal}
+        progress={progress}
+        isDownloading={isDownloading}
+        onClose={() => setShowDownloadModal(false)}
       />
 
       {/* Modal sắp xếp */}

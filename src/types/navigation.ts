@@ -1,3 +1,10 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
+
+export type LibraryStackParamList = {
+  Library: undefined;
+  DownLoad: undefined;
+};
+
 // Type for the stack navigator
 export type RootStackParamList = {
     Home: undefined;
@@ -8,11 +15,14 @@ export type RootStackParamList = {
     Search: undefined;
     SearchDetail: undefined;
     Premium: undefined;
+    LibraryStack: NavigatorScreenParams<LibraryStackParamList>;
     Library: undefined;
     Profile: undefined;
     EditProfile: undefined;
+    DownLoad: undefined;
     CreatePlaylist: undefined;
     Liked: undefined;
+    LikedSongsDownload: undefined;
     Info: {
         item: {
           songId: number;

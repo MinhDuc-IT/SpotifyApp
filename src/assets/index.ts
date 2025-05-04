@@ -1,0 +1,1 @@
+export const likedSong = require('./images/likedsong.jpg');

@@ -9,8 +9,6 @@ import AdminScreen from './src/screens/AdminScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
-import BottomTabNavigator from './src/components/BottomTabNavigator';
-import LibraryScreenTest from './src/screens/LibraryScreenTest';
 import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
 import SearchDetailScreen from './src/screens/SearchDetailScreen';
 import {LibraryProvider} from './src/contexts/LibraryContext';
@@ -31,6 +29,10 @@ import {checkAndCreateUser} from './src/sqlite/userService';
 import DrawerNavigator from './src/navigation/DrawerNavigator';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
+import DownLoadScreen from './src/screens/DownLoadScreen';
+import LibraryStack from './src/navigation/libraryNavigator';
+import LibraryScreen from './src/screens/LibraryScreen';
+import LikedSongsDownload from './src/screens/LikedSongDownload';
 
 const Stack = createNativeStackNavigator();
 registerPlaybackService();
@@ -55,12 +57,9 @@ const App = () => {
         const name = user.displayName || 'Unknown User';
         const email = user.email || 'unknown@example.com';
 
-        console.log('Firebase User ID:', firebaseId);
-
         try {
           // Kiểm tra và tạo user trong SQLite
           await checkAndCreateUser(firebaseId, name, email);
-          console.log('User checked/created in SQLite');
         } catch (error) {
           console.error('Error checking/creating user in SQLite:', error);
         }
@@ -180,6 +179,10 @@ const App = () => {
                     <Stack.Screen
                       name="Profile"
                       component={ProfileScreen}
+                    />
+                    <Stack.Screen
+                      name="DownLoad"
+                      component={DownLoadScreen}
                       options={{headerShown: false}}
                     />
                     <Stack.Screen 
@@ -195,6 +198,11 @@ const App = () => {
                     <Stack.Screen
                       name="SearchDetail"
                       component={SearchDetailScreen}
+                      options={{headerShown: false}}
+                    />
+                    <Stack.Screen
+                      name="LikedSongsDownload"
+                      component={LikedSongsDownload}
                       options={{headerShown: false}}
                     />
                     <Stack.Screen

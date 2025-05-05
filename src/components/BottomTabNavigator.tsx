@@ -20,18 +20,18 @@ const BottomTabNavigator = () => {
         tabBarIcon: ({color, size, focused}) => {
           let iconName = '';
 
-          if (route.name === "Trang chủ") {
+          if (route.name === 'Trang chủ') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === "Thư viện") {
+          } else if (route.name === 'Thư viện') {
             iconName = focused ? 'library' : 'library-outline';
-          } else if (route.name === "Tìm kiếm") {
+          } else if (route.name === 'Tìm kiếm') {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Payment') {
             iconName = focused ? 'spotify' : 'spotify';
             return <Entypo name={iconName} size={25} color={color} />;
-          } 
+          }
           return <Ionicons name={iconName} size={20} color={color} />;
         },
         tabBarLabel: ({focused, color}) => (
@@ -52,7 +52,7 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Tìm kiếm" component={SearchScreen} />
       <Tab.Screen name="Thư viện" component={LibraryScreen} />
       <Tab.Screen name="Premium" component={SearchDetailScreen} />
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Liked"
         component={LikedSongsScreen}
         options={{
@@ -60,6 +60,7 @@ const BottomTabNavigator = () => {
           tabBarStyle: {display: 'none'},
         }}
       />
+      /> */}
       <Tab.Screen name="Payment" component={PremiumOfferScreen} />
     </Tab.Navigator>
   );

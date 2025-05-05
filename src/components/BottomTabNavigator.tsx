@@ -20,11 +20,11 @@ const BottomTabNavigator = () => {
         tabBarIcon: ({color, size, focused}) => {
           let iconName = '';
 
-          if (route.name === 'Home') {
+          if (route.name === "Trang chủ") {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Library') {
+          } else if (route.name === "Thư viện") {
             iconName = focused ? 'library' : 'library-outline';
-          } else if (route.name === 'Search') {
+          } else if (route.name === "Tìm kiếm") {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
             iconName = focused ? 'search-outline' : 'search';
@@ -48,9 +48,9 @@ const BottomTabNavigator = () => {
         tabBarInactiveTintColor: '#B3B3B3',
         headerShown: false,
       })}>
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} />
-      <Tab.Screen name="Library" component={LibraryScreen} />
+      <Tab.Screen name="Trang chủ" component={HomeScreen} />
+      <Tab.Screen name="Tìm kiếm" component={SearchScreen} />
+      <Tab.Screen name="Thư viện" component={LibraryScreen} />
       <Tab.Screen name="Premium" component={SearchDetailScreen} />
       <Tab.Screen
         name="Liked"

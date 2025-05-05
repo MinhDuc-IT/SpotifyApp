@@ -107,7 +107,7 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
             },
           ]}
           resizeMode="cover"
-          source={{ uri: 'https://placehold.co/600x600' }}
+          source={{ uri: item.imageUrl ? item.imageUrl : 'https://placehold.co/600x600' }}
         />
         <View style={styles.itemInfo}>
           <Text style={styles.itemName} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>

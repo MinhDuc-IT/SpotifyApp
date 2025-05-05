@@ -153,12 +153,12 @@ export const getAllDownloadedSongsByUser = async (firebaseId: string) => {
   });
 };
 
-export const isSongDownloaded = async (songId: number): Promise<boolean> => {
+export const isSongDownloaded = async (songId: number, userId: number): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        'SELECT id FROM songs WHERE id = ?',
-        [songId],
+        'SELECT id FROM likes WHERE song_id = ? AND user_id = ?',
+        [songId, userId],
         (_, result) => {
           resolve(result.rows.length > 0);
         },

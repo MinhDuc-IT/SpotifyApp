@@ -1,6 +1,7 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Entypo from 'react-native-vector-icons/Entypo';
 import {Text} from 'react-native';
 import LibraryScreen from '../screens/LibraryScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -8,6 +9,7 @@ import SearchScreen from '../screens/SearchScreen';
 import SearchDetailScreen from '../screens/SearchDetailScreen';
 import {RootStackParamList} from '../types/navigation';
 import LikedSongsScreen from '../screens/LikedSongsScreen';
+import PremiumOfferScreen from '../screens/PremiumOfferScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 
@@ -26,7 +28,10 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
             iconName = focused ? 'search-outline' : 'search';
-          }
+          } else if (route.name === 'Payment') {
+            iconName = focused ? 'spotify' : 'spotify';
+            return <Entypo name={iconName} size={25} color={color} />;
+          } 
           return <Ionicons name={iconName} size={20} color={color} />;
         },
         tabBarLabel: ({focused, color}) => (
@@ -55,6 +60,7 @@ const BottomTabNavigator = () => {
           tabBarStyle: {display: 'none'},
         }}
       />
+      <Tab.Screen name="Payment" component={PremiumOfferScreen} />
     </Tab.Navigator>
   );
 };

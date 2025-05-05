@@ -36,5 +36,27 @@ export type RootStackParamList = {
         };
       }; 
     PlayList: undefined;
-    Player: undefined;     
+    Player: undefined;    
+    Payment: undefined;
+    // PaymentSuccess: undefined;
+    // PaymentFailure: undefined;
+    PaymentSuccess: {
+      transactionId?: string;
+      amount?: string;
+      orderCode?: string;
+      message?: string;
+      paymentMethod?: string;
+      orderDescription?: string;
+      transactionDate?: string;
+    };
+    PaymentFailure: {
+      transactionId?: string;
+      amount?: string;
+      orderCode?: string;
+      message?: string;
+      paymentMethod?: string;
+      orderDescription?: string;
+      transactionDate?: string;
+    };
+    MainApp: undefined;
 };

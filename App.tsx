@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, View, Linking, Alert } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import AuthContext from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import AdminScreen from './src/screens/AdminScreen';
@@ -11,21 +11,21 @@ import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
 import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
 import SearchDetailScreen from './src/screens/SearchDetailScreen';
-import {LibraryProvider} from './src/contexts/LibraryContext';
+import { LibraryProvider } from './src/contexts/LibraryContext';
 import LikedSongsScreen from './src/screens/LikedSongsScreen';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {PlayerProvider} from './src/contexts/PlayerContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PlayerProvider } from './src/contexts/PlayerContext';
 import SongInfoScreen from './src/screens/SongInfoScreen';
 import GlobalPlayer from './src/components/GlobalPlayer';
-import {PlayerProviderV2} from './src/contexts/PlayerContextV2';
+import { PlayerProviderV2 } from './src/contexts/PlayerContextV2';
 import {
   setupPlayer,
   registerPlaybackService,
 } from './src/services/trackPlayer.service';
-import {PlayerScreen} from './src/screens/PlayerScreen';
+import { PlayerScreen } from './src/screens/PlayerScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
-import {createTables} from './src/sqlite/database';
-import {checkAndCreateUser} from './src/sqlite/userService';
+import { createTables } from './src/sqlite/database';
+import { checkAndCreateUser } from './src/sqlite/userService';
 import DrawerNavigator from './src/navigation/DrawerNavigator';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
@@ -33,8 +33,13 @@ import DownLoadScreen from './src/screens/DownLoadScreen';
 import LibraryStack from './src/navigation/libraryNavigator';
 import LibraryScreen from './src/screens/LibraryScreen';
 import LikedSongsDownload from './src/screens/LikedSongDownload';
+import PaymentScreen from './src/screens/PaymentScreen';
+import PaymentSuccess from './src/screens/PaymentSuccess';
+import PaymentFailure from './src/screens/PaymentFailure';
+import { navigationRef } from './src/navigation/navigationRef';
+import { RootStackParamList } from './src/types/navigation';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 registerPlaybackService();
 
 const App = () => {
@@ -66,7 +71,7 @@ const App = () => {
         const tokenResult = await user.getIdTokenResult(true);
         // console.log('Token fetched:', tokenResult.token);
 
-        await api.post('/auth/setCustomClaims', {IdToken: tokenResult.token});
+        await api.post('/auth/setCustomClaims', { IdToken: tokenResult.token });
         //await api.post('/auth/setCustomClaims', { userId: user.uid });
 
         // Chờ một chút trước khi làm mới token (tránh việc claims chưa cập nhật)
@@ -124,39 +129,117 @@ const App = () => {
     initialize();
   }, []);
 
+  // useEffect(() => {
+  //   const handleInitialUrl = async () => {
+  //     const url = await Linking.getInitialURL();
+  //     if (url) handleDeepLink(url);
+  //   };
+
+  //   const handleDeepLink = (url: string) => {
+  //     if (url.includes('payment-success')) {
+  //       navigationRef.current?.navigate('PaymentSuccess');
+  //     } else if (url.includes('payment-failure')) {
+  //       navigationRef.current?.navigate('PaymentFailure');
+  //     } else {
+  //       Alert.alert('Thông báo', `Mở bằng deeplink: ${url}`);
+  //     }
+  //   };
+
+  //   const linkingListener = Linking.addEventListener('url', (event) => {
+  //     handleDeepLink(event.url);
+  //   });
+
+  //   handleInitialUrl();
+
+  //   return () => {
+  //     linkingListener.remove();
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    const handleInitialUrl = async () => {
+      const url = await Linking.getInitialURL();
+      if (url) handleDeepLink(url);
+    };
+
+    const handleDeepLink = (url: string) => {
+      console.log(url);
+      try {
+        // Xử lý custom scheme thủ công
+        const queryString = url.split('?')[1] || '';
+        const params = queryString.split('&').reduce((acc: Record<string, string>, pair) => {
+          const [key, value] = pair.split('=');
+          if (key && value) {
+            acc[decodeURIComponent(key)] = decodeURIComponent(value);
+          }
+          return acc;
+        }, {});
+    
+        const payload = {
+          transactionId: params.transactionId,
+          amount: params.amount,
+          orderCode: params.orderCode,
+          message: params.message,
+          paymentMethod: params.paymentMethod,
+          orderDescription: params.orderDescription,
+          transactionDate: params.transactionDate,
+        };
+    
+        if (url.includes("payment-success")) {
+          navigationRef.current?.navigate("PaymentSuccess", payload);
+        } else if (url.includes("payment-failure")) {
+          navigationRef.current?.navigate("PaymentFailure", payload);
+        }
+      } catch (error) {
+        console.error("Lỗi xử lý deeplink:", error);
+        Alert.alert("Lỗi", "Không thể xử lý đường dẫn deeplink.");
+      }
+    };
+
+    const linkingListener = Linking.addEventListener('url', (event) => {
+      handleDeepLink(event.url);
+    });
+
+    handleInitialUrl();
+
+    return () => {
+      linkingListener.remove();
+    };
+  }, []);
+
   if (loading) {
     return (
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <AuthContext.Provider value={{user, roles}}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthContext.Provider value={{ user, roles }}>
         <PlayerProvider>
           <PlayerProviderV2>
             <LibraryProvider>
-              <View style={{flex: 1}}>
-                <NavigationContainer>
+              <View style={{ flex: 1 }}>
+                <NavigationContainer ref={navigationRef}>
                   <Stack.Navigator>
                     {!isEmailVerifiedOrFacebook() ? (
                       <>
                         <Stack.Screen
                           name="Start"
                           component={StartScreen}
-                          options={{headerShown: false}}
+                          options={{ headerShown: false }}
                         />
                         <Stack.Screen
                           name="Login"
                           component={LoginScreen}
-                          options={{headerShown: false}}
+                          options={{ headerShown: false }}
                         />
                         <Stack.Screen
                           name="SignUp"
                           component={SignUpScreen}
-                          options={{headerShown: false}}
+                          options={{ headerShown: false }}
                         />
                       </>
                     ) : roles.includes('Admin') ? (
@@ -164,7 +247,7 @@ const App = () => {
                         <Stack.Screen
                           name="Admin"
                           component={AdminScreen}
-                          options={{headerShown: false}}
+                          options={{ headerShown: false }}
                         />
                       </>
                     ) : (
@@ -172,33 +255,34 @@ const App = () => {
                         <Stack.Screen
                           name="MainApp"
                           component={DrawerNavigator}
-                          options={{headerShown: false}}
+                          options={{ headerShown: false }}
                         />
                       </>
                     )}
                     <Stack.Screen
                       name="Profile"
                       component={ProfileScreen}
+                      options={{ headerShown: false }}
                     />
                     <Stack.Screen
                       name="DownLoad"
                       component={DownLoadScreen}
                       options={{headerShown: false}}
                     />
-                    <Stack.Screen 
-                      name="EditProfile" 
-                      component={EditProfileScreen} 
-                      options={{headerShown: false}}                    
+                    <Stack.Screen
+                      name="EditProfile"
+                      component={EditProfileScreen}
+                      options={{ headerShown: false }}
                     />
                     <Stack.Screen
                       name="CreatePlaylist"
                       component={CreatePlaylistScreen}
-                      options={{headerShown: false}}
+                      options={{ headerShown: false }}
                     />
                     <Stack.Screen
                       name="SearchDetail"
                       component={SearchDetailScreen}
-                      options={{headerShown: false}}
+                      options={{ headerShown: false }}
                     />
                     <Stack.Screen
                       name="LikedSongsDownload"
@@ -208,12 +292,27 @@ const App = () => {
                     <Stack.Screen
                       name="Liked"
                       component={LikedSongsScreen}
-                      options={{headerShown: false}}
+                      options={{ headerShown: false }}
                     />
                     <Stack.Screen
                       name="Info"
                       component={SongInfoScreen}
+                      options={{ headerShown: false }}
+                    />
+                    {/* <Stack.Screen
+                      name="Payment" 
+                      component={PaymentScreen} 
                       options={{headerShown: false}}
+                    /> */}
+                    <Stack.Screen
+                      name="PaymentSuccess"
+                      component={PaymentSuccess}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="PaymentFailure"
+                      component={PaymentFailure}
+                      options={{ headerShown: false }}
                     />
                     {/* <Stack.Screen
                       name="PlayList"

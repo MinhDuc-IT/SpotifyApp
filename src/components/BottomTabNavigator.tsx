@@ -8,6 +8,7 @@ import SearchScreen from '../screens/SearchScreen';
 import SearchDetailScreen from '../screens/SearchDetailScreen';
 import {RootStackParamList} from '../types/navigation';
 import LikedSongsScreen from '../screens/LikedSongsScreen';
+import PaymentScreen from '../screens/PaymentScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 
@@ -26,7 +27,9 @@ const BottomTabNavigator = () => {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
             iconName = focused ? 'search-outline' : 'search';
-          }
+          } else if (route.name === 'Payment') {
+            iconName = focused ? 'search-outline' : 'search';
+          } 
           return <Ionicons name={iconName} size={20} color={color} />;
         },
         tabBarLabel: ({focused, color}) => (
@@ -55,6 +58,7 @@ const BottomTabNavigator = () => {
           tabBarStyle: {display: 'none'},
         }}
       />
+      <Tab.Screen name="Payment" component={PaymentScreen} />
     </Tab.Navigator>
   );
 };

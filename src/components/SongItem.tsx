@@ -35,35 +35,9 @@ const SongItem: React.FC<SongItemProps> = ({
   isLiked,
   onLikePress,
 }) => {
-  // const { state, dispatch } = usePlayer();
-  // console.log(item);
   const handlePress = () => {
-    // const track = item.track;
-    // const convertedTrack: Track = {
-    //   id: String(track.id), // Convert id to string
-    //   url: track.preview_url || '', // Use preview_url from Spotify
-    //   title: track.name, // Use name as title
-    //   artist: track.artists.map(artist => artist.name).join(', '), // Join artists names
-    //   artwork: track.album.images[0]?.url || '', // Get artwork from album
-    //   duration: 180, // Example duration, replace with real data
-    // };
-    // onPress(convertedTrack);
     onPress(item);
   };
-
-  // const [isLiked, setIsLiked] = useState(false);
-
-  // const handleLikePress = () => {
-  //   if (isLiked) {
-  //     // Dislike the song
-  //     setIsLiked(false);
-  //     // Add your logic to remove the song from the liked list
-  //   } else {
-  //     // Like the song
-  //     setIsLiked(true);
-  //     // Add your logic to add the song to the liked list
-  //   }
-  // };
 
   return (
     <Pressable onPress={handlePress} style={styles.container}>

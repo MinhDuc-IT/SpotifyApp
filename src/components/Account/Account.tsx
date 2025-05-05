@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/navigation';
 import axios from '../../services/api';
+import auth from '@react-native-firebase/auth';
 
 type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
@@ -24,6 +25,7 @@ interface SpotifyUser {
 const Account = () => {
   const navigation = useNavigation<NavigationProps>();
   const [userProfile, setUserProfile] = useState<SpotifyUser | null>(null);
+  const avatar = auth().currentUser?.photoURL || null;
 
   useEffect(() => {
     getProfile();
@@ -59,11 +61,9 @@ const Account = () => {
       {userProfile?.images ? (
         <Image
           style={styles.avatar}
-          source={
-            require('../../assets/images/sontung.jpg') || {
-              uri: userProfile.images[0].url,
-            }
-          }
+          source={{
+            uri: avatar ? avatar : userProfile.images[0].url,
+          }}
         />
       ) : (
         <Ionicons name="person-circle" size={40} color="white" />

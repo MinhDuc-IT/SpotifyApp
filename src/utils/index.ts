@@ -14,7 +14,7 @@ export const downloadSong = async (
 ) => {
   try {
 
-    const alreadyDownloaded = await isSongDownloaded(song.id);
+    const alreadyDownloaded = await isSongDownloaded(song.id, userId);
     if (alreadyDownloaded) {
       console.log('Bài hát đã được tải:', song.name);
       onProgress(100);

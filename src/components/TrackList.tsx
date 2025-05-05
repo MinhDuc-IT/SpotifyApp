@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, use} from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,8 @@ import auth from '@react-native-firebase/auth';
 import {findUserByUid} from '../sqlite/userService';
 import {saveLikedSong} from '../sqlite/songService';
 import {downloadSong} from '../utils/index';
+import api from '../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 type SavedTrack = {
   track: {
@@ -50,6 +52,11 @@ interface Props {
   onEndReached?: () => void;
   totalCount: number;
   isLoading?: boolean;
+  filterByLikedSongs?: boolean;
+}
+
+interface LikedSong {
+  songId: string;
 }
 
 const TrackListScreen: React.FC<Props> = ({
@@ -58,9 +65,10 @@ const TrackListScreen: React.FC<Props> = ({
   totalCount = 0,
   onEndReached,
   isLoading,
+  filterByLikedSongs,
 }) => {
   const navigation = useNavigation();
-  const { play, currentTrack, isPlaying, queue, addToQueue, pause } = usePlayer();
+  const {play, currentTrack, isPlaying, queue, addToQueue, pause} = usePlayer();
   //const [tracks, setTracks] = useState<SavedTrack[]>([]); // SpotifyTrack type for mock data
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
@@ -68,6 +76,20 @@ const TrackListScreen: React.FC<Props> = ({
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [currentSort, setCurrentSort] = useState<string>('title');
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
+
+  const [likedSongs, setLikedSongs] = useState<Map<string, boolean>>(new Map());
+
+  useEffect(() => {
+    if (filterByLikedSongs) {
+      const updatedTracks = trackList.filter(track => likedSongs.get(track.id));
+      setSearchedTracks(updatedTracks);
+    }
+  }, [likedSongs, trackList, filterByLikedSongs]);
+  
+
+  const likedTracks = searchedTracks.filter(track => likedSongs.get(track.id));
+
+  
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -92,7 +114,61 @@ const TrackListScreen: React.FC<Props> = ({
     };
 
     fetchPlaylist();
+    console.log('Liked songs:', likedSongs);
   }, [tracks]);
+
+  useEffect(() => {
+    
+    const fetchLikedSongs = async () => {
+      try {
+        const response = await api.get('/liked/liked-song-ids');
+        const likedIds = response.data;
+        console.log('likedIds:', likedIds);
+
+        if (likedIds?.length) {
+
+          const likedMap = new Map<string, boolean>();
+      likedIds.forEach((id: number | string) => {
+        likedMap.set(String(id), true);
+      });
+
+          setLikedSongs(likedMap);
+          console.log('likedMap:', likedMap);
+        }
+      } catch (error) {
+        console.error('Error fetching liked songs:', error);
+      }
+    };
+
+    fetchLikedSongs();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchLikedSongs = async () => {
+        try {
+          const response = await api.get('/liked/liked-song-ids');
+          const likedIds = response.data;
+          const likedMap = new Map<string, boolean>();
+          likedIds.forEach((id: number | string) => {
+            likedMap.set(String(id), true);
+          });
+          setLikedSongs(likedMap);
+          console.log('likedMap updated in focus:', likedMap);
+        } catch (error) {
+          console.error('Error fetching liked songs:', error);
+        }
+      };
+  
+      fetchLikedSongs();
+    }, [])
+  );
+  
+
+  const displayTracks = searchedTracks.map(track => ({
+    ...track,
+    isLiked: likedSongs.get(String(track.id)) === true,
+  }));
 
   const handleTrackPress = async (track: Track) => {
     await play(track);
@@ -126,8 +202,42 @@ const TrackListScreen: React.FC<Props> = ({
       (a[type] ?? '').localeCompare(b[type] ?? ''),
     );
     setSearchedTracks(sorted);
+    console.log('Sorted tracks:', sorted);
     setSortModalVisible(false);
   };
+
+  const handleLikePress = async (track: Track) => {
+    const isCurrentlyLiked = likedSongs.get(track.id) || false;
+  
+    try {
+      if (isCurrentlyLiked) {
+        // Nếu đang thích, gọi API để bỏ thích
+        await api.delete(`/liked/dislike/${track.id}`);
+      } else {
+        // Nếu chưa thích, gọi API để thích
+        await api.post(`/liked/like/${track.id}`);
+      }
+  
+      // Cập nhật lại state sau khi server xử lý thành công
+      setLikedSongs(prev => {
+        const updated = new Map(prev);
+        updated.set(track.id, !isCurrentlyLiked);
+        return updated;
+      });
+
+      // Cập nhật lại searchedTracks để trigger render lại giao diện
+    setSearchedTracks(prev =>
+      prev.map(t =>
+        t.id === track.id ? { ...t, isLiked: !isCurrentlyLiked } : t
+      )
+    );
+  
+    } catch (error) {
+      console.error("Error while syncing like/dislike with server:", error);
+    }
+  };
+  
+  const Count = Array.from(searchedTracks.values()).filter(v => v).length;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -173,20 +283,23 @@ const TrackListScreen: React.FC<Props> = ({
     }
   };
 
+  
+
   return (
-    <LinearGradient 
+    <LinearGradient
       colors={['#2a41a9', '#121212']}
-      locations={[0, 0.5]} 
-      style={styles.container}
-    >
+      locations={[0, 0.5]}
+      style={styles.container}>
       <FlatList
-        data={searchedTracks}
+        data={searchedTracks }
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <SongItem
             item={item}
             onPress={handleTrackPress}
             isPlaying={item.id == currentTrack?.id}
+            isLiked={likedSongs.get(item.id) || false}
+            onLikePress={() => handleLikePress(item)}
           />
         )}
         onEndReached={onEndReached}
@@ -273,7 +386,8 @@ const TrackListScreen: React.FC<Props> = ({
             <View style={styles.titleContainer}>
               <Text style={styles.titleText}>{title}</Text>
               {totalCount > 0 && (
-                <Text style={styles.countText}>{totalCount} bài hát</Text>
+                //<Text style={styles.countText}>{totalCount} bài hát</Text>
+                <Text style={styles.countText}>({Count}) bài hát</Text>
               )}
             </View>
 
@@ -302,14 +416,13 @@ const TrackListScreen: React.FC<Props> = ({
                         play(searchedTracks[0]);
                       }
                     }
-                  }}                  
+                  }}
                   style={styles.playButton}>
-                  {
-                    isPlaying ?
-                      <Entypo name="controller-paus" size={20} color="white" />
-                      :
-                      <Entypo name="controller-play" size={20} color="white" />
-                  }
+                  {isPlaying ? (
+                    <Entypo name="controller-paus" size={20} color="white" />
+                  ) : (
+                    <Entypo name="controller-play" size={20} color="white" />
+                  )}
                 </Pressable>
               </View>
             </View>
@@ -366,7 +479,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 60, // Space for mini player
     paddingTop: 50,
-    backgroundColor: '#121212'
+    backgroundColor: '#121212',
   },
   scrollView: {
     marginTop: 50,

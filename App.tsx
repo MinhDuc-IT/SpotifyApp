@@ -70,7 +70,7 @@ const App = () => {
           console.error('Error checking/creating user in SQLite:', error);
         }
         const tokenResult = await user.getIdTokenResult(true);
-        // console.log('Token fetched:', tokenResult.token);
+        console.log('Token fetched:', tokenResult.token);
 
         await api.post('/auth/setCustomClaims', { IdToken: tokenResult.token });
         //await api.post('/auth/setCustomClaims', { userId: user.uid });
@@ -81,7 +81,7 @@ const App = () => {
         // Force refresh token để nhận claims mới nhất
         const updatedTokenResult = await user.getIdTokenResult(true);
 
-        // console.log('Updated token result:', updatedTokenResult);
+        console.log('Updated token result:', updatedTokenResult);
 
         // Xác định roles dựa trên claim 'roles'
         setRoles(updatedTokenResult.claims.roles || []);

@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import TrackListScreen from '../components/TrackList';
 import api from '../services/api';
-import {useRoute, RouteProp} from '@react-navigation/native';
+import {useRoute, RouteProp, useFocusEffect} from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 
 const LIMIT = 10;
@@ -82,6 +82,7 @@ const SongInfoScreen: React.FC = () => {
       //onEndReached={fetchTracks}
       totalCount={totalItems}
       isLoading={loading}
+      filterByLikedSongs={false}
     />
   );
 };

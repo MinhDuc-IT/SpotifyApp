@@ -12,8 +12,11 @@ import {
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import AntDesign from "react-native-vector-icons/AntDesign";
+import { useNavigation } from "@react-navigation/native";
+import { likedSong } from "../../assets";
+import { StackNavigationProp } from "@react-navigation/stack";
+import {RootStackParamList} from '../../types/navigation';
 
 type LibraryItem = {
   id: string;
@@ -22,11 +25,14 @@ type LibraryItem = {
   author?: string;
   lastUpdate?: string;
   imageUrl?: string;
+  favoriteList?: boolean;
 };
 
 type LibraryContentProps = {
   libraryItems: LibraryItem[];
 };
+
+type libraryScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Library'>;
 
 const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
   const [filteredItems, setFilteredItems] = useState<LibraryItem[]>(libraryItems);
@@ -37,6 +43,8 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
   const [itemOptionsVisible, setItemOptionsVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<LibraryItem | null>(null);
   const [pinnedItems, setPinnedItems] = useState<LibraryItem[]>([]);
+
+  const navigation = useNavigation<libraryScreenNavigationProp>();
 
   //const tabBarHeight = useBottomTabBarHeight();
   const tabBarHeight = 170; // hot fix
@@ -94,6 +102,12 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
   const screenWidth = Dimensions.get("window").width;
   const gridItemWidth = (screenWidth - 64) / 2; // 16 padding + 16 right margin per item
 
+  const handleOpenItem = (item: LibraryItem) => {
+    if(item.favoriteList){
+      navigation.navigate('LikedSongsDownload')
+    }
+  }
+
   const renderItem = ({ item }: { item: LibraryItem }) => {
     const itemContent = (
       <>
@@ -107,9 +121,9 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
             },
           ]}
           resizeMode="cover"
-          source={{ uri: item.imageUrl ? item.imageUrl : 'https://placehold.co/600x600' }}
+          source={item.favoriteList ? likedSong :  { uri: `file://${item.imageUrl}`}}
         />
-        <View style={styles.itemInfo}>
+        <TouchableOpacity style={styles.itemInfo} onPress={() => handleOpenItem(item)}>
           <Text style={styles.itemName} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
           <View style={{ flexDirection: 'row', }}>
             {
@@ -127,7 +141,7 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
               {item.lastUpdate && ` · ${item.lastUpdate}`}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </>
     );
 
@@ -152,7 +166,7 @@ const LibraryContent: React.FC<LibraryContentProps> = ({ libraryItems }) => {
   };
 
   return (
-    <View style={{ marginTop: 10, paddingLeft: 16, width: '100%' }}>
+    <View>
       {/* Category Filter */}
       <FlatList
         data={categories}

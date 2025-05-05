@@ -1,8 +1,10 @@
-import React from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {SafeAreaView, StyleSheet, View} from 'react-native';
 import HeaderLibrary from '../components/library/HeaderLibrary';
 import LibraryContent from '../components/library/LibraryContent';
 import {useLibrary} from '../contexts/LibraryContext';
+import {useFocusEffect} from '@react-navigation/native';
+import {getAllLibraryItems} from '../services/libraryService';
 
 export type LibraryItem = {
   id: string;
@@ -14,13 +16,34 @@ export type LibraryItem = {
 };
 
 const LibraryScreen = () => {
-  const {libraryItems} = useLibrary();
+  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+  const [playListItems, setPlayListItems] = useState<LibraryItem[]>([]);
+  // const {libraryItems} = useLibrary();
+
+  useFocusEffect(
+    useCallback(() => {
+      getLibraryItems();
+    }, []),
+  );
+
+  const getLibraryItems = async () => {
+    let data = await getAllLibraryItems();
+    const updatedPlayListItems = data.map((playlist: any) => ({
+      id: playlist.playlistID.toString(),
+      name: playlist.playlistName,
+      category: 'playlist',
+      imageUrl: playlist.songs[0]?.image,
+      lastUpdate: playlist.createdDate,
+    }));
+    console.log('Updated Playlist Items:', updatedPlayListItems);
+    setPlayListItems(updatedPlayListItems);
+  };
 
   return (
     <SafeAreaView>
       <View style={styles.container}>
         <HeaderLibrary />
-        <LibraryContent libraryItems={libraryItems} />
+        <LibraryContent libraryItems={playListItems} />
       </View>
     </SafeAreaView>
   );

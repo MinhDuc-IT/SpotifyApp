@@ -14,10 +14,11 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from "../../types/navigation";
+import Account from "../Account/Account";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-type NavigationProps = NativeStackNavigationProp<RootStackParamList, 'LibraryScreenTest'>;
+type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
 const HeaderLibrary = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,11 +27,8 @@ const HeaderLibrary = () => {
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
-        <Image
-          source={{ uri: "https://placehold.co/35" }}
-          style={styles.avatar}
-        />
-        <Text style={styles.title}>Your Library</Text>
+        <Account />
+        <Text style={styles.title}>Thư viện</Text>
       </View>
 
       <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -96,17 +94,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  avatar: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
-    marginRight: 10,
-    backgroundColor: "#333",
-  },
   title: {
     color: "white",
     fontSize: 18,
     fontWeight: "600",
+    marginLeft: 5,
   },
   modalOverlay: {
     flex: 1,

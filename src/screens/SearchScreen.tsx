@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Account from '../components/Account/Account';
 
 const newContent = [
   {id: '1', title: '#v-pop', image: require('../assets/images/sontung.jpg')},
@@ -134,8 +135,7 @@ const SearchScreen = () => {
         )}
         scrollEventThrottle={16}>
         <Animated.View style={styles.header}>
-          <TouchableOpacity
-            style={styles.avatar}></TouchableOpacity>
+          <Account />
           <Text style={styles.headerTitle}>Tìm kiếm</Text>
         </Animated.View>
         <Text style={[styles.sectionTitle, {marginTop: 70}]}>
@@ -182,13 +182,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 20,
-    backgroundColor: '#555',
-    marginRight: 5,
+    gap: 10,
   },
   headerTitle: {
     color: '#fff',

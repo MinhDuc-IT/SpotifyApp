@@ -90,6 +90,7 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
           {...props}
           disappearsOnIndex={-1}
           appearsOnIndex={0}
+          // style={{ zIndex: 999 }}
         />
       )}
       enablePanDownToClose
@@ -211,6 +212,7 @@ const styles = StyleSheet.create({
   sheetContainer: {
     backgroundColor: '#1f1f1f',
     flex: 1,
+    zIndex: 1000,
   },
   header: {
     flexDirection: 'row',

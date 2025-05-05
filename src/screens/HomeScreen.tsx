@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, {useContext, useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -8,53 +8,26 @@ import {
   Pressable,
   FlatList,
   ListRenderItemInfo,
-  TouchableOpacity,
 } from 'react-native';
 import AuthContext from '../contexts/AuthContext';
-import { StackNavigationProp } from '@react-navigation/stack';
+import {StackNavigationProp} from '@react-navigation/stack';
 
-import { RootStackParamList } from '../types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {RootStackParamList} from '../types/navigation';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
-import { ScrollView } from 'react-native-gesture-handler';
+import {ScrollView} from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import ArtistCard from '../components/ArtistCard';
 import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
+import Account from '../components/Account/Account';
+import {likedSong} from '../assets';
 
 import api from '../services/api';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
-
-interface SpotifyImage {
-  url: string;
-}
-
-interface SpotifyName {
-  name: string;
-}
-
-interface SpotifyUser {
-  images?: SpotifyImage[];
-  name?: SpotifyName;
-}
-
-// interface RecentlyPlayedItem {
-//   track: {
-//     name: string;
-//     album: {
-//       images: SpotifyImage[];
-//     };
-//   };
-// }
-
-// interface Artist {
-//   id: string;
-//   name: string;
-//   images: SpotifyImage[];
-// }
 
 interface RecentlyPlayedItem {
   songId: number;
@@ -77,13 +50,12 @@ interface Artist {
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
-  const { user, roles } = useContext(AuthContext);
+  const {user, roles} = useContext(AuthContext);
   const [data, setData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const [userProfile, setUserProfile] = useState<SpotifyUser | null>(null);
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
-  const [recentlyplayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
+  const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
     [],
   );
 
@@ -102,12 +74,7 @@ const HomeScreen = () => {
     fetchData();
   }, []);
 
-  // useEffect(() => {
-  //   getTopItems();
-  // }, []);
-
   useEffect(() => {
-    getProfile();
     getTopItems();
     getRecentlyPlayedSongs();
   }, []);
@@ -115,10 +82,9 @@ const HomeScreen = () => {
   // Gọi lại khi quay lại màn hình
   useFocusEffect(
     useCallback(() => {
-      getProfile();
       getTopItems();
       getRecentlyPlayedSongs();
-    }, [])
+    }, []),
   );
 
   const getTopItems = async () => {
@@ -133,9 +99,9 @@ const HomeScreen = () => {
     }
   };
 
-  // useEffect(() => {
-  //   getRecentlyPlayedSongs();
-  // }, []);
+  useEffect(() => {
+    getRecentlyPlayedSongs();
+  }, []);
 
   const getRecentlyPlayedSongs = async () => {
     try {
@@ -152,34 +118,7 @@ const HomeScreen = () => {
     }
   };
 
-  // useEffect(() => {
-  //   getProfile();
-  // }, []);
-
-  const getProfile = async () => {
-    console.log('Fetching profile...'); // Log to check if the function is called
-    try {
-      const response = await api.get('/user/profile');
-      const data = response.data;
-      console.log('Profile data:', data); // Log the profile data for debugging
-
-      const user: SpotifyUser = {
-        images: data.avatar ? [{ url: data.avatar }] : [],
-        name: data.fullName ? { name: data.email } : undefined,
-      };
-
-      console.log('User object:', user); // Log the user object for debugging
-      if (userProfile?.images?.[0]?.url?.includes('default-avatar.png')) {
-        user.images = undefined;
-      }
-
-      setUserProfile(user);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
-  const renderItem = ({ item }: ListRenderItemInfo<RecentlyPlayedItem>) => (
+  const renderItem = ({item}: ListRenderItemInfo<RecentlyPlayedItem>) => (
     <Pressable
       style={{
         flex: 1,
@@ -192,11 +131,11 @@ const HomeScreen = () => {
         elevation: 3,
       }}>
       <Image
-        style={{ height: 55, width: 55 }}
+        style={{height: 55, width: 55}}
         //source={{uri: item.track.album.images[0].url}}
-        source={{ uri: item.thumbnailUrl }}
+        source={{uri: item.thumbnailUrl}}
       />
-      <View style={{ flex: 1, marginHorizontal: 8, justifyContent: 'center' }}>
+      <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
         <Text
           numberOfLines={2}
           style={{
@@ -213,111 +152,101 @@ const HomeScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.wrapper}>
-      <View>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.avatarWrapper} onPress={() => navigation.openDrawer()}>
-            {userProfile?.images ? (
-              // <Image
-              //   style={styles.avatar}
-              //   source={
-              //     require('../assets/images/sontung.jpg') || {
-              //     uri: userProfile.images[0].url,
-              //   }
-              //   }
-              // />
-              <Image
-                style={styles.avatar}
-                source={{ uri: userProfile.images[0].url }}
-              />
-            ) : (
-              <Ionicons name="person-circle" size={40} color="white" />
-            )}
-          </TouchableOpacity>
-        </View>
-
+    <>
+      <View style={styles.header}>
+        <Account />
         <View style={styles.filterRow}>
           <Pressable style={styles.filterButton}>
-            <Text style={styles.filterText}>Music</Text>
+            <Text style={styles.filterText}>Tất cả</Text>
           </Pressable>
           <Pressable style={styles.filterButton}>
-            <Text style={styles.filterText}>Podcasts & Shows</Text>
+            <Text style={styles.filterText}>Nhạc</Text>
+          </Pressable>
+          <Pressable style={styles.filterButton}>
+            <Text style={styles.filterText}>Podcasts</Text>
           </Pressable>
         </View>
-
+      </View>
+      <ScrollView
+        style={styles.wrapper}
+        contentContainerStyle={{paddingBottom: 70}}>
         <View style={styles.cardRow}>
           <Pressable
             onPress={() => navigation.navigate('Liked')}
             style={styles.card}>
-            <LinearGradient colors={['#33006F', '#FFFFFF']}>
-              <Pressable style={styles.cardIcon}>
-                <AntDesign name="heart" size={24} color="white" />
-              </Pressable>
-            </LinearGradient>
+            <Image source={likedSong} style={styles.avatarLiked} />
             <Text style={styles.cardText}>Liked Songs</Text>
           </Pressable>
 
           <View style={styles.card}>
             <Image
-              style={{ width: 55, height: 55 }}
-              source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
+              style={{width: 55, height: 55}}
+              source={{uri: 'https://i.pravatar.cc/150?img=12'}}
             />
             <View>
               <Text style={styles.cardText}>Hiphop Tamhiza</Text>
             </View>
           </View>
         </View>
-      </View>
 
-      <FlatList
-        data={recentlyplayed}
-        renderItem={renderItem}
-        keyExtractor={(_, index) => index.toString()}
-        //numColumns={2}
-        horizontal={true}
-      //columnWrapperStyle={{justifyContent: 'space-between'}}
-      />
+        <FlatList
+          data={recentlyPlayed}
+          renderItem={renderItem}
+          keyExtractor={(_, index) => index.toString()}
+          //numColumns={2}
+          horizontal={true}
+          //columnWrapperStyle={{justifyContent: 'space-between'}}
+        />
 
-      <Text style={styles.sectionTitle}>Your Top Artists</Text>
-      {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {topArtists.map((item, index) => (
-            <ArtistCard item={item} key={index} />
-          ))}
-        </ScrollView> */}
+        <Text style={styles.sectionTitle}>Top nghệ sĩ</Text>
+        {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {topArtists.map((item, index) => (
+              <ArtistCard item={item} key={index} />
+            ))}
+          </ScrollView> */}
 
-      <FlatList
-        data={topArtists}
-        keyExtractor={(item, index) => index.toString()} // hoặc dùng item.id nếu có id
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => <ArtistCard item={item} />}
-      />
+        <FlatList
+          data={topArtists}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({item}) => <ArtistCard item={item} />}
+        />
 
-      <Text style={styles.sectionTitle}>Recently Played</Text>
-      <FlatList
-        data={recentlyplayed}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={({ item, index }) => (
-          <RecentlyPlayedCard item={item} key={index} />
-        )}
-      />
-    </ScrollView>
+        <Text style={styles.sectionTitle}>Đã phát gần đây</Text>
+        <FlatList
+          data={recentlyPlayed}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={({item, index}) => (
+            <RecentlyPlayedCard item={item} key={index} />
+          )}
+        />
+      </ScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   wrapper: {
-    flex: 1,
     backgroundColor: '#000',
-    paddingTop: 30,
+    paddingTop: 65,
+    flex: 1,
   },
   header: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    position: 'absolute',
+    paddingTop: 30,
+    paddingBottom: 6,
+    zIndex: 10,
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#000',
   },
   avatarWrapper: {
     width: 40,
@@ -333,26 +262,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: 'cover',
   },
-  greeting: {
-    marginLeft: 10,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-  },
   filterRow: {
-    marginHorizontal: 12,
-    marginVertical: 5,
+    display: 'flex',
+    marginHorizontal: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   filterButton: {
     backgroundColor: '#282828',
-    padding: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 7,
     borderRadius: 30,
   },
   filterText: {
-    fontSize: 15,
+    fontSize: 12,
     color: 'white',
   },
   cardRow: {
@@ -372,11 +296,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     elevation: 3,
   },
-  cardIcon: {
+  avatarLiked: {
     width: 55,
     height: 55,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 4,
+    resizeMode: 'cover',
   },
   cardText: {
     color: 'white',

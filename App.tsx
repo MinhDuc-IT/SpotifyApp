@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View, Linking, Alert } from 'react-native';
+import { ActivityIndicator, View, Linking, Alert, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
@@ -33,7 +33,7 @@ import DownLoadScreen from './src/screens/DownLoadScreen';
 import LibraryStack from './src/navigation/libraryNavigator';
 import LibraryScreen from './src/screens/LibraryScreen';
 import LikedSongsDownload from './src/screens/LikedSongDownload';
-import PaymentScreen from './src/screens/PaymentScreen';
+import PremiumOfferScreen from './src/screens/PremiumOfferScreen';
 import PaymentSuccess from './src/screens/PaymentSuccess';
 import PaymentFailure from './src/screens/PaymentFailure';
 import { navigationRef } from './src/navigation/navigationRef';
@@ -46,6 +46,7 @@ const App = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isHandlingDeepLink, setIsHandlingDeepLink] = useState(false);
 
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (
@@ -158,12 +159,18 @@ const App = () => {
 
   useEffect(() => {
     const handleInitialUrl = async () => {
+      setIsHandlingDeepLink(true);
       const url = await Linking.getInitialURL();
-      if (url) handleDeepLink(url);
+      if (url) {
+        await handleDeepLink(url); 
+      } else {
+        setIsHandlingDeepLink(false);
+      }
+      setIsHandlingDeepLink(false);
     };
 
-    const handleDeepLink = (url: string) => {
-      console.log(url);
+    const handleDeepLink = async (url: string) => {
+      console.log('Deep link received:', url);
       try {
         // Xử lý custom scheme thủ công
         const queryString = url.split('?')[1] || '';
@@ -193,6 +200,8 @@ const App = () => {
       } catch (error) {
         console.error("Lỗi xử lý deeplink:", error);
         Alert.alert("Lỗi", "Không thể xử lý đường dẫn deeplink.");
+      } finally {
+        setIsHandlingDeepLink(false);
       }
     };
 
@@ -215,6 +224,15 @@ const App = () => {
     );
   }
 
+  if (isHandlingDeepLink) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+        <ActivityIndicator size="large" color="#1DB954" />
+        <Text style={{ color: '#fff', marginTop: 10 }}>Đang xử lý thanh toán...</Text>
+      </View>
+    );
+  }
+  
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthContext.Provider value={{ user, roles }}>

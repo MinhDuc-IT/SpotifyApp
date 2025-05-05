@@ -17,7 +17,7 @@ import { RootStackParamList } from "../../types/navigation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-type NavigationProps = NativeStackNavigationProp<RootStackParamList, 'LibraryScreenTest'>;
+type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
 const HeaderLibrary = () => {
   const [modalVisible, setModalVisible] = useState(false);

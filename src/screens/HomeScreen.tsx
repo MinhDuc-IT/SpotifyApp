@@ -8,7 +8,6 @@ import {
   Pressable,
   FlatList,
   ListRenderItemInfo,
-  TouchableOpacity,
 } from 'react-native';
 import AuthContext from '../contexts/AuthContext';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -24,22 +23,10 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import ArtistCard from '../components/ArtistCard';
 import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
 import { useFocusEffect } from '@react-navigation/native';
+import Account from '../components/Account/Account';
 
 import api from '../services/api';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
-
-interface SpotifyImage {
-  url: string;
-}
-
-interface SpotifyName {
-  name: string;
-}
-
-interface SpotifyUser {
-  images?: SpotifyImage[];
-  name?: SpotifyName;
-}
 
 // interface RecentlyPlayedItem {
 //   track: {
@@ -81,7 +68,6 @@ const HomeScreen = () => {
   const [data, setData] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const [userProfile, setUserProfile] = useState<SpotifyUser | null>(null);
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [recentlyplayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
     [],
@@ -107,7 +93,7 @@ const HomeScreen = () => {
   // }, []);
 
   useEffect(() => {
-    getProfile();
+    // getProfile();
     getTopItems();
     getRecentlyPlayedSongs();
   }, []);
@@ -115,7 +101,7 @@ const HomeScreen = () => {
   // Gọi lại khi quay lại màn hình
   useFocusEffect(
     useCallback(() => {
-      getProfile();
+      // getProfile();
       getTopItems();
       getRecentlyPlayedSongs();
     }, [])
@@ -152,34 +138,7 @@ const HomeScreen = () => {
     }
   };
 
-  // useEffect(() => {
-  //   getProfile();
-  // }, []);
-
-  const getProfile = async () => {
-    console.log('Fetching profile...'); // Log to check if the function is called
-    try {
-      const response = await api.get('/user/profile');
-      const data = response.data;
-      console.log('Profile data:', data); // Log the profile data for debugging
-
-      const user: SpotifyUser = {
-        images: data.avatar ? [{ url: data.avatar }] : [],
-        name: data.fullName ? { name: data.email } : undefined,
-      };
-
-      console.log('User object:', user); // Log the user object for debugging
-      if (userProfile?.images?.[0]?.url?.includes('default-avatar.png')) {
-        user.images = undefined;
-      }
-
-      setUserProfile(user);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  };
-
-  const renderItem = ({ item }: ListRenderItemInfo<RecentlyPlayedItem>) => (
+  const renderItem = ({item}: ListRenderItemInfo<RecentlyPlayedItem>) => (
     <Pressable
       style={{
         flex: 1,
@@ -216,24 +175,7 @@ const HomeScreen = () => {
     <ScrollView style={styles.wrapper}>
       <View>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.avatarWrapper} onPress={() => navigation.openDrawer()}>
-            {userProfile?.images ? (
-              // <Image
-              //   style={styles.avatar}
-              //   source={
-              //     require('../assets/images/sontung.jpg') || {
-              //     uri: userProfile.images[0].url,
-              //   }
-              //   }
-              // />
-              <Image
-                style={styles.avatar}
-                source={{ uri: userProfile.images[0].url }}
-              />
-            ) : (
-              <Ionicons name="person-circle" size={40} color="white" />
-            )}
-          </TouchableOpacity>
+          <Account />
         </View>
 
         <View style={styles.filterRow}>
@@ -332,12 +274,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     resizeMode: 'cover',
-  },
-  greeting: {
-    marginLeft: 10,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
   },
   filterRow: {
     marginHorizontal: 12,

@@ -1,5 +1,5 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {SafeAreaView, StyleSheet, View} from 'react-native';
 import HeaderLibrary from '../components/library/HeaderLibrary';
 import LibraryContent from '../components/library/LibraryContent';
 import {useLibrary} from '../contexts/LibraryContext';
@@ -7,7 +7,7 @@ import {useLibrary} from '../contexts/LibraryContext';
 export type LibraryItem = {
   id: string;
   name: string;
-  category: 'artist' | 'playlist' | 'album' | 'podcast' | 'song';
+  category: 'artist' | 'playlist' | 'album';
   author?: string;
   lastUpdate?: string;
   imageUrl?: string;

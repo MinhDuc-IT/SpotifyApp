@@ -38,11 +38,12 @@
 // });
 
 // export default PaymentFailure;
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import AuthContext from '../contexts/AuthContext';
 
 //type Props = NativeStackScreenProps<RootStackParamList, 'PaymentFailure'>;
 
@@ -56,6 +57,12 @@ const PaymentFailure = ({ navigation, route }: any) => {
     orderDescription,
     transactionDate,
   } = route.params || {};
+
+  const {subscriptionType, setSubscriptionType} = useContext(AuthContext);
+
+  useEffect(() => {
+    setSubscriptionType("Free");
+  },[]);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -62,7 +62,7 @@ const LikedSongsScreen = () => {
   
   return (
     <TrackListScreen
-      title="Liked Songs"
+      title="Bài hát ưa thích"
       tracks={tracks}
       //onEndReached={fetchTracks}
       totalCount={totalItems}

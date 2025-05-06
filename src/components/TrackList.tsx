@@ -28,10 +28,10 @@ import {findUserByUid} from '../sqlite/userService';
 import {downloadSong} from '../utils/index';
 
 import api from '../services/api';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
 import DownloadProgressModal from './DownLoad/DownloadProgressModal';
-
+import ActionSheet from './ActionSheet';
 
 type SavedTrack = {
   track: {
@@ -56,6 +56,14 @@ interface LikedSong {
   songId: string;
 }
 
+type ActionItem = {
+  id: number;
+  name: string;
+  type: string;
+  image: string;
+  audio: string;
+};
+
 const TrackListScreen: React.FC<Props> = ({
   title,
   tracks,
@@ -79,17 +87,17 @@ const TrackListScreen: React.FC<Props> = ({
 
   const [likedSongs, setLikedSongs] = useState<Map<string, boolean>>(new Map());
 
+  const [openActionSheet, setOpenActionSheet] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ActionItem | null>(null);
+
   useEffect(() => {
     if (filterByLikedSongs) {
       const updatedTracks = trackList.filter(track => likedSongs.get(track.id));
       setSearchedTracks(updatedTracks);
     }
   }, [likedSongs, trackList, filterByLikedSongs]);
-  
 
   const likedTracks = searchedTracks.filter(track => likedSongs.get(track.id));
-
-  
 
   useEffect(() => {
     const fetchPlaylist = async () => {
@@ -118,7 +126,6 @@ const TrackListScreen: React.FC<Props> = ({
   }, [tracks]);
 
   useEffect(() => {
-    
     const fetchLikedSongs = async () => {
       try {
         const response = await api.get('/liked/liked-song-ids');
@@ -126,11 +133,10 @@ const TrackListScreen: React.FC<Props> = ({
         console.log('likedIds:', likedIds);
 
         if (likedIds?.length) {
-
           const likedMap = new Map<string, boolean>();
-      likedIds.forEach((id: number | string) => {
-        likedMap.set(String(id), true);
-      });
+          likedIds.forEach((id: number | string) => {
+            likedMap.set(String(id), true);
+          });
 
           setLikedSongs(likedMap);
           console.log('likedMap:', likedMap);
@@ -159,11 +165,10 @@ const TrackListScreen: React.FC<Props> = ({
           console.error('Error fetching liked songs:', error);
         }
       };
-  
+
       fetchLikedSongs();
-    }, [])
+    }, []),
   );
-  
 
   const displayTracks = searchedTracks.map(track => ({
     ...track,
@@ -206,10 +211,9 @@ const TrackListScreen: React.FC<Props> = ({
     setSortModalVisible(false);
   };
 
-
   const handleLikePress = async (track: Track) => {
     const isCurrentlyLiked = likedSongs.get(track.id) || false;
-  
+
     try {
       if (isCurrentlyLiked) {
         // Nếu đang thích, gọi API để bỏ thích
@@ -218,7 +222,7 @@ const TrackListScreen: React.FC<Props> = ({
         // Nếu chưa thích, gọi API để thích
         await api.post(`/liked/like/${track.id}`);
       }
-  
+
       // Cập nhật lại state sau khi server xử lý thành công
       setLikedSongs(prev => {
         const updated = new Map(prev);
@@ -227,17 +231,16 @@ const TrackListScreen: React.FC<Props> = ({
       });
 
       // Cập nhật lại searchedTracks để trigger render lại giao diện
-    setSearchedTracks(prev =>
-      prev.map(t =>
-        t.id === track.id ? { ...t, isLiked: !isCurrentlyLiked } : t
-      )
-    );
-  
+      setSearchedTracks(prev =>
+        prev.map(t =>
+          t.id === track.id ? {...t, isLiked: !isCurrentlyLiked} : t,
+        ),
+      );
     } catch (error) {
-      console.error("Error while syncing like/dislike with server:", error);
+      console.error('Error while syncing like/dislike with server:', error);
     }
   };
-  
+
   const Count = Array.from(searchedTracks.values()).filter(v => v).length;
 
   const formatTime = (seconds: number) => {
@@ -245,7 +248,6 @@ const TrackListScreen: React.FC<Props> = ({
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
 
   const handleDownload = async () => {
     const user = auth().currentUser;
@@ -297,7 +299,23 @@ const TrackListScreen: React.FC<Props> = ({
     }, 1000);
   };
 
-  
+  const handleOptionSelect = (option: string) => {
+    console.log('Tùy chọn đã chọn:', option);
+    setOpenActionSheet(false); // Đóng ActionSheet sau khi chọn
+  };
+
+  const handleOpenOptions = (track: Track) => {
+    const convertedItem = {
+      id: track.id,
+      name: track.title ?? '',
+      type: 'track',
+      image: track.artwork ?? '',
+      audio: track.url ?? '',
+    };
+
+    setSelectedItem(convertedItem); // đúng kiểu expected
+    setOpenActionSheet(true);
+  };
 
   return (
     <LinearGradient
@@ -305,7 +323,7 @@ const TrackListScreen: React.FC<Props> = ({
       locations={[0, 0.5]}
       style={styles.container}>
       <FlatList
-        data={searchedTracks }
+        data={searchedTracks}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <SongItem
@@ -314,6 +332,7 @@ const TrackListScreen: React.FC<Props> = ({
             isPlaying={item.id == currentTrack?.id}
             isLiked={likedSongs.get(item.id) || false}
             onLikePress={() => handleLikePress(item)}
+            onOpenOptions={handleOpenOptions}
           />
         )}
         onEndReached={onEndReached}
@@ -491,6 +510,12 @@ const TrackListScreen: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
       </Modal>
+      <ActionSheet
+        isVisible={openActionSheet}
+        onClose={() => setOpenActionSheet(false)}
+        onOptionSelect={handleOptionSelect}
+        selectedItem={selectedItem}
+      />
     </LinearGradient>
   );
 };

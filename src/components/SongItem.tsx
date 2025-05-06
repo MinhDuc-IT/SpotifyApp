@@ -6,26 +6,23 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import {Track} from 'react-native-track-player';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Định nghĩa kiểu dữ liệu cho props
-// type SongItemProps = {
-//   item: {
-//     track: {
-//       id: number;
-//       name: string;
-//       preview_url: string | null;
-//       album: { images: { url: string }[] };
-//       artists: { name: string }[];
-//     };
-//   };
-//   onPress: (item: any) => void;
-//   isPlaying: boolean;
-// };
+type SavedTrack = {
+  track: {
+    id: number;
+    name: string;
+    preview_url: string | null;
+    album: {images: {url: string}[]};
+    artists: {name: string}[];
+  };
+};
+
 type SongItemProps = {
   item: Track;
   onPress: (item: any) => void;
   isPlaying: boolean;
   isLiked: boolean; // Add this line to accept isLiked prop
   onLikePress: () => void; // Add this line to accept onLikePress prop
+  onOpenOptions: (item: Track) => void;
 };
 
 const SongItem: React.FC<SongItemProps> = ({
@@ -34,6 +31,7 @@ const SongItem: React.FC<SongItemProps> = ({
   isPlaying,
   isLiked,
   onLikePress,
+  onOpenOptions,
 }) => {
   const handlePress = () => {
     onPress(item);
@@ -59,7 +57,11 @@ const SongItem: React.FC<SongItemProps> = ({
             <Ionicons name="add-circle-outline" size={24} color="#C0C0C0" />
           )}
         </Pressable>
-        <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" />
+        <Pressable onPress={() => onOpenOptions(item)}>
+          {/* <Ionicons name="ellipsis-horizontal" size={24} color="#C0C0C0" /> */}
+          <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" />
+        </Pressable>
+        {/* <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" /> */}
       </View>
     </Pressable>
   );

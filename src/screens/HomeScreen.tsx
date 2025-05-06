@@ -142,7 +142,7 @@ const HomeScreen = () => {
             fontSize: 13,
             fontWeight: 'bold',
             color: 'white',
-            width: 105,
+            width: 89,
           }}>
           {/* {item.track.name} */}
           {item.artistName}

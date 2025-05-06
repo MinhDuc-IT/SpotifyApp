@@ -58,8 +58,8 @@ const SongItem: React.FC<SongItemProps> = ({
           )}
         </Pressable>
         <Pressable onPress={() => onOpenOptions(item)}>
-          {/* <Ionicons name="ellipsis-horizontal" size={24} color="#C0C0C0" /> */}
-          <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" />
+          <Ionicons name="ellipsis-horizontal" size={24} color="#C0C0C0" />
+          {/* <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" /> */}
         </Pressable>
         {/* <Entypo name="dots-three-vertical" size={24} color="#C0C0C0" /> */}
       </View>

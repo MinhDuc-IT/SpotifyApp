@@ -318,10 +318,7 @@ const TrackListScreen: React.FC<Props> = ({
   };
 
   return (
-    <LinearGradient
-      colors={['#2a41a9', '#121212']}
-      locations={[0, 0.5]}
-      style={styles.container}>
+    <View style={styles.container}>
       <FlatList
         data={searchedTracks}
         keyExtractor={item => item.id}
@@ -339,135 +336,135 @@ const TrackListScreen: React.FC<Props> = ({
         onEndReachedThreshold={0.5}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={() => (
-          <>
-            <Pressable
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </Pressable>
-
-            <View style={styles.searchContainer}>
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{flex: 1}}>
-                <View style={styles.searchInputContainer}>
-                  <AntDesign name="search1" size={20} color="white" />
-                  <TextInput
-                    value={input}
-                    onChangeText={text => {
-                      setInput(text);
-                      handleSearch(text);
-                    }}
-                    placeholder="Tìm trong danh sách"
-                    placeholderTextColor="lightgrey"
-                    style={styles.searchInput}
-                  />
-                </View>
-              </KeyboardAvoidingView>
+          <LinearGradient
+            colors={['#4162fb', '#121212']}
+            style={styles.headerContainer}>
+            <>
               <Pressable
-                onPress={() => setSortModalVisible(true)}
-                style={styles.sortButton}>
-                <Text style={styles.sortButtonText}>Sắp xếp</Text>
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}>
+                <Entypo name="chevron-thin-left" size={20} color="white" />
               </Pressable>
-            </View>
 
-            <View
-              style={{
-                alignItems: 'center',
-                marginVertical: 15,
-                paddingHorizontal: 10,
-              }}>
-              {/* Ảnh ở giữa */}
-              <Image
-                source={{
-                  uri: currentTrack?.artwork || queue[0]?.artwork,
-                }}
-                style={{
-                  width: 250,
-                  height: 250,
-                  borderRadius: 10,
-                  marginBottom: 10,
-                }}
-                resizeMode="cover"
-              />
-
-              {/* Tên bài hát */}
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 18,
-                  fontWeight: 'bold',
-                  color: '#fff',
-                  textAlign: 'center',
-                  marginBottom: 4,
-                }}>
-                Song: {currentTrack?.title || queue[0]?.title}
-              </Text>
-
-              {/* Tên ca sĩ */}
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 16,
-                  color: '#ccc',
-                  textAlign: 'center',
-                }}>
-                Artist: {currentTrack?.artist || queue[0]?.artist}
-              </Text>
-            </View>
-
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText}>{title}</Text>
-              {totalCount > 0 && (
-                //<Text style={styles.countText}>{totalCount} bài hát</Text>
-                <Text style={styles.countText}>({Count}) bài hát</Text>
-              )}
-            </View>
-
-            <View style={styles.playHeader}>
-              <Pressable
-                style={styles.downloadButton}
-                onPress={() => handleDownload()}>
-                <AntDesign name="arrowdown" size={20} color="white" />
-              </Pressable>
-              <View style={styles.playControls}>
-                <Pressable onPress={handleShuffle}>
-                  <MaterialCommunityIcons
-                    name="cross-bolnisi"
-                    size={24}
-                    color={isShuffle ? '#1DB954' : '#ffffff'}
-                  />
-                </Pressable>
+              <View style={styles.searchContainer}>
+                <KeyboardAvoidingView
+                  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                  style={{flex: 1}}>
+                  <View style={styles.searchInputContainer}>
+                    <AntDesign name="search1" size={20} color="white" />
+                    <TextInput
+                      value={input}
+                      onChangeText={text => {
+                        setInput(text);
+                        handleSearch(text);
+                      }}
+                      placeholder="Tìm trong danh sách"
+                      placeholderTextColor="lightgrey"
+                      style={styles.searchInput}
+                    />
+                  </View>
+                </KeyboardAvoidingView>
                 <Pressable
-                  onPress={() => {
-                    if (isPlaying) {
-                      pause();
-                    } else {
-                      if (currentTrack) {
-                        play(currentTrack);
-                      } else if (searchedTracks.length > 0) {
-                        play(searchedTracks[0]);
-                      }
-                    }
-                  }}
-                  style={styles.playButton}>
-                  {isPlaying ? (
-                    <Entypo name="controller-paus" size={20} color="white" />
-                  ) : (
-                    <Entypo name="controller-play" size={20} color="white" />
-                  )}
+                  onPress={() => setSortModalVisible(true)}
+                  style={styles.sortButton}>
+                  <Text style={styles.sortButtonText}>Sắp xếp</Text>
                 </Pressable>
               </View>
-            </View>
 
-            {isLoading && (
-              <ActivityIndicator
-                size="large"
-                color="gray"
-                style={{marginVertical: 20}}
-              />
-            )}
-          </>
+              {!filterByLikedSongs && (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    marginVertical: 10,
+                    paddingHorizontal: 10,
+                  }}>
+                  <Image
+                    source={{
+                      uri: currentTrack?.artwork || queue[0]?.artwork,
+                    }}
+                    style={{
+                      width: 250,
+                      height: 250,
+                      borderRadius: 10,
+                      marginBottom: 10,
+                    }}
+                    resizeMode="cover"
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 'bold',
+                      color: '#fff',
+                      textAlign: 'center',
+                      marginBottom: 4,
+                    }}>
+                    Song: {currentTrack?.title || queue[0]?.title}
+                  </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      fontSize: 16,
+                      color: '#ccc',
+                      textAlign: 'center',
+                    }}>
+                    Artist: {currentTrack?.artist || queue[0]?.artist}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.titleContainer}>
+                <Text style={styles.titleText}>{title}</Text>
+                {totalCount > 0 && (
+                  <Text style={styles.countText}>({Count}) bài hát</Text>
+                )}
+              </View>
+
+              <View style={styles.playHeader}>
+                <Pressable
+                  style={styles.downloadButton}
+                  onPress={() => handleDownload()}>
+                  <AntDesign name="arrowdown" size={20} color="white" />
+                </Pressable>
+                <View style={styles.playControls}>
+                  <Pressable onPress={handleShuffle}>
+                    <MaterialCommunityIcons
+                      name="cross-bolnisi"
+                      size={24}
+                      color={isShuffle ? '#1DB954' : '#ffffff'}
+                    />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      if (isPlaying) {
+                        pause();
+                      } else {
+                        if (currentTrack) {
+                          play(currentTrack);
+                        } else if (searchedTracks.length > 0) {
+                          play(searchedTracks[0]);
+                        }
+                      }
+                    }}
+                    style={styles.playButton}>
+                    {isPlaying ? (
+                      <Entypo name="controller-paus" size={20} color="black" />
+                    ) : (
+                      <Entypo name="controller-play" size={20} color="black" />
+                    )}
+                  </Pressable>
+                </View>
+              </View>
+
+              {isLoading && (
+                <ActivityIndicator
+                  size="large"
+                  color="gray"
+                  style={{marginVertical: 20}}
+                />
+              )}
+            </>
+          </LinearGradient>
         )}
       />
 
@@ -478,7 +475,6 @@ const TrackListScreen: React.FC<Props> = ({
         onClose={() => setShowDownloadModal(false)}
       />
 
-      {/* Modal sắp xếp */}
       <Modal
         visible={sortModalVisible}
         transparent
@@ -516,19 +512,19 @@ const TrackListScreen: React.FC<Props> = ({
         onOptionSelect={handleOptionSelect}
         selectedItem={selectedItem}
       />
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom: 60, // Space for mini player
-    paddingTop: 50,
+    paddingBottom: 60,
     backgroundColor: '#121212',
   },
-  scrollView: {
-    marginTop: 50,
+  headerContainer: {
+    paddingTop: 30,
+    marginBottom: 10,
   },
   backButton: {
     marginHorizontal: 10,
@@ -538,34 +534,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 9,
+    marginVertical: 8,
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#3a4889',
-    padding: 9,
-    flex: 1,
+    gap: 5,
+    backgroundColor: '#495aa8',
+    paddingHorizontal: 5,
     borderRadius: 3,
-    height: 38,
   },
   searchInput: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
     color: 'white',
-    width: '100%',
+    flex: 1,
     height: 37,
+    marginVertical: -5,
   },
   sortButton: {
-    marginHorizontal: 10,
-    backgroundColor: '#3a4889',
-    padding: 10,
+    backgroundColor: '#495aa8',
     borderRadius: 3,
-    height: 38,
+    marginLeft: 5,
+    padding: 5,
   },
   sortButtonText: {
     color: 'white',
+    fontSize: 12,
   },
   titleContainer: {
     marginHorizontal: 10,

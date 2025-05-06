@@ -5,27 +5,27 @@ import {StyleSheet, Text, View, Image, Pressable} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 // Định nghĩa kiểu dữ liệu cho props
-type ArtistCardProps = {
+type LikedInAlbumCardProps = {
   item: {
     // images: {url: string}[];
     // name: string;
-    artistId: number;
+    albumId: number;
+    albumName: string;
     artistName: string;
-    totalPlays: number;
     thumbnailUrl: string;
   };
 };
 
-const ArtistCard: React.FC<ArtistCardProps> = ({item}) => {
+const LikedInAlbumCard: React.FC<LikedInAlbumCardProps> = ({item}) => {
   const navigation =
       useNavigation<
-        NativeStackNavigationProp<{ArtistSongs: {item: ArtistCardProps['item']}}>
+        NativeStackNavigationProp<{LikedInAlbum: {item: LikedInAlbumCardProps['item']}}>
       >();
   //const hasImage = item.images && item.images.length > 0 && item.images[0].url;
   const hasImage = item.thumbnailUrl && item.thumbnailUrl.length > 0 && item.thumbnailUrl;
 
   return (
-    <Pressable onPress={() => navigation.navigate('ArtistSongs', {item})}>
+    <Pressable onPress={() => navigation.navigate('LikedInAlbum', {item})}>
       <View style={styles.card}>
       {hasImage ? (
         // <Image style={styles.image} source={{uri: item.images[0].url}} />
@@ -36,14 +36,14 @@ const ArtistCard: React.FC<ArtistCardProps> = ({item}) => {
         </View>
       )}
       {/* <Text style={styles.name}>{item?.name}</Text> */}
-      <Text style={styles.name}>{item?.artistName}</Text>
+      <Text style={styles.name}>{item?.albumName}</Text>
     </View>
     </Pressable>
     
   );
 };
 
-export default ArtistCard;
+export default LikedInAlbumCard;
 
 const styles = StyleSheet.create({
   card: {

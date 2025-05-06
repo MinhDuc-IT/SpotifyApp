@@ -385,12 +385,12 @@ const TrackListScreen: React.FC<Props> = ({
                     style={{
                       width: 250,
                       height: 250,
-                      borderRadius: 10,
+                      // borderRadius: 10,
                       marginBottom: 10,
                     }}
                     resizeMode="cover"
                   />
-                  <Text
+                  {/* <Text
                     numberOfLines={1}
                     style={{
                       fontSize: 18,
@@ -400,8 +400,8 @@ const TrackListScreen: React.FC<Props> = ({
                       marginBottom: 4,
                     }}>
                     Song: {currentTrack?.title || queue[0]?.title}
-                  </Text>
-                  <Text
+                  </Text> */}
+                  {/* <Text
                     numberOfLines={1}
                     style={{
                       fontSize: 16,
@@ -409,7 +409,7 @@ const TrackListScreen: React.FC<Props> = ({
                       textAlign: 'center',
                     }}>
                     Artist: {currentTrack?.artist || queue[0]?.artist}
-                  </Text>
+                  </Text> */}
                 </View>
               )}
 

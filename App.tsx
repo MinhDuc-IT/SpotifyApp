@@ -332,12 +332,12 @@ const App = () => {
                       component={PaymentFailure}
                       options={{ headerShown: false }}
                     />
-                    {/* <Stack.Screen
+                    <Stack.Screen
                       name="PlayList"
                       component={PlaylistScreen}
                       options={{ headerShown: false }}
                     />
-                    <Stack.Screen
+                    {/* <Stack.Screen
                       name="Player"
                       component={PlayerScreen}
                       options={{ headerShown: false }}

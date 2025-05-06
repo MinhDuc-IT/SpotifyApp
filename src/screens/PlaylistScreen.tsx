@@ -1,210 +1,107 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { usePlayer } from '../contexts/PlayerContextV2';
-import { SpotifyTrack } from '../types/player.d'; // Using SpotifyTrack for mock data
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../types/navigation';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { Track } from 'react-native-track-player';
+import React, {useCallback, useEffect, useState} from 'react';
+import TrackListScreen from '../components/TrackList';
+import api from '../services/api';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 
-type PlayListScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'PlayList'
->;
+type PlayListItem = {
+  id: string;
+  name: string;
+  category: 'artist' | 'playlist' | 'album' | 'podcast' | 'song';
+  author?: string;
+  lastUpdate?: string;
+  imageUrl?: string;
+  isLiked?: boolean;
+  songs?: Song[];
+};
 
-const PlaylistScreen = () => {
-  const { play, currentTrack, isPlaying, queue, addToQueue } = usePlayer();
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]); // SpotifyTrack type for mock data
-  const [trackList, setTrackList] = useState<Track[]>([]); // Track type for actions
-  const [isLoading, setIsLoading] = useState(true);
-  const navigation = useNavigation<PlayListScreenNavigationProp>();
+interface Song {
+  songId: number;
+  title: string;
+  artistName: string;
+  album: string;
+  thumbnailUrl: string;
+  duration: number;
+  audioUrl: string;
+}
 
-  // Fetch playlist data (example)
+const LikedSongsScreen = () => {
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const route = useRoute();
+  const { playListItem } = route.params as { playListItem?: PlayListItem };
+
+  console.log('playListItem:', playListItem);
+
   useEffect(() => {
-    const fetchPlaylist = async () => {
-      try {
-        // Replace with actual API call
-        const mockData: SpotifyTrack[] = [
-          {
-            id: 3,
-            name: 'Sóng gió',
-            preview_url: 'https://res.cloudinary.com/dswyuiiqp/raw/upload/v1745140340/spotify_audio/eag7duo4it4t60wyty7f.mp3',
-            album: {
-              images: [
-                {
-                  url: 'https://res.cloudinary.com/dswyuiiqp/image/upload/v1745140313/spotify_images/wokqiqyyhtzaks1doeac.png',
-                },
-              ],
-            },
-            artists: [
-              {
-                name: 'J97',
-              },
-            ],
+    if (playListItem?.songs?.length) {
+      const mappedTracks = playListItem.songs.map((song: Song) => ({
+        track: {
+          name: song.title,
+          id: song.songId,
+          preview_url: song.audioUrl,
+          album: {
+            images: [{ url: song.thumbnailUrl }],
           },
-          {
-            id: 4,
-            name: 'Đom đóm',
-            preview_url: 'https://res.cloudinary.com/dswyuiiqp/raw/upload/v1745142305/spotify_audio/q5xq0oxf7ukt96nrfp2m.mp3',
-            album: {
-              images: [
-                {
-                  url: 'https://res.cloudinary.com/dswyuiiqp/image/upload/v1745142297/spotify_images/vzgoiy7tuvgxnpp5heg4.jpg',
-                },
-              ],
-            },
-            artists: [
-              {
-                name: 'J97',
-              },
-            ],
-          },
-        ];
+          artists: [{ name: song.artistName }],
+        },
+      }));
 
-        // Convert SpotifyTrack to Track
-        const convertedTrackList: Track[] = mockData.map(item => ({
-          id: String(item.id), // Convert id to string
-          url: item.preview_url || '', // Use preview_url from Spotify
-          title: item.name, // Use name as title
-          artist: item.artists.map(artist => artist.name).join(', '), // Join artists names
-          artwork: item.album.images[0]?.url || '', // Get artwork from album
-          duration: 180, // Example duration, replace with real data
+      setTracks(mappedTracks);
+      setTotalItems(playListItem.songs.length);
+    }
+  }, [playListItem]);
+
+  const fetchTracks = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/playlist/getAllPlayList');
+      const data = response.data[0]?.songs || [];
+
+      if (data.length) {
+        const mappedTracks = data.map((song: any) => ({
+          track: {
+            name: song.songName,
+            id: song.songID,
+            preview_url: song.audio,
+            album: {
+              images: [{ url: song.image }],
+            },
+            artists: [{ name: 'hvduc' }],
+          },
         }));
 
-        setTracks(mockData); // Set the mock data state for display
-        setTrackList(convertedTrackList); // Set the Track type list for actions
-        await addToQueue(convertedTrackList); // Add converted tracks to the queue
-      } catch (error) {
-        console.error('Failed to load playlist:', error);
-      } finally {
-        setIsLoading(false);
+        setTracks(mappedTracks);
+        setTotalItems(data.length);
+      } else {
+        setTracks([]);
+        setTotalItems(0);
       }
-    };
-
-    fetchPlaylist();
-  }, []);
-
-  const handleTrackPress = async (track: Track) => {
-    await play(track);
-    navigation.navigate('Player');
+    } catch (error) {
+      console.error('Lỗi khi gọi API bài hát:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderItem = ({ item }: { item: Track }) => {
-    const isCurrentTrack = currentTrack?.id === item.id;
-
-    return (
-      <TouchableOpacity 
-        style={[styles.trackItem, isCurrentTrack && styles.currentTrack]}
-        onPress={() => handleTrackPress(item)}
-      >
-        <Image source={{ uri: item.artwork }} style={styles.albumArt} />
-        
-        <View style={styles.trackInfo}>
-          <Text 
-            style={[styles.trackTitle, isCurrentTrack && styles.currentTrackText]}
-            numberOfLines={1}
-          >
-            {item.title}
-          </Text>
-          <Text style={styles.trackArtist}>{item.artist}</Text>
-        </View>
-
-        <View style={styles.trackControls}>
-          {isCurrentTrack && (
-            <Icon 
-              name={isPlaying ? 'pause' : 'play-arrow'} 
-              size={24} 
-              color={isCurrentTrack ? '#1DB954' : '#666'} 
-            />
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1DB954" />
-      </View>
-    );
-  }
+  useFocusEffect(
+    useCallback(() => {
+      if (!playListItem?.songs?.length) {
+        console.log('Fetching tracks from API...');
+        fetchTracks();
+      }
+    }, [playListItem])
+  );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={trackList} // Using the Track type list for FlatList rendering
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No songs in playlist</Text>
-          </View>
-        }
-      />
-    </View>
+    <TrackListScreen
+      title={playListItem?.name || 'Default Playlist Name'}
+      tracks={tracks}
+      totalCount={totalItems}
+      isLoading={loading}
+    />
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  trackItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#333',
-  },
-  currentTrack: {
-    backgroundColor: '#191919',
-  },
-  albumArt: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-    marginRight: 15,
-  },
-  trackInfo: {
-    flex: 1,
-    marginRight: 10,
-  },
-  trackTitle: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  currentTrackText: {
-    color: '#1DB954',
-  },
-  trackArtist: {
-    color: '#888',
-    fontSize: 14,
-  },
-  trackControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    color: '#888',
-    fontSize: 16,
-  },
-});
-
-export default PlaylistScreen;
+export default LikedSongsScreen;

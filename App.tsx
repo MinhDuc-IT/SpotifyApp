@@ -38,6 +38,9 @@ import PaymentSuccess from './src/screens/PaymentSuccess';
 import PaymentFailure from './src/screens/PaymentFailure';
 import { navigationRef } from './src/navigation/navigationRef';
 import { RootStackParamList } from './src/types/navigation';
+import ArtistSongsScreen from './src/screens/ArtistSongsScreen';
+import MostPlayedScreen from './src/screens/MostPlayedScreen';
+import LikedInAlbumScreen from './src/screens/LikedInAlbumScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 registerPlaybackService();
@@ -333,6 +336,23 @@ const App = () => {
                       options={{ headerShown: false }}
                     />
                     <Stack.Screen
+
+                      name="ArtistSongs"
+                      component={ArtistSongsScreen}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="MostPlayed"
+                      component={MostPlayedScreen}
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="LikedInAlbum"
+                      component={LikedInAlbumScreen}
+                      options={{ headerShown: false }}
+                    />
+                    {/* <Stack.Screen
+
                       name="PlayList"
                       component={PlaylistScreen}
                       options={{ headerShown: false }}

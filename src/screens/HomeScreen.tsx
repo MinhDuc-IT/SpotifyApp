@@ -27,6 +27,8 @@ import Account from '../components/Account/Account';
 import {likedSong} from '../assets';
 
 import api from '../services/api';
+import MostPlayedCard from '../components/MostPlayedCard';
+import LikedInAlbumCard from '../components/LikedInAlbumCard';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 interface RecentlyPlayedItem {
@@ -47,6 +49,13 @@ interface Artist {
   thumbnailUrl: string;
 }
 
+interface LikedInAlbum {
+  albumId: number;
+  albumName: string;
+  artistName: string;
+  thumbnailUrl: string;
+}
+
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = () => {
@@ -58,6 +67,8 @@ const HomeScreen = () => {
   const [recentlyPlayed, setRecentlyPlayed] = useState<RecentlyPlayedItem[]>(
     [],
   );
+  const [mostPlayed, setMostPlayed] = useState<RecentlyPlayedItem[]>([]);
+  const [likedInAlbums, setlikedInAlbums] = useState<LikedInAlbum[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +95,8 @@ const HomeScreen = () => {
     useCallback(() => {
       getTopItems();
       getRecentlyPlayedSongs();
+      getMostItems();
+      getLikedInAlbums();
     }, []),
   );
 
@@ -96,6 +109,30 @@ const HomeScreen = () => {
       setTopArtists(data);
     } catch (err: any) {
       console.log('Error fetching top artists:', err.message);
+    }
+  };
+
+  const getMostItems = async () => {
+    try {
+      const response = await api.get('/song/top-played');
+      const data = response.data;
+      console.log('most play:', data); // Log the profile data for debugging
+
+      setMostPlayed(data);
+    } catch (err: any) {
+      console.log('Error fetching most play:', err.message);
+    }
+  };
+
+  const getLikedInAlbums = async () => {
+    try {
+      const response = await api.get('/album/liked-in-albums');
+      const data = response.data;
+      console.log('liked in album:', data); // Log the profile data for debugging
+
+      setlikedInAlbums(data);
+    } catch (err: any) {
+      console.log('Error fetching liked in album:', err.message);
     }
   };
 
@@ -198,6 +235,17 @@ const HomeScreen = () => {
           //columnWrapperStyle={{justifyContent: 'space-between'}}
         />
 
+        <Text style={styles.sectionTitle}>Bài hát thịnh hành</Text>
+        <FlatList
+          data={mostPlayed}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={({item, index}) => (
+            <MostPlayedCard item={item} key={index} />
+          )}
+        />
+
         <Text style={styles.sectionTitle}>Top nghệ sĩ</Text>
         {/* <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {topArtists.map((item, index) => (
@@ -222,6 +270,15 @@ const HomeScreen = () => {
           renderItem={({item, index}) => (
             <RecentlyPlayedCard item={item} key={index} />
           )}
+        />
+
+        <Text style={styles.sectionTitle}>Album có bài hát bạn thích</Text>
+        <FlatList
+          data={likedInAlbums}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({item}) => <LikedInAlbumCard item={item} />}
         />
       </ScrollView>
     </>

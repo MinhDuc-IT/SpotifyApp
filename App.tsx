@@ -50,6 +50,7 @@ const App = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isHandlingDeepLink, setIsHandlingDeepLink] = useState(false);
+  const [subscriptionType, setSubscriptionType] = useState<string>('');
 
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (
@@ -238,7 +239,7 @@ const App = () => {
   
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthContext.Provider value={{ user, roles }}>
+      <AuthContext.Provider value={{ user, roles, subscriptionType, setSubscriptionType}}>
         <PlayerProvider>
           <PlayerProviderV2>
             <LibraryProvider>

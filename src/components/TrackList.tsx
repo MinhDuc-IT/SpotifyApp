@@ -32,6 +32,7 @@ import {useFocusEffect} from '@react-navigation/native';
 
 import DownloadProgressModal from './DownLoad/DownloadProgressModal';
 import ActionSheet from './ActionSheet';
+import { useActionSheet } from '../contexts/ActionSheetContext';
 
 type SavedTrack = {
   track: {
@@ -74,6 +75,7 @@ const TrackListScreen: React.FC<Props> = ({
 }) => {
   const navigation = useNavigation();
   const {play, currentTrack, isPlaying, queue, addToQueue, pause} = usePlayer();
+  const { showActionSheet } = useActionSheet();
 
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
@@ -313,8 +315,9 @@ const TrackListScreen: React.FC<Props> = ({
       audio: track.url ?? '',
     };
 
-    setSelectedItem(convertedItem); // đúng kiểu expected
-    setOpenActionSheet(true);
+    // setSelectedItem(convertedItem); // đúng kiểu expected
+    // setOpenActionSheet(true);
+    showActionSheet(convertedItem); // sử dụng context để mở ActionSheet
   };
 
   return (

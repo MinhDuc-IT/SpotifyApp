@@ -41,7 +41,8 @@ import { RootStackParamList } from './src/types/navigation';
 import ArtistSongsScreen from './src/screens/ArtistSongsScreen';
 import MostPlayedScreen from './src/screens/MostPlayedScreen';
 import LikedInAlbumScreen from './src/screens/LikedInAlbumScreen';
-import ActionSheet from './src/components/ActionSheet';
+// import ActionSheet from './src/components/ActionSheet';
+import { ActionSheetProvider } from './src/contexts/ActionSheetContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 registerPlaybackService();
@@ -51,7 +52,8 @@ const App = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isHandlingDeepLink, setIsHandlingDeepLink] = useState(false);
-  const [showActionSheet, setShowActionSheet] = useState(false);
+  // const [showActionSheet, setShowActionSheet] = useState(false);
+
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (
     user: FirebaseAuthTypes.User | null,
@@ -247,12 +249,12 @@ const App = () => {
     );
   }
 
-  const handleOptionSelect = (option: string) => {
-    console.log('Tùy chọn đã chọn:', option);
-    setShowActionSheet(false); // Đóng ActionSheet sau khi chọn
-  };
+  // const handleOptionSelect = (option: string) => {
+  //   console.log('Tùy chọn đã chọn:', option);
+  //   setShowActionSheet(false); // Đóng ActionSheet sau khi chọn
+  // };
 
-  setTimeout(() => setShowActionSheet(true), 50);
+  // setTimeout(() => setShowActionSheet(true), 50);
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
@@ -260,142 +262,144 @@ const App = () => {
         <PlayerProvider>
           <PlayerProviderV2>
             <LibraryProvider>
-              <View style={{flex: 1}}>
-                <NavigationContainer ref={navigationRef}>
-                  <Stack.Navigator>
-                    {!isEmailVerifiedOrFacebook() ? (
-                      <>
-                        <Stack.Screen
-                          name="Start"
-                          component={StartScreen}
-                          options={{headerShown: false}}
-                        />
-                        <Stack.Screen
-                          name="Login"
-                          component={LoginScreen}
-                          options={{headerShown: false}}
-                        />
-                        <Stack.Screen
-                          name="SignUp"
-                          component={SignUpScreen}
-                          options={{headerShown: false}}
-                        />
-                      </>
-                    ) : roles.includes('Admin') ? (
-                      <>
-                        <Stack.Screen
-                          name="Admin"
-                          component={AdminScreen}
-                          options={{headerShown: false}}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Stack.Screen
-                          name="MainApp"
-                          component={DrawerNavigator}
-                          options={{headerShown: false}}
-                        />
-                      </>
-                    )}
-                    <Stack.Screen
-                      name="Profile"
-                      component={ProfileScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="DownLoad"
-                      component={DownLoadScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="EditProfile"
-                      component={EditProfileScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="CreatePlaylist"
-                      component={CreatePlaylistScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="SearchDetail"
-                      component={SearchDetailScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="LikedSongsDownload"
-                      component={LikedSongsDownload}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="Liked"
-                      component={LikedSongsScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="Info"
-                      component={SongInfoScreen}
-                      options={{headerShown: false}}
-                    />
-                    {/* <Stack.Screen
-                      name="Payment" 
-                      component={PaymentScreen} 
-                      options={{headerShown: false}}
-                    /> */}
-                    <Stack.Screen
-                      name="PaymentSuccess"
-                      component={PaymentSuccess}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="PaymentFailure"
-                      component={PaymentFailure}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-
-                      name="ArtistSongs"
-                      component={ArtistSongsScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="MostPlayed"
-                      component={MostPlayedScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="LikedInAlbum"
-                      component={LikedInAlbumScreen}
-                      options={{ headerShown: false }}
-                    />
-                    {/* <Stack.Screen
-
-                      name="PlayList"
-                      component={PlaylistScreen}
-                      options={{headerShown: false}}
-                    />
-                    {/* <Stack.Screen
-                      name="Player"
-                      component={PlayerScreen}
-                      options={{ headerShown: false }}
-                    /> */}
-                  </Stack.Navigator>
-                </NavigationContainer>
-                <GlobalPlayer />
-                <ActionSheet
-                  isVisible={showActionSheet}
-                  onClose={() => setShowActionSheet(false)}
-                  onOptionSelect={handleOptionSelect}
-                  selectedItem={{
-                    id: 1,
-                    name: 'Sample Item',
-                    type: 'audio',
-                    image: 'https://example.com/sample-image.jpg',
-                    audio: 'https://example.com/sample-audio.mp3',
-                  }}
-                />
-              </View>
+              <ActionSheetProvider>
+                <View style={{flex: 1}}>
+                  <NavigationContainer ref={navigationRef}>
+                    <Stack.Navigator>
+                      {!isEmailVerifiedOrFacebook() ? (
+                        <>
+                          <Stack.Screen
+                            name="Start"
+                            component={StartScreen}
+                            options={{headerShown: false}}
+                          />
+                          <Stack.Screen
+                            name="Login"
+                            component={LoginScreen}
+                            options={{headerShown: false}}
+                          />
+                          <Stack.Screen
+                            name="SignUp"
+                            component={SignUpScreen}
+                            options={{headerShown: false}}
+                          />
+                        </>
+                      ) : roles.includes('Admin') ? (
+                        <>
+                          <Stack.Screen
+                            name="Admin"
+                            component={AdminScreen}
+                            options={{headerShown: false}}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Stack.Screen
+                            name="MainApp"
+                            component={DrawerNavigator}
+                            options={{headerShown: false}}
+                          />
+                        </>
+                      )}
+                      <Stack.Screen
+                        name="Profile"
+                        component={ProfileScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="DownLoad"
+                        component={DownLoadScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="EditProfile"
+                        component={EditProfileScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="CreatePlaylist"
+                        component={CreatePlaylistScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="SearchDetail"
+                        component={SearchDetailScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="LikedSongsDownload"
+                        component={LikedSongsDownload}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="Liked"
+                        component={LikedSongsScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="Info"
+                        component={SongInfoScreen}
+                        options={{headerShown: false}}
+                      />
+                      {/* <Stack.Screen
+                        name="Payment" 
+                        component={PaymentScreen} 
+                        options={{headerShown: false}}
+                      /> */}
+                      <Stack.Screen
+                        name="PaymentSuccess"
+                        component={PaymentSuccess}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="PaymentFailure"
+                        component={PaymentFailure}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+  
+                        name="ArtistSongs"
+                        component={ArtistSongsScreen}
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="MostPlayed"
+                        component={MostPlayedScreen}
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="LikedInAlbum"
+                        component={LikedInAlbumScreen}
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+  
+                        name="PlayList"
+                        component={PlaylistScreen}
+                        options={{headerShown: false}}
+                      />
+                      {/* {/* <Stack.Screen
+                        name="Player"
+                        component={PlayerScreen}
+                        options={{ headerShown: false }}
+                      /> */}
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                  {/* <ActionSheet
+                    isVisible={showActionSheet}
+                    onClose={() => setShowActionSheet(false)}
+                    onOptionSelect={handleOptionSelect}
+                    selectedItem={{
+                      id: 1,
+                      name: 'Sample Item',
+                      type: 'audio',
+                      image: 'https://example.com/sample-image.jpg',
+                      audio: 'https://example.com/sample-audio.mp3',
+                    }}
+                  /> */}
+                  <GlobalPlayer />
+                </View>
+              </ActionSheetProvider>
             </LibraryProvider>
           </PlayerProviderV2>
         </PlayerProvider>

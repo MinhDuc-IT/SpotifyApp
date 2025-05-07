@@ -162,12 +162,12 @@ const CustomDrawerContent = (props: any) => {
         <MaterialCommunityIcons name="history" size={24} color="white" />
         <Text style={styles.drawerButtonText}>Gần đây</Text>
       </TouchableOpacity>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.drawerButton}
         onPress={handleOpenDownloadOld}>
         <MaterialCommunityIcons name="download" size={24} color="white" />
         <Text style={styles.drawerButtonText}>Bài hát đã tải cũ</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <TouchableOpacity
         style={styles.drawerButton}
         onPress={handleOpenDownload}>

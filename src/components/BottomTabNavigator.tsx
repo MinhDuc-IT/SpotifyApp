@@ -27,8 +27,6 @@ const BottomTabNavigator = () => {
           } else if (route.name === 'Tìm kiếm') {
             iconName = focused ? 'search-outline' : 'search';
           } else if (route.name === 'Premium') {
-            iconName = focused ? 'search-outline' : 'search';
-          } else if (route.name === 'Payment') {
             iconName = focused ? 'spotify' : 'spotify';
             return <Entypo name={iconName} size={25} color={color} />;
           }
@@ -51,7 +49,7 @@ const BottomTabNavigator = () => {
       <Tab.Screen name="Trang chủ" component={HomeScreen} />
       <Tab.Screen name="Tìm kiếm" component={SearchScreen} />
       <Tab.Screen name="Thư viện" component={LibraryScreen} />
-      <Tab.Screen name="Premium" component={SearchDetailScreen} />
+      {/* <Tab.Screen name="Premium" component={SearchDetailScreen} /> */}
       {/* <Tab.Screen
         name="Liked"
         component={LikedSongsScreen}
@@ -61,7 +59,7 @@ const BottomTabNavigator = () => {
         }}
       />
       /> */}
-      <Tab.Screen name="Payment" component={PremiumOfferScreen} />
+      <Tab.Screen name="Premium" component={PremiumOfferScreen} />
     </Tab.Navigator>
   );
 };

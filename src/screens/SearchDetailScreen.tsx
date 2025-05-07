@@ -12,6 +12,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useActionSheet} from '../contexts/ActionSheetContext';
 
 import ActionSheet from '../components/ActionSheet';
 import {
@@ -38,6 +39,7 @@ const SearchDetailScreen = () => {
   const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigation = useNavigation();
+  const { showActionSheet } = useActionSheet();
 
   useEffect(() => {
     fetchSearchHistory();
@@ -79,8 +81,9 @@ const SearchDetailScreen = () => {
   };
 
   const handleOpenActionSheet = (item: SearchItem) => {
-    setSelectedItem(item);
-    setOpenActionSheet(true);
+    // setSelectedItem(item);
+    // setOpenActionSheet(true);
+    showActionSheet(item);
   };
 
   const handleClearAll = async () => {
@@ -213,12 +216,12 @@ const SearchDetailScreen = () => {
           </View>
         )}
       </View>
-      <ActionSheet
+      {/* <ActionSheet
         isVisible={openActionSheet}
         onClose={() => setOpenActionSheet(false)}
         onOptionSelect={handleOptionSelect}
         selectedItem={selectedItem}
-      />
+      /> */}
     </View>
   );
 };

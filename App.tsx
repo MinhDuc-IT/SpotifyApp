@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View, Linking, Alert, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, View, Linking, Alert, Text} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import auth, {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import AuthContext from './src/contexts/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import AdminScreen from './src/screens/AdminScreen';
@@ -11,21 +11,21 @@ import api from './src/services/api';
 import StartScreen from './src/screens/StartScreen';
 import CreatePlaylistScreen from './src/screens/CreatePlaylistScreen';
 import SearchDetailScreen from './src/screens/SearchDetailScreen';
-import { LibraryProvider } from './src/contexts/LibraryContext';
+import {LibraryProvider} from './src/contexts/LibraryContext';
 import LikedSongsScreen from './src/screens/LikedSongsScreen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { PlayerProvider } from './src/contexts/PlayerContext';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {PlayerProvider} from './src/contexts/PlayerContext';
 import SongInfoScreen from './src/screens/SongInfoScreen';
 import GlobalPlayer from './src/components/GlobalPlayer';
-import { PlayerProviderV2 } from './src/contexts/PlayerContextV2';
+import {PlayerProviderV2} from './src/contexts/PlayerContextV2';
 import {
   setupPlayer,
   registerPlaybackService,
 } from './src/services/trackPlayer.service';
-import { PlayerScreen } from './src/screens/PlayerScreen';
+import {PlayerScreen} from './src/screens/PlayerScreen';
 import PlaylistScreen from './src/screens/PlaylistScreen';
-import { createTables } from './src/sqlite/database';
-import { checkAndCreateUser } from './src/sqlite/userService';
+import {createTables} from './src/sqlite/database';
+import {checkAndCreateUser} from './src/sqlite/userService';
 import DrawerNavigator from './src/navigation/DrawerNavigator';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
@@ -41,6 +41,8 @@ import { RootStackParamList } from './src/types/navigation';
 import ArtistSongsScreen from './src/screens/ArtistSongsScreen';
 import MostPlayedScreen from './src/screens/MostPlayedScreen';
 import LikedInAlbumScreen from './src/screens/LikedInAlbumScreen';
+// import ActionSheet from './src/components/ActionSheet';
+import { ActionSheetProvider } from './src/contexts/ActionSheetContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 registerPlaybackService();
@@ -50,6 +52,7 @@ const App = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isHandlingDeepLink, setIsHandlingDeepLink] = useState(false);
+  // const [showActionSheet, setShowActionSheet] = useState(false);
 
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (
@@ -75,7 +78,7 @@ const App = () => {
         const tokenResult = await user.getIdTokenResult(true);
         console.log('Token fetched:', tokenResult.token);
 
-        await api.post('/auth/setCustomClaims', { IdToken: tokenResult.token });
+        await api.post('/auth/setCustomClaims', {IdToken: tokenResult.token});
         //await api.post('/auth/setCustomClaims', { userId: user.uid });
 
         // Chờ một chút trước khi làm mới token (tránh việc claims chưa cập nhật)
@@ -165,7 +168,7 @@ const App = () => {
       setIsHandlingDeepLink(true);
       const url = await Linking.getInitialURL();
       if (url) {
-        await handleDeepLink(url); 
+        await handleDeepLink(url);
       } else {
         setIsHandlingDeepLink(false);
       }
@@ -177,14 +180,16 @@ const App = () => {
       try {
         // Xử lý custom scheme thủ công
         const queryString = url.split('?')[1] || '';
-        const params = queryString.split('&').reduce((acc: Record<string, string>, pair) => {
-          const [key, value] = pair.split('=');
-          if (key && value) {
-            acc[decodeURIComponent(key)] = decodeURIComponent(value);
-          }
-          return acc;
-        }, {});
-    
+        const params = queryString
+          .split('&')
+          .reduce((acc: Record<string, string>, pair) => {
+            const [key, value] = pair.split('=');
+            if (key && value) {
+              acc[decodeURIComponent(key)] = decodeURIComponent(value);
+            }
+            return acc;
+          }, {});
+
         const payload = {
           transactionId: params.transactionId,
           amount: params.amount,
@@ -194,21 +199,21 @@ const App = () => {
           orderDescription: params.orderDescription,
           transactionDate: params.transactionDate,
         };
-    
-        if (url.includes("payment-success")) {
-          navigationRef.current?.navigate("PaymentSuccess", payload);
-        } else if (url.includes("payment-failure")) {
-          navigationRef.current?.navigate("PaymentFailure", payload);
+
+        if (url.includes('payment-success')) {
+          navigationRef.current?.navigate('PaymentSuccess', payload);
+        } else if (url.includes('payment-failure')) {
+          navigationRef.current?.navigate('PaymentFailure', payload);
         }
       } catch (error) {
-        console.error("Lỗi xử lý deeplink:", error);
-        Alert.alert("Lỗi", "Không thể xử lý đường dẫn deeplink.");
+        console.error('Lỗi xử lý deeplink:', error);
+        Alert.alert('Lỗi', 'Không thể xử lý đường dẫn deeplink.');
       } finally {
         setIsHandlingDeepLink(false);
       }
     };
 
-    const linkingListener = Linking.addEventListener('url', (event) => {
+    const linkingListener = Linking.addEventListener('url', event => {
       handleDeepLink(event.url);
     });
 
@@ -221,7 +226,7 @@ const App = () => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -229,143 +234,172 @@ const App = () => {
 
   if (isHandlingDeepLink) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#000',
+        }}>
         <ActivityIndicator size="large" color="#1DB954" />
-        <Text style={{ color: '#fff', marginTop: 10 }}>Đang xử lý thanh toán...</Text>
+        <Text style={{color: '#fff', marginTop: 10}}>
+          Đang xử lý thanh toán...
+        </Text>
       </View>
     );
   }
-  
+
+  // const handleOptionSelect = (option: string) => {
+  //   console.log('Tùy chọn đã chọn:', option);
+  //   setShowActionSheet(false); // Đóng ActionSheet sau khi chọn
+  // };
+
+  // setTimeout(() => setShowActionSheet(true), 50);
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthContext.Provider value={{ user, roles }}>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <AuthContext.Provider value={{user, roles}}>
         <PlayerProvider>
           <PlayerProviderV2>
             <LibraryProvider>
-              <View style={{ flex: 1 }}>
-                <NavigationContainer ref={navigationRef}>
-                  <Stack.Navigator>
-                    {!isEmailVerifiedOrFacebook() ? (
-                      <>
-                        <Stack.Screen
-                          name="Start"
-                          component={StartScreen}
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="Login"
-                          component={LoginScreen}
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                          name="SignUp"
-                          component={SignUpScreen}
-                          options={{ headerShown: false }}
-                        />
-                      </>
-                    ) : roles.includes('Admin') ? (
-                      <>
-                        <Stack.Screen
-                          name="Admin"
-                          component={AdminScreen}
-                          options={{ headerShown: false }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Stack.Screen
-                          name="MainApp"
-                          component={DrawerNavigator}
-                          options={{ headerShown: false }}
-                        />
-                      </>
-                    )}
-                    <Stack.Screen
-                      name="Profile"
-                      component={ProfileScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="DownLoad"
-                      component={DownLoadScreen}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="EditProfile"
-                      component={EditProfileScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="CreatePlaylist"
-                      component={CreatePlaylistScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="SearchDetail"
-                      component={SearchDetailScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="LikedSongsDownload"
-                      component={LikedSongsDownload}
-                      options={{headerShown: false}}
-                    />
-                    <Stack.Screen
-                      name="Liked"
-                      component={LikedSongsScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="Info"
-                      component={SongInfoScreen}
-                      options={{ headerShown: false }}
-                    />
-                    {/* <Stack.Screen
-                      name="Payment" 
-                      component={PaymentScreen} 
-                      options={{headerShown: false}}
-                    /> */}
-                    <Stack.Screen
-                      name="PaymentSuccess"
-                      component={PaymentSuccess}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="PaymentFailure"
-                      component={PaymentFailure}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-
-                      name="ArtistSongs"
-                      component={ArtistSongsScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="MostPlayed"
-                      component={MostPlayedScreen}
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="LikedInAlbum"
-                      component={LikedInAlbumScreen}
-                      options={{ headerShown: false }}
-                    />
-                    {/* <Stack.Screen
-
-                      name="PlayList"
-                      component={PlaylistScreen}
-                      options={{ headerShown: false }}
-                    />
-                    {/* <Stack.Screen
-                      name="Player"
-                      component={PlayerScreen}
-                      options={{ headerShown: false }}
-                    /> */}
-                  </Stack.Navigator>
-                </NavigationContainer>
-                <GlobalPlayer />
-              </View>
+              <ActionSheetProvider>
+                <View style={{flex: 1}}>
+                  <NavigationContainer ref={navigationRef}>
+                    <Stack.Navigator>
+                      {!isEmailVerifiedOrFacebook() ? (
+                        <>
+                          <Stack.Screen
+                            name="Start"
+                            component={StartScreen}
+                            options={{headerShown: false}}
+                          />
+                          <Stack.Screen
+                            name="Login"
+                            component={LoginScreen}
+                            options={{headerShown: false}}
+                          />
+                          <Stack.Screen
+                            name="SignUp"
+                            component={SignUpScreen}
+                            options={{headerShown: false}}
+                          />
+                        </>
+                      ) : roles.includes('Admin') ? (
+                        <>
+                          <Stack.Screen
+                            name="Admin"
+                            component={AdminScreen}
+                            options={{headerShown: false}}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Stack.Screen
+                            name="MainApp"
+                            component={DrawerNavigator}
+                            options={{headerShown: false}}
+                          />
+                        </>
+                      )}
+                      <Stack.Screen
+                        name="Profile"
+                        component={ProfileScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="DownLoad"
+                        component={DownLoadScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="EditProfile"
+                        component={EditProfileScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="CreatePlaylist"
+                        component={CreatePlaylistScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="SearchDetail"
+                        component={SearchDetailScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="LikedSongsDownload"
+                        component={LikedSongsDownload}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="Liked"
+                        component={LikedSongsScreen}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="Info"
+                        component={SongInfoScreen}
+                        options={{headerShown: false}}
+                      />
+                      {/* <Stack.Screen
+                        name="Payment" 
+                        component={PaymentScreen} 
+                        options={{headerShown: false}}
+                      /> */}
+                      <Stack.Screen
+                        name="PaymentSuccess"
+                        component={PaymentSuccess}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+                        name="PaymentFailure"
+                        component={PaymentFailure}
+                        options={{headerShown: false}}
+                      />
+                      <Stack.Screen
+  
+                        name="ArtistSongs"
+                        component={ArtistSongsScreen}
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="MostPlayed"
+                        component={MostPlayedScreen}
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="LikedInAlbum"
+                        component={LikedInAlbumScreen}
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+  
+                        name="PlayList"
+                        component={PlaylistScreen}
+                        options={{headerShown: false}}
+                      />
+                      {/* {/* <Stack.Screen
+                        name="Player"
+                        component={PlayerScreen}
+                        options={{ headerShown: false }}
+                      /> */}
+                    </Stack.Navigator>
+                  </NavigationContainer>
+                  {/* <ActionSheet
+                    isVisible={showActionSheet}
+                    onClose={() => setShowActionSheet(false)}
+                    onOptionSelect={handleOptionSelect}
+                    selectedItem={{
+                      id: 1,
+                      name: 'Sample Item',
+                      type: 'audio',
+                      image: 'https://example.com/sample-image.jpg',
+                      audio: 'https://example.com/sample-audio.mp3',
+                    }}
+                  /> */}
+                  <GlobalPlayer />
+                </View>
+              </ActionSheetProvider>
             </LibraryProvider>
           </PlayerProviderV2>
         </PlayerProvider>

@@ -1,16 +1,16 @@
 // components/GlobalPlayer.tsx
-import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import Video, { VideoRef } from 'react-native-video';
+import React, {useRef, useEffect} from 'react';
+import {View, StyleSheet, ScrollView} from 'react-native';
+import Video, {VideoRef} from 'react-native-video';
 // import { usePlayer } from '../contexts/PlayerContext';
 import MiniPlayer from './MiniPlayer';
 import PlayerModal from './PlayerModal';
-import { usePlayer } from '../contexts/PlayerContextV2';
+import {usePlayer} from '../contexts/PlayerContextV2';
 
 const GlobalPlayer = () => {
   //const { state, dispatch } = usePlayer();
   //const videoRef = useRef<VideoRef>(null);
-  const { modalVisible } = usePlayer();
+  const {modalVisible} = usePlayer();
 
   // useEffect(() => {
   //   if (videoRef.current) {
@@ -38,13 +38,12 @@ const GlobalPlayer = () => {
         bottom: 70,
         left: 0,
         right: 0,
-        zIndex: 10,
+        // zIndex: 10,
         //backgroundColor: '#fff', // hoặc gradient
         padding: 10,
         //borderTopWidth: 1,
         borderColor: '#ddd',
-      }}
-    >
+      }}>
       {/* {state.currentTrack?.preview_url && (
         <Video
           ref={videoRef}
@@ -61,18 +60,15 @@ const GlobalPlayer = () => {
       )} */}
 
       <MiniPlayer />
-      {
-        modalVisible ??
-        <ScrollView>
+      {modalVisible && (
+        <ScrollView >
           <PlayerModal />
         </ScrollView>
+      )}
 
-      }
-
-        <ScrollView>
-          <PlayerModal />
-        </ScrollView>
-
+      {/* <ScrollView>
+        <PlayerModal />
+      </ScrollView> */}
     </View>
   );
 };

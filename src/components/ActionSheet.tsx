@@ -38,44 +38,44 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
     }
   }, [isVisible]);
 
-  const handleDownLoad = async () => {
-    console.log('Download option selected for:', selectedItem);
-    try {
-      const timestamp = Date.now();
-      const fileName = `song_${selectedItem?.id}_${timestamp}.mp3`;
-      const localFilePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+  // const handleDownLoad = async () => {
+  //   console.log('Download option selected for:', selectedItem);
+  //   try {
+  //     const timestamp = Date.now();
+  //     const fileName = `song_${selectedItem?.id}_${timestamp}.mp3`;
+  //     const localFilePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
-      const result = await RNFS.downloadFile({
-        fromUrl: selectedItem?.audio || '',
-        toFile: localFilePath,
-      }).promise;
+  //     const result = await RNFS.downloadFile({
+  //       fromUrl: selectedItem?.audio || '',
+  //       toFile: localFilePath,
+  //     }).promise;
 
-      if (result.statusCode === 200) {
-        console.log('Tải thành công:', localFilePath);
-        // Thêm bài hát mới vào danh sách đã tải
-        // Lấy danh sách bài hát đã tải từ AsyncStorage
-        const downloadedSongsJson = await AsyncStorage.getItem(
-          'downloadedSongs',
-        );
-        const currentSongs = downloadedSongsJson
-          ? JSON.parse(downloadedSongsJson)
-          : [];
-        const newSong = {
-          id: selectedItem?.id.toString(),
-          title: selectedItem?.name || 'Bài hát không tên',
-          path: localFilePath,
-        };
-        await AsyncStorage.setItem(
-          'downloadedSongs',
-          JSON.stringify([...currentSongs, newSong]),
-        );
-      } else {
-        console.log('Lỗi tải file:', result.statusCode);
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-    }
-  };
+  //     if (result.statusCode === 200) {
+  //       console.log('Tải thành công:', localFilePath);
+  //       // Thêm bài hát mới vào danh sách đã tải
+  //       // Lấy danh sách bài hát đã tải từ AsyncStorage
+  //       const downloadedSongsJson = await AsyncStorage.getItem(
+  //         'downloadedSongs',
+  //       );
+  //       const currentSongs = downloadedSongsJson
+  //         ? JSON.parse(downloadedSongsJson)
+  //         : [];
+  //       const newSong = {
+  //         id: selectedItem?.id.toString(),
+  //         title: selectedItem?.name || 'Bài hát không tên',
+  //         path: localFilePath,
+  //       };
+  //       await AsyncStorage.setItem(
+  //         'downloadedSongs',
+  //         JSON.stringify([...currentSongs, newSong]),
+  //       );
+  //     } else {
+  //       console.log('Lỗi tải file:', result.statusCode);
+  //     }
+  //   } catch (error) {
+  //     console.error('Download error:', error);
+  //   }
+  // };
 
   return (
     <BottomSheet
@@ -116,14 +116,14 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
             <Text style={styles.songType}>Bài hát</Text>
           </View>
         </View>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.optionButton}
           onPress={() => handleDownLoad()}>
           <Text style={styles.optionIcon}>
             <Icon name="download" size={16} color="#fff" />
           </Text>
           <Text style={styles.optionText}>Tải nhạc xuống</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => onOptionSelect('test')}>

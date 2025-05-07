@@ -61,14 +61,14 @@ const GlobalPlayer = () => {
 
       <MiniPlayer />
       {modalVisible && (
-        <ScrollView>
+        <ScrollView >
           <PlayerModal />
         </ScrollView>
       )}
 
-      <ScrollView>
+      {/* <ScrollView>
         <PlayerModal />
-      </ScrollView>
+      </ScrollView> */}
     </View>
   );
 };

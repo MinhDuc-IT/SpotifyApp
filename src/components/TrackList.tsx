@@ -89,8 +89,8 @@ const TrackListScreen: React.FC<Props> = ({
 
   const [likedSongs, setLikedSongs] = useState<Map<string, boolean>>(new Map());
 
-  const [openActionSheet, setOpenActionSheet] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<ActionItem | null>(null);
+  // const [openActionSheet, setOpenActionSheet] = useState(false);
+  // const [selectedItem, setSelectedItem] = useState<ActionItem | null>(null);
 
   useEffect(() => {
     if (filterByLikedSongs) {
@@ -245,11 +245,11 @@ const TrackListScreen: React.FC<Props> = ({
 
   const Count = Array.from(searchedTracks.values()).filter(v => v).length;
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // const formatTime = (seconds: number) => {
+  //   const mins = Math.floor(seconds / 60);
+  //   const secs = Math.floor(seconds % 60);
+  //   return `${mins}:${secs.toString().padStart(2, '0')}`;
+  // };
 
   const handleDownload = async () => {
     const user = auth().currentUser;
@@ -301,10 +301,10 @@ const TrackListScreen: React.FC<Props> = ({
     }, 1000);
   };
 
-  const handleOptionSelect = (option: string) => {
-    console.log('Tùy chọn đã chọn:', option);
-    setOpenActionSheet(false); // Đóng ActionSheet sau khi chọn
-  };
+  // const handleOptionSelect = (option: string) => {
+  //   console.log('Tùy chọn đã chọn:', option);
+  //   setOpenActionSheet(false); // Đóng ActionSheet sau khi chọn
+  // };
 
   const handleOpenOptions = (track: Track) => {
     const convertedItem = {
@@ -509,12 +509,12 @@ const TrackListScreen: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
       </Modal>
-      <ActionSheet
+      {/* <ActionSheet
         isVisible={openActionSheet}
         onClose={() => setOpenActionSheet(false)}
         onOptionSelect={handleOptionSelect}
         selectedItem={selectedItem}
-      />
+      /> */}
     </View>
   );
 };

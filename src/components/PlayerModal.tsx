@@ -23,213 +23,6 @@ import { ArtistDiscoverCard } from './Artist/ArtistDiscoverCard';
 
 const { width, height } = Dimensions.get('window');
 
-// const PlayerModal = () => {
-//   const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics, currentLyricIndex } = usePlayer();
-//   const { position, duration } = useProgress();
-//   const [showLyrics, setShowLyrics] = useState(false);
-//   const flipAnim = useRef(new Animated.Value(0)).current;
-//   const scrollRef = useRef<FlatList>(null);
-
-//   // Memoized interpolations
-//   const frontInterpolate = useMemo(() =>
-//     flipAnim.interpolate({
-//       inputRange: [0, 180],
-//       outputRange: ['0deg', '180deg'],
-//     }),
-//     [flipAnim]
-//   );
-
-//   const backInterpolate = useMemo(() =>
-//     flipAnim.interpolate({
-//       inputRange: [0, 180],
-//       outputRange: ['180deg', '360deg'],
-//     }),
-//     [flipAnim]
-//   );
-
-//   const handleFlip = () => {
-//     Animated.spring(flipAnim, {
-//       toValue: showLyrics ? 0 : 180,
-//       friction: 8,
-//       tension: 10,
-//       useNativeDriver: true,
-//     }).start(() => setShowLyrics(!showLyrics));
-//   };
-
-//   useEffect(() => {
-//     console.log("currentIndexLyric" + currentLyricIndex);
-//     if (scrollRef.current && currentLyricIndex >= 0 && lyrics.length > 0) {
-//       scrollRef.current.scrollToIndex({
-//         index: currentLyricIndex,
-//         animated: true,
-//         viewPosition: 0.5,
-//       });
-//     }
-//   }, [currentLyricIndex]);
-
-//   const TrackInfo = React.memo(() => (
-//     <View
-//       style={styles.container}
-//     >
-//       <Image
-//         source={{ uri: currentTrack?.artwork }}
-//         style={styles.thumbnail}
-//       />
-//       <View style={styles.trackInfo}>
-//         <Text style={styles.title} numberOfLines={1}>
-//           {currentTrack?.title}
-//         </Text>
-//         <Text style={styles.artistinfo} numberOfLines={1}>
-//           {currentTrack?.artist}
-//         </Text>
-//       </View>
-//     </View>
-//   ));
-
-//   if (!currentTrack) return null;
-
-//   const handlePlayPause = () => {
-//     if (isPlaying) {
-//       pause();
-//     } else {
-//       play(currentTrack);
-//     }
-//   };
-
-//   return (
-//     <Modal
-//       visible={modalVisible}
-//       transparent
-//       onRequestClose={hideModal}
-//     >
-//       <View style={styles.modalContainer}>
-//         <FlatList
-//           style={{ flex: 1 }}
-//           data={[1]}
-//           keyExtractor={(item) => item.toString()}
-//           renderItem={() => (
-//             <View style={styles.modalContent}>
-//               <Pressable
-//                 style={styles.closeButton}
-//                 onPress={hideModal}
-//               >
-//                 <AntDesign name="down" size={24} color="#FFFFFF" />
-//               </Pressable>
-
-//               <View style={{ width: width, height: height - 150 }}>
-//                 <Pressable onPress={handleFlip}>
-//                   <Animated.View style={[
-//                     styles.flipCard,
-//                     {
-//                       transform: [
-//                         { rotateY: frontInterpolate },
-//                         { perspective: 1000 }
-//                       ]
-//                     }
-//                   ]}>
-//                     <Image
-//                       source={{ uri: currentTrack?.artwork }}
-//                       style={styles.albumArt}
-//                     />
-//                     <LinearGradient
-//                       colors={['transparent', 'rgba(0,0,0,0.7)', 'black']}
-//                       style={StyleSheet.absoluteFillObject}
-//                       locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
-//                     />
-//                   </Animated.View>
-
-//                   <Animated.View style={[
-//                     styles.flipCard,
-//                     styles.lyricCard,
-//                     {
-//                       transform: [
-//                         { rotateY: backInterpolate },
-//                         { perspective: 1000 }
-//                       ]
-//                     }
-//                   ]}>
-//                     <LinearGradient
-//                       colors={['transparent', 'rgba(0,0,0,9)', 'black']}
-//                       style={StyleSheet.absoluteFillObject}
-//                       locations={[0.5, 0.8, 1]} // Mờ dần từ nửa ảnh trở xuống
-//                     />
-//                     {lyrics.length > 0 ? (
-//                       <FlatList
-//                         ref={scrollRef}
-//                         data={lyrics}
-//                         keyExtractor={(_, index) => index.toString()}
-//                         renderItem={({ item, index }) => (
-//                           <Text
-//                             style={[
-//                               styles.lyricLine,
-//                               index === currentLyricIndex && styles.activeLyric
-//                             ]}
-//                           >
-//                             {item.text}
-//                           </Text>
-//                         )}
-//                         getItemLayout={(_, index) => ({
-//                           length: 35,
-//                           offset: 35 * index,
-//                           index
-//                         })}
-//                         initialScrollIndex={currentLyricIndex}
-//                         contentContainerStyle={styles.lyricContainer}
-//                         showsVerticalScrollIndicator={false}
-//                       />
-//                     ) : (
-//                       <Text style={styles.errorText}>Lyrics not available</Text>
-//                     )}
-//                   </Animated.View>
-//                 </Pressable>
-
-//                 <TrackInfo />
-//                 <View style={{ paddingHorizontal: 20, position: 'absolute', bottom: 70, width: '100%' }}>
-//                   <ProgressBar />
-//                 </View>
-
-//                 <View style={styles.controls}>
-//                   <Pressable
-//                     onPress={skipToPrevious}
-//                     accessibilityLabel="Previous track"
-//                   >
-//                     <Ionicons name="play-skip-back" size={32} color="#FFFFFF" />
-//                   </Pressable>
-
-//                   <Pressable
-//                     onPress={handlePlayPause}
-//                     style={styles.playButton}
-//                     accessibilityLabel={isPlaying ? 'Pause' : 'Play'}
-//                   >
-//                     {isPlaying ? (
-//                       <Ionicons name="pause" size={30} color="black" />
-//                     ) : (
-//                       <Ionicons name="play" size={30} color="black" />
-//                     )}
-//                   </Pressable>
-
-//                   <Pressable
-//                     onPress={skipToNext}
-//                     accessibilityLabel="Next track"
-//                   >
-//                     <Ionicons name="play-skip-forward" size={32} color="#FFFFFF" />
-//                   </Pressable>
-//                 </View>
-//               </View>
-//               <ArtistInfoCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
-//               <ArtistDiscoverCard artistName={currentTrack?.artist ?? "Kai Dinh"} />
-//             </View>
-
-//           )}
-//         />
-//       </View>
-//       <View style={{ height: 35, zIndex: 50, backgroundColor: 'black' }}>
-
-//       </View>
-//     </Modal>
-//   );
-// };
-
 const PlayerModal = () => {
   const { currentTrack, isPlaying, skipToNext, pause, play, skipToPrevious, modalVisible, hideModal, lyrics, currentLyricIndex } = usePlayer();
   const { position, duration } = useProgress();
@@ -408,16 +201,12 @@ const PlayerModal = () => {
   );
 };
 
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.9)',
+    // borderWidth: 1,
+    // borderColor: 'red',
     //justifyContent: 'flex-end',
   },
   modalContent: {
@@ -428,6 +217,7 @@ const styles = StyleSheet.create({
     padding: 24,
     //paddingTop: 40,
     alignItems: 'center',
+
   },
   flipCard: {
     width: width,

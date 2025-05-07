@@ -31,6 +31,7 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
 
   useEffect(() => {
     if (isVisible) {
+      console.log('BottomSheet is visible');
       bottomSheetRef.current?.snapToIndex(0);
     } else {
       bottomSheetRef.current?.close();
@@ -81,7 +82,12 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
       ref={bottomSheetRef}
       index={-1}
       snapPoints={['60%', '95%']}
-      backgroundStyle={{backgroundColor: '#1f1f1f'}}
+      style={{ zIndex: 9999 }}
+      backgroundStyle={{
+        backgroundColor: '#1f1f1f',
+        // zIndex: 1000, // Đặt zIndex cao
+        // elevation: 10,
+      }}
       handleIndicatorStyle={{
         backgroundColor: '#666666',
       }}

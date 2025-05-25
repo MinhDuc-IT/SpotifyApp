@@ -62,7 +62,7 @@ export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) =>
       })
 
       const data = response.data;
-      Alert.alert('Thông báo', data);
+      //Alert.alert('Thông báo', data);
 
       if(artistInfo) {
         setArtistInfo({...artistInfo, isFollowed: true});
@@ -79,7 +79,7 @@ export const ArtistInfoCard: React.FC<ArtistInfoCardProps> = ({ artistName }) =>
       })
 
       const data = response.data;
-      Alert.alert('Thông báo', data);
+      //Alert.alert('Thông báo', data);
 
       if(artistInfo) {
         setArtistInfo({...artistInfo, isFollowed: false})

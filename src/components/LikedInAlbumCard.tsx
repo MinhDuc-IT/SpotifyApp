@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   card: {
     margin: 10,
     alignItems: 'center',
+    paddingBottom: 50,
   },
   image: {
     width: 130,

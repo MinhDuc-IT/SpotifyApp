@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#191414',
+    zIndex: 12,
   },
   content: {
     flex: 1,

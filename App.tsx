@@ -397,7 +397,7 @@ const App = () => {
                       audio: 'https://example.com/sample-audio.mp3',
                     }}
                   /> */}
-                  <GlobalPlayer />
+                  {user && <GlobalPlayer />}
                 </View>
               </ActionSheetProvider>
             </LibraryProvider>

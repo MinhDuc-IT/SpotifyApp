@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -7,102 +8,195 @@ import {
   Image,
   TouchableOpacity,
   Animated,
+  Alert
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Account from '../components/Account/Account';
+import api from '../services/api';
+import TrackListScreen from '../components/TrackList';
 
 const newContent = [
-  {id: '1', title: '#v-pop', image: require('../assets/images/sontung.jpg')},
+  { id: '1', title: '#v-pop', image: require('../assets/images/sontung.jpg') },
   {
     id: '2',
     title: '#rock việt',
     image: require('../assets/images/sontung.jpg'),
   },
-  {id: '3', title: '#dopamine', image: require('../assets/images/sontung.jpg')},
+  { id: '3', title: '#dopamine', image: require('../assets/images/sontung.jpg') },
 ];
 
-const categories = [
-  {
-    id: '1',
-    title: 'Nhạc',
-    color: '#E42C7A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '2',
-    title: 'Podcasts',
-    color: '#1E5C4C',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '3',
-    title: 'Sự kiện trực tiếp',
-    color: '#8B2ED3',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '4',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '5',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '6',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '7',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '8',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '9',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '10',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '11',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
-  {
-    id: '12',
-    title: 'Dành Cho Bạn',
-    color: '#0D223A',
-    image: require('../assets/images/sontung.jpg'),
-  },
+interface Genre {
+  genreId: number;
+  genreName: string | null;
+  color: string;
+  image: any;
+  songs?: null;
+}
+
+interface LikedSong {
+  songId: number;
+  title: string;
+  artistName: string;
+  album: string;
+  thumbnailUrl: string;
+  duration: number;
+  audioUrl: string;
+}
+
+const COLORS = [
+  "#E13300",
+  "#1DB954",
+  "#AF2896",
+  "#8D67AB",
+  "#148A08",
+  "#509BF5",
+  "#148A08",
+  "#E91429",
+  "#D84000",
+  "#8D67AB",
+  "#E91429",
+  "#509BF5",
+  "#E91429",
+  "#8D67AB",
+  "#1DB954",
+  "#158A08",
+  "#509BF5",
+  "#AF2896",
+  "#8D67AB",
+  "#509BF5",
+  "#148A08",
+  "#509BF5",
+  "#D84000",
+  "#509BF5",
+  "#E91429",
+  "#8D67AB",
+  "#509BF5",
+  "#D84000",
+  "#E13300",
+  "#E91429",
+  "#1DB954",
+  "#8D67AB",
+  "#8D67AB",
+  "#AF2896",
+  "#AF2896",
+  "#E91429",
+  "#509BF5",
+  "#AF2896",
+  "#AF2896",
+  "#8D67AB",
+  "#E91429",
+  "#509BF5",
+  "#509BF5",
+  "#E13300",
+  "#E91429",
+  "#509BF5",
+  "#8D67AB",
+  "#AF2896",
+  "#E91429",
+  "#509BF5",
+  "#148A08",
+  "#D84000",
+  "#1DB954",
+  "#509BF5",
+  "#D84000",
+  "#AF2896",
+  "#509BF5",
+  "#D84000",
+  "#8D67AB",
+  "#E13300",
+  "#158A08",
+  "#D84000",
+  "#E91429",
+  "#148A08",
+  "#AF2896"
 ];
+
+let availableColors: string[] = [...COLORS];
+
+const getRandomColor = () => {
+  if (availableColors.length === 0) {
+    availableColors = [...COLORS];
+  }
+  const idx = Math.floor(Math.random() * availableColors.length);
+  const color = availableColors[idx];
+  availableColors.splice(idx, 1);
+  return color;
+};
 
 const SearchScreen = () => {
   const [scrollY] = useState(new Animated.Value(0));
   const navigation = useNavigation();
+  const [genres, setGenres] = useState<Array<Genre & { color: string }>>([]);
+  const [selectedGenre, setSelectedGenre] = useState<{ title: string, tracks: any[], totalCount: number } | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSelectedGenre(null);
+    }, [])
+  );
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      const response = await api.get('/genres');
+      setGenres(response.data.map((genre: Genre) => ({
+        ...genre,
+        color: getRandomColor(),
+      })));
+    };
+
+    fetchGenres();
+  }, []);
+
+  const handleGenrePress = async (id: number) => {
+    try {
+      const res = await api.get(`/genres/${id}`);
+      const data = res.data;
+
+      const tracks = data.songs
+        ? data.songs.map((song: LikedSong) => ({
+          track: {
+            name: song.title,
+            id: song.songId,
+            preview_url: song.audioUrl,
+            album: {
+              images: [{ url: song.thumbnailUrl }],
+            },
+            artists: [{ name: song.artistName }],
+          },
+        }))
+        : [];
+
+      setSelectedGenre({
+        title: data.genreName || 'Bài hát ưa thích',
+        tracks,
+        totalCount: tracks.length,
+      });
+    } catch {
+      Alert.alert('Lỗi', 'Không thể tải danh sách bài hát');
+    }
+  };
+
+  if (selectedGenre) {
+    if (selectedGenre.totalCount > 0) {
+      return (
+        <TrackListScreen
+          title={selectedGenre.title}
+          tracks={selectedGenre.tracks}
+          totalCount={selectedGenre.totalCount}
+          isLoading={false}
+          filterByLikedSongs={false}
+        />
+      );
+    } else {
+      Alert.alert('Thông báo', 'Thể loại này chưa có bài hát!');
+      setSelectedGenre(null);
+      return null;
+    }
+  }
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1, }}>
       <Animated.View
         style={[
           styles.searchContainer,
@@ -130,15 +224,15 @@ const SearchScreen = () => {
       <ScrollView
         style={styles.container}
         onScroll={Animated.event(
-          [{nativeEvent: {contentOffset: {y: scrollY}}}],
-          {useNativeDriver: false},
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false },
         )}
         scrollEventThrottle={16}>
         <Animated.View style={styles.header}>
           <Account />
           <Text style={styles.headerTitle}>Tìm kiếm</Text>
         </Animated.View>
-        <Text style={[styles.sectionTitle, {marginTop: 70}]}>
+        <Text style={[styles.sectionTitle, { marginTop: 70 }]}>
           Khám phá nội dung mới mẻ
         </Text>
         <ScrollView
@@ -156,13 +250,21 @@ const SearchScreen = () => {
         {/* Browse All */}
         <Text style={styles.sectionTitle}>Duyệt tìm tất cả</Text>
         <View style={styles.grid}>
-          {categories.map(item => (
-            <View
-              key={item.id}
-              style={[styles.gridItem, {backgroundColor: item.color}]}>
-              <Text style={styles.gridText}>{item.title}</Text>
-              <Image source={item.image} style={styles.gridImage} />
-            </View>
+          {genres.map(item => (
+            <TouchableOpacity
+              onPress={() => handleGenrePress(item.genreId)}
+              key={item.genreId}
+              style={[styles.gridItem, { backgroundColor: item.color }]}>
+              <Text style={styles.gridText}>{item.genreName}</Text>
+              <Image
+                source={
+                  item.image
+                    ? { uri: item.image }
+                    : require('../assets/images/sontung.jpg')
+                }
+                style={styles.gridImage}
+              />
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
@@ -239,7 +341,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 40,
+    marginBottom: 100,
   },
   gridItem: {
     width: '48%',
@@ -248,6 +350,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 10,
     justifyContent: 'space-between',
+    overflow: 'hidden',
   },
   gridText: {
     color: '#fff',
@@ -255,9 +358,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   gridImage: {
-    width: 40,
-    height: 40,
-    alignSelf: 'flex-end',
+    position: 'absolute',
+    bottom: 5,
+    right: -10,
+    width: 60,
+    height: 60,
+    transform: [{ rotate: '15deg' }],
     borderRadius: 4,
   },
 });

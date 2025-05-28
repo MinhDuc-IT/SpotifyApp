@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import BottomSheet, {
@@ -377,8 +378,24 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
                         });
                         setShowPlaylistModal(false);
                         onClose();
-                      } catch (err) {
-                        console.error('Lỗi thêm bài hát:', err);
+                      } catch (err: any) {
+                        //console.error('Lỗi thêm bài hát:', err);
+
+                        // Kiểm tra mã lỗi 400 và thông điệp từ server
+                        if (
+                          err.response &&
+                          err.response.status === 400
+                        ) {
+                          Alert.alert(
+                            'Thông báo',
+                            'Bài hát đã có trong playlist',
+                          );
+                        } else {
+                          Alert.alert(
+                            'Lỗi',
+                            'Không thể thêm bài hát vào playlist',
+                          );
+                        }
                       }
                     }}>
                     <Text style={styles.modalItemText}>{pl.playlistName}</Text>

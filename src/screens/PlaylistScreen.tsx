@@ -29,10 +29,34 @@ const PlayListScreen = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const [songs, setSongs] = useState<Song[]>([]);
+
   const route = useRoute();
   const {playListItem} = route.params as {playListItem?: PlayListItem};
 
   console.log('playListItem:', playListItem);
+
+  useEffect(() => {
+    if (playListItem?.songs?.length ) {
+      setSongs(playListItem.songs); // ✅ Lưu vào state riêng
+    }
+  }, [playListItem]);
+
+  // useEffect(() => {
+  //   const mappedTracks = songs.map((song: Song) => ({
+  //     track: {
+  //       name: song.title,
+  //       id: song.songId,
+  //       preview_url: song.audioUrl,
+  //       album: {
+  //         images: [{url: song.thumbnailUrl}],
+  //       },
+  //       artists: [{name: song.artistName}],
+  //     },
+  //   }));
+  //   setTracks(mappedTracks);
+  //   setTotalItems(songs.length);
+  // }, [songs]); // 🔁 Gắn songs vào dependency
 
   useEffect(() => {
     if (playListItem?.songs?.length) {
@@ -94,10 +118,16 @@ const PlayListScreen = () => {
     }, [playListItem]),
   );
 
-  const handleSongRemoved = (songId: number) => {
+  const handleSongRemoved = async (songId: number) => {
     setTracks(prev => prev.filter(item => item.track.id !== songId));
     setTotalItems(prev => prev - 1);
+    console.log('Song removed:', songId);
+    await fetchTracks(); // Re-fetch tracks to ensure the list is up-to-date
   };
+
+  // const handleSongRemoved = (songId: number) => {
+  //   setSongs(prev => prev.filter(song => song.songId !== songId));
+  // };
 
   return (
     <TrackListScreen

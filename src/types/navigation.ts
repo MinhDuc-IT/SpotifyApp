@@ -70,7 +70,26 @@ export type RootStackParamList = {
       audioUrl: string;
     };
   };
-  PlayList: undefined;
+  PlayList: {
+    playListItem: {
+      id: string;
+      name: string;
+      category: 'artist' | 'playlist' | 'album' | 'podcast' | 'song';
+      author?: string;
+      lastUpdate?: string;
+      imageUrl?: string;
+      isLiked?: boolean;
+      songs?: {
+        songId: number;
+        title: string;
+        artistName: string;
+        album: string;
+        thumbnailUrl: string;
+        duration: number;
+        audioUrl: string;
+      }[];
+    };
+  };
   Player: undefined;
   Payment: undefined;
   // PaymentSuccess: undefined;

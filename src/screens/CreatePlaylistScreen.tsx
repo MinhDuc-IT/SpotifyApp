@@ -2,23 +2,66 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLibrary } from '../contexts/LibraryContext';
 import { useNavigation } from '@react-navigation/native';
-import { LibraryItem } from '../screens/LibraryScreenTest';
+import { LibraryItem } from '../screens/LibraryScreen';
+import api from '../services/api';
 
 const CreatePlaylistScreen = () => {
   const [name, setName] = useState('Danh sách phát thứ 3 của tôi');
   const { addLibraryItem } = useLibrary();
   const navigation = useNavigation();
 
-  const handleCreate = () => {
-    const newItem: LibraryItem = {
-      id: Date.now().toString(),
-      name,
-      category: 'playlist',
-      author: 'You',
-      lastUpdate: new Date().toISOString().split('T')[0],
-    };
-    addLibraryItem(newItem);
-    navigation.goBack();
+  // const createPlaylist = async (name: string) => {
+  //   try {
+  //     const response = await api.post('/playlist/create', { name });
+  //     console.log('Playlist created:', response.data);
+  //   } catch (error) {
+  //     console.error('Error creating playlist:', error);
+  //   }
+  // }
+
+  // const handleCreate = () => {
+  //   createPlaylist(name);
+
+  //   const newItem: LibraryItem = {
+  //     id: Date.now().toString(),
+  //     name,
+  //     category: 'playlist',
+  //     author: 'You',
+  //     lastUpdate: new Date().toISOString().split('T')[0],
+  //   };
+  //   addLibraryItem(newItem);
+  //   navigation.goBack();
+  // };
+
+  const createPlaylist = async (name: string) => {
+    try {
+      const response = await api.post('/playlist/create', { name });
+      console.log('Playlist created:', response.data);
+      return response.data; // Trả về dữ liệu vừa tạo
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+      throw error; // ném lỗi để handleCreate xử lý
+    }
+  };
+
+  const handleCreate = async () => {
+    try {
+      const playlist = await createPlaylist(name);
+
+      const newItem: LibraryItem = {
+        id: playlist.playlistID.toString(), // hoặc playlist.id tùy theo backend
+        name: playlist.playlistName,
+        category: 'playlist',
+        author: 'You',
+        lastUpdate: new Date(playlist.createdDate).toISOString().split('T')[0],
+      };
+
+      addLibraryItem(newItem);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Không thể tạo playlist:', error);
+      // Có thể hiển thị Toast hoặc Alert ở đây nếu muốn
+    }
   };
 
   const handleCancel = () => {

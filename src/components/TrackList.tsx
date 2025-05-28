@@ -32,7 +32,7 @@ import {useFocusEffect} from '@react-navigation/native';
 
 import DownloadProgressModal from './DownLoad/DownloadProgressModal';
 import ActionSheet from './ActionSheet';
-import { useActionSheet } from '../contexts/ActionSheetContext';
+import {useActionSheet} from '../contexts/ActionSheetContext';
 
 type SavedTrack = {
   track: {
@@ -51,6 +51,9 @@ interface Props {
   totalCount: number;
   isLoading?: boolean;
   filterByLikedSongs?: boolean;
+  isInPlayListScreen?: boolean;
+  playlistId?: string;
+  onSongRemoved?: (songId: number) => void; // Callback to remove song from playlist
 }
 
 interface LikedSong {
@@ -72,10 +75,13 @@ const TrackListScreen: React.FC<Props> = ({
   onEndReached,
   isLoading,
   filterByLikedSongs,
+  isInPlayListScreen,
+  playlistId,
+  onSongRemoved,
 }) => {
   const navigation = useNavigation();
   const {play, currentTrack, isPlaying, queue, addToQueue, pause} = usePlayer();
-  const { showActionSheet } = useActionSheet();
+  const {showActionSheet, setIsInPlayListScreen, setPlaylistId} = useActionSheet();
 
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
@@ -91,6 +97,27 @@ const TrackListScreen: React.FC<Props> = ({
 
   // const [openActionSheet, setOpenActionSheet] = useState(false);
   // const [selectedItem, setSelectedItem] = useState<ActionItem | null>(null);
+
+  // Nếu TrackList nhận props từ cha:
+  useEffect(() => {
+    setIsInPlayListScreen(isInPlayListScreen ?? false);
+    console.log('playlistId:', playlistId, 'Kiểu:', typeof playlistId);
+    if (playlistId) {
+      setPlaylistId(playlistId); // <-- Truyền sang context
+    }
+    return () => {
+      setIsInPlayListScreen(false);
+      setPlaylistId(null); // dọn dẹp
+    };
+  }, [isInPlayListScreen, playlistId]);
+
+  const { setOnSongRemoved } = useActionSheet();
+
+  useEffect(() => {
+    if (onSongRemoved) {
+      setOnSongRemoved(() => onSongRemoved);  // truyền callback vào context
+    }
+  }, [onSongRemoved]);
 
   useEffect(() => {
     if (filterByLikedSongs) {

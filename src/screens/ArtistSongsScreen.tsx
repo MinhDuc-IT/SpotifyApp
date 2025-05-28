@@ -28,7 +28,7 @@ const ArtistSongsScreen: React.FC = () => {
   console.log('item:', item);
 
   const artistId = item.artistId;
-  console.log('albumId:', artistId, 'Kiểu:', typeof artistId);
+  console.log('artistId:', artistId, 'Kiểu:', typeof artistId);
 
   const [tracks, setTracks] = useState<any[]>([]);
   const [page, setPage] = useState(1);

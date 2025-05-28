@@ -15,7 +15,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {likedSong} from '../../assets';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../types/navigation';
+import api from '../../services/api';
+import {useLibrary} from '../../contexts/LibraryContext';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 type LibraryItem = {
   id: string;
@@ -40,9 +46,13 @@ interface songs {
 
 type LibraryContentProps = {
   libraryItems: LibraryItem[];
+  onReload: () => void;
 };
 
-const LibraryContent: React.FC<LibraryContentProps> = ({libraryItems}) => {
+const LibraryContent: React.FC<LibraryContentProps> = ({
+  libraryItems,
+  onReload,
+}) => {
   const [filteredItems, setFilteredItems] =
     useState<LibraryItem[]>(libraryItems);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -54,7 +64,8 @@ const LibraryContent: React.FC<LibraryContentProps> = ({libraryItems}) => {
   const [itemOptionsVisible, setItemOptionsVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<LibraryItem | null>(null);
   const [pinnedItems, setPinnedItems] = useState<LibraryItem[]>([]);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
+  const {removeLibraryItem} = useLibrary();
 
   //const tabBarHeight = useBottomTabBarHeight();
   const tabBarHeight = 170; // hot fix
@@ -121,7 +132,6 @@ const LibraryContent: React.FC<LibraryContentProps> = ({libraryItems}) => {
   const screenWidth = Dimensions.get('window').width;
   const gridItemWidth = (screenWidth - 64) / 2; // 16 padding + 16 right margin per item
 
-  
   const renderItem = ({item}: {item: LibraryItem}) => {
     console.log(itemOptionsVisible, selectedItem);
     const itemContent = (
@@ -166,7 +176,17 @@ const LibraryContent: React.FC<LibraryContentProps> = ({libraryItems}) => {
               style={styles.itemMeta}
               numberOfLines={1}
               ellipsizeMode="tail">
-              {item.category === 'playlist' ? 'Danh sách phát' : item.category === 'artist' ? 'Nghệ sĩ' : item.category === 'album' ? 'Album' : item.category === 'podcast' ? 'Podcast' : item.category === 'song' ? 'Bài hát' : ''}
+              {item.category === 'playlist'
+                ? 'Danh sách phát'
+                : item.category === 'artist'
+                ? 'Nghệ sĩ'
+                : item.category === 'album'
+                ? 'Album'
+                : item.category === 'podcast'
+                ? 'Podcast'
+                : item.category === 'song'
+                ? 'Bài hát'
+                : ''}
               {item.author && ` · ${item.author}`}
               {item.lastUpdate && ` · ${item.lastUpdate}`}
             </Text>
@@ -193,9 +213,24 @@ const LibraryContent: React.FC<LibraryContentProps> = ({libraryItems}) => {
             navigation.navigate('Liked');
           } else if (item.category === 'playlist') {
             console.log('item:', item);
-            navigation.navigate('PlayList', { playListItem: item });
+            navigation.navigate('PlayList', {playListItem: item});
+          } else if (item.category === 'artist') {
+            console.log('🔁 Navigating to ArtistSongs with:', {
+              artistId: item.id,
+              artistName: item.name,
+              totalPlays: 0,
+              thumbnailUrl: item.imageUrl || '',
+            });
+            navigation.navigate('ArtistSongs', {
+              item: {
+                artistId: parseInt(item.id.replace(/\D/g, '')), // nếu id trùng với artistId
+                artistName: item.name,
+                totalPlays: 0, // hoặc lấy từ đâu đó
+                thumbnailUrl: item.imageUrl || '',
+              },
+            });
           } else {
-            navigation.navigate('home');
+            navigation.navigate('Home');
           }
         }}
         style={
@@ -367,6 +402,32 @@ const LibraryContent: React.FC<LibraryContentProps> = ({libraryItems}) => {
                   : 'Ghim vào đầu'}
               </Text>
               <AntDesign name="pushpin" size={22} color="#4CAF50" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalItem}
+              onPress={async () => {
+                if (selectedItem) {
+                  try {
+                    const playlistId = selectedItem.id.replace('playlist_', '');
+
+                    // Gọi API xóa playlist
+                    await api.delete(`/playlist/delete-playlist/${playlistId}`);
+
+                    // Xóa khỏi context/library list
+                    removeLibraryItem(selectedItem.id);
+                    onReload();
+
+                    setItemOptionsVisible(false);
+                  } catch (error) {
+                    console.log('selectedItem:', selectedItem);
+                    console.error('Lỗi khi xóa playlist:', error);
+                  }
+                }
+              }}>
+              <Text style={[styles.modalItemText, {color: 'red'}]}>
+                Xóa Playlist
+              </Text>
+              <Ionicons name="trash-outline" size={22} color="red" />
             </TouchableOpacity>
           </View>
         </Pressable>

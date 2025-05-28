@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaView, StyleSheet, View} from 'react-native';
 import HeaderLibrary from '../components/library/HeaderLibrary';
 import LibraryContent from '../components/library/LibraryContent';
@@ -6,6 +6,7 @@ import {useLibrary} from '../contexts/LibraryContext';
 import {useFocusEffect} from '@react-navigation/native';
 import {getAllLibraryItems} from '../services/libraryService';
 import api from '../services/api';
+import { set } from 'lodash';
 
 export type LibraryItem = {
   id: string;
@@ -115,7 +116,7 @@ const LibraryScreen = () => {
     <SafeAreaView>
       <View style={styles.container}>
         <HeaderLibrary />
-        <LibraryContent libraryItems={libraryItems} />
+        <LibraryContent libraryItems={libraryItems} onReload={loadLibraryData}/>
       </View>
     </SafeAreaView>
   );

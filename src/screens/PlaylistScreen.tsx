@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import TrackListScreen from '../components/TrackList';
 import api from '../services/api';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 
 type PlayListItem = {
   id: string;
@@ -24,13 +24,13 @@ interface Song {
   audioUrl: string;
 }
 
-const LikedSongsScreen = () => {
+const PlayListScreen = () => {
   const [tracks, setTracks] = useState<any[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const route = useRoute();
-  const { playListItem } = route.params as { playListItem?: PlayListItem };
+  const {playListItem} = route.params as {playListItem?: PlayListItem};
 
   console.log('playListItem:', playListItem);
 
@@ -42,9 +42,9 @@ const LikedSongsScreen = () => {
           id: song.songId,
           preview_url: song.audioUrl,
           album: {
-            images: [{ url: song.thumbnailUrl }],
+            images: [{url: song.thumbnailUrl}],
           },
-          artists: [{ name: song.artistName }],
+          artists: [{name: song.artistName}],
         },
       }));
 
@@ -66,9 +66,9 @@ const LikedSongsScreen = () => {
             id: song.songID,
             preview_url: song.audio,
             album: {
-              images: [{ url: song.image }],
+              images: [{url: song.image}],
             },
-            artists: [{ name: 'hvduc' }],
+            artists: [{name: 'hvduc'}],
           },
         }));
 
@@ -91,8 +91,13 @@ const LikedSongsScreen = () => {
         console.log('Fetching tracks from API...');
         fetchTracks();
       }
-    }, [playListItem])
+    }, [playListItem]),
   );
+
+  const handleSongRemoved = (songId: number) => {
+    setTracks(prev => prev.filter(item => item.track.id !== songId));
+    setTotalItems(prev => prev - 1);
+  };
 
   return (
     <TrackListScreen
@@ -100,8 +105,11 @@ const LikedSongsScreen = () => {
       tracks={tracks}
       totalCount={totalItems}
       isLoading={loading}
+      isInPlayListScreen={true}
+      playlistId={playListItem?.id}
+      onSongRemoved={handleSongRemoved}
     />
   );
 };
 
-export default LikedSongsScreen;
+export default PlayListScreen;

@@ -1,5 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Modal,
+  TextInput,
+  ScrollView,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import BottomSheet, {
   BottomSheetView,
@@ -7,11 +16,15 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNFS from 'react-native-fs';
+import api from '../services/api';
 
 interface ActionSheetProps {
   isVisible: boolean;
   onClose: () => void;
   onOptionSelect: (option: string) => void;
+  isInPlayListScreen: boolean;
+  playlistId: string | null;
+  onSongRemoved?: (songId: number) => void; // Callback khi xóa bài hát khỏi playlist
   selectedItem: {
     id: number;
     name: string;
@@ -25,9 +38,43 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
   isVisible,
   onClose,
   onOptionSelect,
+  isInPlayListScreen,
+  playlistId, // ID của playlist hiện tại nếu có
   selectedItem,
+  onSongRemoved, // Callback để xử lý khi bài hát bị xóa khỏi playlist
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const [playlists, setPlaylists] = useState<any[]>([]);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+  const filteredPlaylists = playlists.filter(pl =>
+    pl.playlistName.toLowerCase().includes(searchText.toLowerCase()),
+  );
+
+  console.log('playlistsid:', playlistId);
+
+  const createAndAddToPlaylist = async () => {
+    try {
+      // 1. Gửi request tạo playlist mới
+      const createRes = await api.post('/playlist/create', {
+        name: selectedItem?.name,
+      });
+
+      const newPlaylistId = createRes.data.playlistID;
+
+      // 2. Gửi request thêm bài hát vào playlist mới
+      await api.post('/playlist/add-song', {
+        playlistId: newPlaylistId,
+        songId: selectedItem?.id,
+      });
+
+      setShowPlaylistModal(false);
+      onClose();
+    } catch (err) {
+      console.error('Lỗi tạo playlist hoặc thêm bài hát:', err);
+    }
+  };
 
   useEffect(() => {
     if (isVisible) {
@@ -82,7 +129,7 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
       ref={bottomSheetRef}
       index={-1}
       snapPoints={['60%', '95%']}
-      style={{ zIndex: 9999 }}
+      style={{zIndex: 9999}}
       backgroundStyle={{
         backgroundColor: '#1f1f1f',
         // zIndex: 1000, // Đặt zIndex cao
@@ -135,12 +182,61 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.optionButton}
-          onPress={() => onOptionSelect('test')}>
+          onPress={async () => {
+            // Giả sử bạn có API fetch playlists
+            try {
+              const response = await api.get('/playlist/getAllPlayList');
+              const data = response.data;
+              setPlaylists(data);
+              console.log('Fetched playlists:', data);
+              setShowPlaylistModal(true);
+            } catch (err) {
+              console.error('Lỗi tải playlist:', err);
+            }
+          }}>
           <Text style={styles.optionIcon}>
             <Icon name="plus" size={16} color="#fff" />
           </Text>
           <Text style={styles.optionText}>Thêm vào danh sách phát</Text>
         </TouchableOpacity>
+
+        {isInPlayListScreen && (
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={async () => {
+              // Giả sử bạn có API fetch playlists
+              try {
+                console.log('Gửi request xóa bài hát:', {
+                  playlistId,
+                  songId: selectedItem?.id,
+                });
+                const numericPlaylistId = playlistId?.replace('playlist_', '');
+                console.log('numericPlaylistId:', numericPlaylistId);
+                // Gửi API xóa bài hát khỏi danh sách phát
+                await api.post('/playlist/remove-song', {
+                  PlaylistID: Number(numericPlaylistId), // bạn cần truyền đúng ID playlist hiện tại
+                  SongID: selectedItem?.id, // hoặc track.id nếu bạn đang xử lý bài hát đó
+                });
+
+                // Cập nhật giao diện nếu cần
+                if (onSongRemoved) {
+                  onSongRemoved(Number(numericPlaylistId)); // ✅ gọi callback để cập nhật UI
+                }
+                //onOptionSelect('test'); // Gọi hàm onOptionSelect để xử lý logic khác nếu cần
+                onClose(); // Đóng bottom sheet sau khi xóa
+
+                console.log('Thành công', 'Đã xóa bài hát khỏi danh sách phát');
+              } catch (err) {
+                console.error('Lỗi khi xóa bài hát khỏi danh sách phát:', err);
+              }
+            }}>
+            <Text style={styles.optionIcon}>
+              <Icon name="remove" size={16} color="#fff" />
+            </Text>
+            <Text style={styles.optionText}>Xóa khỏi danh sách phát này</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.optionButton}
           onPress={() => onOptionSelect('test')}>
@@ -210,6 +306,103 @@ const ActionSheet: React.FC<ActionSheetProps> = ({
           <Text style={styles.optionText}>Hiển thị mã Spotify</Text>
         </TouchableOpacity>
       </BottomSheetView>
+
+      {showPlaylistModal && (
+        // <Modal
+        //   animationType="fade"
+        //   transparent={true}
+        //   visible={showPlaylistModal}
+        //   onRequestClose={() => setShowPlaylistModal(false)}>
+        //   <View style={styles.modalOverlay}>
+        //     <View style={styles.modalContent}>
+        //       <Text style={styles.modalTitle}>Chọn danh sách phát</Text>
+        //       {playlists.map(pl => (
+        //         <TouchableOpacity
+        //           key={pl.playlistID}
+        //           style={styles.modalItem}
+        //           onPress={async () => {
+        //             try {
+        //               console.log('playlistID:', pl.playlistID);
+        //               console.log('songID:', selectedItem?.id);
+        //               await api.post('/playlist/add-song', {
+        //                 PlaylistID: pl.playlistID, // Tên thuộc tính phải khớp với DTO bên backend
+        //                 SongID: selectedItem?.id,
+        //               });
+
+        //               setShowPlaylistModal(false);
+        //               onClose(); // đóng bottom sheet
+        //             } catch (err) {
+        //               console.error('Lỗi thêm bài hát:', err);
+        //             }
+        //           }}>
+        //           <Text style={styles.modalItemText}>{pl.playlistName}</Text>
+        //         </TouchableOpacity>
+        //       ))}
+        //       <TouchableOpacity onPress={() => setShowPlaylistModal(false)}>
+        //         <Text style={styles.modalCancel}>Hủy</Text>
+        //       </TouchableOpacity>
+        //     </View>
+        //   </View>
+        // </Modal>
+
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showPlaylistModal}
+          onRequestClose={() => setShowPlaylistModal(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Chọn danh sách phát</Text>
+
+              {/* Ô tìm kiếm */}
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Tìm kiếm playlist..."
+                placeholderTextColor="#999"
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+
+              {/* Danh sách playlist đã lọc */}
+              <ScrollView>
+                {filteredPlaylists.map(pl => (
+                  <TouchableOpacity
+                    key={pl.playlistID}
+                    style={styles.modalItem}
+                    onPress={async () => {
+                      try {
+                        await api.post('/playlist/add-song', {
+                          playlistId: pl.playlistID,
+                          songId: selectedItem?.id,
+                        });
+                        setShowPlaylistModal(false);
+                        onClose();
+                      } catch (err) {
+                        console.error('Lỗi thêm bài hát:', err);
+                      }
+                    }}>
+                    <Text style={styles.modalItemText}>{pl.playlistName}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Tạo playlist mới */}
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={createAndAddToPlaylist}>
+                <Text style={styles.modalCreateText}>
+                  + Tạo playlist mới từ bài hát này
+                </Text>
+              </TouchableOpacity>
+
+              {/* Nút hủy */}
+              <TouchableOpacity onPress={() => setShowPlaylistModal(false)}>
+                <Text style={styles.modalCancel}>Hủy</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </BottomSheet>
   );
 };
@@ -269,6 +462,63 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     marginLeft: 10,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#1f1f1f',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 18,
+    marginBottom: 10,
+    fontWeight: 'bold',
+  },
+  modalItem: {
+    paddingVertical: 10,
+    borderBottomColor: '#444',
+    borderBottomWidth: 1,
+  },
+  modalItemText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  modalCancel: {
+    marginTop: 10,
+    color: 'red',
+    textAlign: 'center',
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 10,
+    color: '#000',
+  },
+
+  createButton: {
+    marginTop: 10,
+    backgroundColor: '#1DB954',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  modalCreateText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

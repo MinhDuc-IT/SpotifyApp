@@ -48,6 +48,54 @@ export const saveLikedSong = async (
   });
 };
 
+export const savePlayListSong = async (
+  userId: number,
+  song: {
+    id: number;
+    name: string;
+    artist: string;
+    image_url: string;
+    audio_url: string;
+    album_id?: number;
+  },
+) => {
+  return new Promise<void>((resolve, reject) => {
+    db.transaction(tx => {
+      // Lưu bài hát vào bảng `songs`
+      tx.executeSql(
+        `INSERT OR IGNORE INTO songs (id, name, artist, image_url, audio_url, album_id)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          song.id,
+          song.name,
+          song.artist,
+          song.image_url,
+          song.audio_url,
+          song.album_id || null,
+        ],
+        () => {
+          // Liên kết bài hát với người dùng trong bảng `likes`
+          tx.executeSql(
+            `INSERT INTO likes (user_id, song_id) VALUES (?, ?)`,
+            [userId, song.id],
+            () => resolve(),
+            (_, error) => {
+              console.error('Error inserting into likes:', error);
+              reject(error);
+              return false;
+            },
+          );
+        },
+        (_, error) => {
+          console.error('Error inserting into songs:', error);
+          reject(error);
+          return false;
+        },
+      );
+    });
+  });
+};
+
 export const getDownloadedLikedSongsByUser = async (firebaseId: string) => {
   return new Promise<any[]>((resolve, reject) => {
     db.transaction(tx => {
@@ -153,16 +201,63 @@ export const getAllDownloadedSongsByUser = async (firebaseId: string) => {
   });
 };
 
-export const isSongDownloaded = async (songId: number, userId: number): Promise<boolean> => {
+// export const isSongDownloaded = async (
+//   songId: number,
+//   userId: number,
+// ): Promise<boolean> => {
+//   return new Promise((resolve, reject) => {
+//     db.transaction(tx => {
+//       tx.executeSql(
+//         'SELECT id FROM likes WHERE song_id = ? AND user_id = ?',
+//         [songId, userId],
+//         (_, result) => {
+//           resolve(result.rows.length > 0);
+//         },
+//         (_, error) => {
+//           reject(error);
+//           return false;
+//         },
+//       );
+//     });
+//   });
+// };
+
+export const isSongDownloaded = async (
+  songId: number,
+): Promise<boolean> => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        'SELECT id FROM likes WHERE song_id = ? AND user_id = ?',
-        [songId, userId],
+        'SELECT id FROM songs WHERE id = ?',
+        [songId],
         (_, result) => {
           resolve(result.rows.length > 0);
         },
         (_, error) => {
+          reject(error);
+          return false;
+        },
+      );
+    });
+  });
+};
+
+export const saveSongToSQLite = (
+  id: number,
+  name: string,
+  artist: string,
+  image_url: string,
+  audio_url: string,
+) => {
+  return new Promise<void>((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `INSERT OR IGNORE INTO songs (id, name, artist, image_url, audio_url, album_id)
+         VALUES (?, ?, ?, ?, ?, NULL)`,
+        [id, name, artist, image_url, audio_url],
+        () => resolve(),
+        (_, error) => {
+          console.error('Lỗi khi lưu bài hát vào SQLite:', error);
           reject(error);
           return false;
         },

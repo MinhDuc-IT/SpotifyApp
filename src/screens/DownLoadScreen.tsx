@@ -1,10 +1,10 @@
-import React, {useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView, StyleSheet, View, Text} from 'react-native';
-import HeaderLibrary from '../components/library/HeaderLibrary';
 import LibraryContent from '../components/DownLoad/LibraryContent';
-import {useLibrary} from '../contexts/LibraryContext';
 import Account from '../components/Account/Account';
 import {getAllDownloadedSongsByUser} from '../sqlite/songService';
+import {getUserPlaylistsWithSongs} from '../sqlite/playListService';
 import auth from '@react-native-firebase/auth';
 
 export type LibraryItem = {
@@ -15,38 +15,86 @@ export type LibraryItem = {
   lastUpdate?: string;
   imageUrl?: string;
   favoriteList?: boolean;
+  songs?: songs[];
 };
 
+interface songs {
+  songId: number;
+  title: string;
+  artistName: string;
+  // album: string;
+  thumbnailUrl: string;
+  // duration: number;
+  audioUrl: string;
+}
+
 const DownLoadScreen = () => {
-  const {libraryItems} = useLibrary();
-  const [likeSong, setLikeSong] = React.useState<LibraryItem[]>([]);
+  const [downloadSong, setDownloadSong] = React.useState<LibraryItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchDownloadedSongs = async () => {
-      const user = auth().currentUser;
-      if (!user) {
-        console.log('No user is logged in');
-        return;
-      }
-      console.log('Current user:', user.uid);
-      try {
-        const downloadedSongs = await getAllDownloadedSongsByUser(user.uid); // Replace with actual firebaseId
-        setLikeSong([
-          {
-            id: downloadedSongs[0]?.song_id,
-            name: 'Bài hát ưa thích',
-            category: 'playlist',
-            favoriteList: true,
-          },
-        ]);
-        console.log('Downloaded songs:', downloadedSongs);
-      } catch (error) {
-        console.error('Error fetching downloaded songs:', error);
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      loadDownloadData();
+    }, []),
+  );
 
-    fetchDownloadedSongs();
-  }, []);
+  const loadDownloadData = async () => {
+    const user = auth().currentUser;
+    if (!user) {
+      console.log('No user is logged in');
+      return;
+    }
+    setLoading(true);
+    try {
+      const [playlists, likedSongs] = await Promise.all([
+        getUserPlaylistsWithSongs(user.uid),
+        getAllDownloadedSongsByUser(user.uid),
+      ]);
+
+      console.log('Fetched playlists:', playlists); // Log the fetched data
+
+      // Map playlists
+      const playlistsArray = playlists as any[]; // Cast playlists to any[]
+      const mappedPlaylists: LibraryItem[] = playlistsArray.map((playlist: any) => ({
+        id: `${playlist.id}`,
+        name: playlist.name,
+        category: 'playlist',
+        imageUrl: playlist.songs[0]?.image_url,
+        songs: playlist.songs.map((song: any) => ({
+          songId: song.id,
+          title: song.name,
+          artistName: song.artist,
+          thumbnailUrl: 'file://'+song.image_url,
+          audioUrl: 'file://'+song.audio_url,
+        })),
+      }));
+
+      // Map liked songs
+      const likedData = likedSongs;
+
+      const likedSongsItem: LibraryItem = {
+        id: 'liked_songs', // ID cố định cho danh sách bài hát yêu thích
+        name: 'Bài hát ưa thích',
+        category: 'playlist',
+        favoriteList: true,
+        songs: likedData.map((song: any) => ({
+          songId: song.songId,
+          title: song.title,
+          artistName: song.artistName,
+          thumbnailUrl: song.thumbnailUrl,
+          audioUrl: song.audioUrl,
+        })),
+      };
+
+      // Gộp tất cả lại
+      const allLibraryItems = [likedSongsItem, ...mappedPlaylists];
+      setDownloadSong(allLibraryItems);
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu thư viện:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView>
@@ -55,7 +103,7 @@ const DownLoadScreen = () => {
           <Account />
           <Text style={styles.headerTitle}>Nhạc đã tải xuống</Text>
         </View>
-        <LibraryContent libraryItems={likeSong} />
+        <LibraryContent libraryItems={downloadSong} />
       </View>
     </SafeAreaView>
   );

@@ -32,17 +32,17 @@ import EditProfileScreen from './src/screens/EditProfileScreen';
 import DownLoadScreen from './src/screens/DownLoadScreen';
 import LibraryStack from './src/navigation/libraryNavigator';
 import LibraryScreen from './src/screens/LibraryScreen';
-import LikedSongsDownload from './src/screens/LikedSongDownload';
+import LikedSongsDownload from './src/components/DownLoad/LikedSongDownload';
 import PremiumOfferScreen from './src/screens/PremiumOfferScreen';
 import PaymentSuccess from './src/screens/PaymentSuccess';
 import PaymentFailure from './src/screens/PaymentFailure';
-import { navigationRef } from './src/navigation/navigationRef';
-import { RootStackParamList } from './src/types/navigation';
+import {navigationRef} from './src/navigation/navigationRef';
+import {RootStackParamList} from './src/types/navigation';
 import ArtistSongsScreen from './src/screens/ArtistSongsScreen';
 import MostPlayedScreen from './src/screens/MostPlayedScreen';
 import LikedInAlbumScreen from './src/screens/LikedInAlbumScreen';
 // import ActionSheet from './src/components/ActionSheet';
-import { ActionSheetProvider } from './src/contexts/ActionSheetContext';
+import {ActionSheetProvider} from './src/contexts/ActionSheetContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 registerPlaybackService();
@@ -357,23 +357,21 @@ const App = () => {
                         options={{headerShown: false}}
                       />
                       <Stack.Screen
-  
                         name="ArtistSongs"
                         component={ArtistSongsScreen}
-                        options={{ headerShown: false }}
+                        options={{headerShown: false}}
                       />
                       <Stack.Screen
                         name="MostPlayed"
                         component={MostPlayedScreen}
-                        options={{ headerShown: false }}
+                        options={{headerShown: false}}
                       />
                       <Stack.Screen
                         name="LikedInAlbum"
                         component={LikedInAlbumScreen}
-                        options={{ headerShown: false }}
+                        options={{headerShown: false}}
                       />
                       <Stack.Screen
-  
                         name="PlayList"
                         component={PlaylistScreen}
                         options={{headerShown: false}}

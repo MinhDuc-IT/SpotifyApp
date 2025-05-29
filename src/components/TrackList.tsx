@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback, use} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import {LinearGradient} from 'react-native-linear-gradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import {useNavigation} from '@react-navigation/native';
@@ -25,13 +24,13 @@ import {Track} from 'react-native-track-player';
 import {usePlayer} from '../contexts/PlayerContextV2';
 import auth from '@react-native-firebase/auth';
 import {findUserByUid} from '../sqlite/userService';
-import {downloadSong} from '../utils/index';
+import {downloadLikeSong, downloadPlayListSong} from '../utils/index';
+import {createPlayList} from '../sqlite/playListService';
 
 import api from '../services/api';
 import {useFocusEffect} from '@react-navigation/native';
 
 import DownloadProgressModal from './DownLoad/DownloadProgressModal';
-import ActionSheet from './ActionSheet';
 import {useActionSheet} from '../contexts/ActionSheetContext';
 
 type SavedTrack = {
@@ -52,21 +51,10 @@ interface Props {
   isLoading?: boolean;
   filterByLikedSongs?: boolean;
   isInPlayListScreen?: boolean;
-  playlistId?: string;
+  playlistId: string;
   onSongRemoved?: (songId: number) => void; // Callback to remove song from playlist
+  isPlayList?: boolean;
 }
-
-interface LikedSong {
-  songId: string;
-}
-
-type ActionItem = {
-  id: number;
-  name: string;
-  type: string;
-  image: string;
-  audio: string;
-};
 
 const TrackListScreen: React.FC<Props> = ({
   title,
@@ -76,13 +64,13 @@ const TrackListScreen: React.FC<Props> = ({
   isLoading,
   filterByLikedSongs,
   isInPlayListScreen,
+  isPlayList,
   playlistId,
   onSongRemoved,
 }) => {
   const navigation = useNavigation();
   const {play, currentTrack, isPlaying, queue, addToQueue, pause} = usePlayer();
   const {showActionSheet, setIsInPlayListScreen, setPlaylistId} = useActionSheet();
-
   const [trackList, setTrackList] = useState<Track[]>([]);
   const [searchedTracks, setSearchedTracks] = useState<Track[]>([]);
   const [input, setInput] = useState('');
@@ -272,12 +260,6 @@ const TrackListScreen: React.FC<Props> = ({
 
   const Count = Array.from(searchedTracks.values()).filter(v => v).length;
 
-  // const formatTime = (seconds: number) => {
-  //   const mins = Math.floor(seconds / 60);
-  //   const secs = Math.floor(seconds % 60);
-  //   return `${mins}:${secs.toString().padStart(2, '0')}`;
-  // };
-
   const handleDownload = async () => {
     const user = auth().currentUser;
     if (!user) {
@@ -298,23 +280,49 @@ const TrackListScreen: React.FC<Props> = ({
 
       let totalSteps = tracks.length * 100;
 
-      for (let i = 0; i < tracks.length; i++) {
-        const track = tracks[i];
-        const song = {
-          id: track.track.id,
-          name: track.track.name,
-          artist: track.track.artists.map(artist => artist.name).join(', '),
-          image_url: track.track.album.images[0]?.url || '',
-          audio_url: track.track.preview_url || '',
-        };
+      if (isPlayList) {
+        await createPlayList(userData.id, playlistId, title);
+        for (let i = 0; i < tracks.length; i++) {
+          const track = tracks[i];
+          const song = {
+            id: track.track.id,
+            name: track.track.name,
+            artist: track.track.artists.map(artist => artist.name).join(', '),
+            image_url: track.track.album.images[0]?.url || '',
+            audio_url: track.track.preview_url || '',
+          };
 
-        await downloadSong(userData.id, song, percent => {
-          const songProgress = i * 100 + percent;
-          const overallPercent = Math.floor((songProgress / totalSteps) * 100);
-          setProgress(overallPercent);
-        });
+          await downloadPlayListSong(userData.id, playlistId, song, percent => {
+            const songProgress = i * 100 + percent;
+            const overallPercent = Math.floor(
+              (songProgress / totalSteps) * 100,
+            );
+            setProgress(overallPercent);
+          });
 
-        console.log(`Saved song: ${song.name}`);
+          console.log(`Saved song: ${song.name}`);
+        }
+      } else {
+        for (let i = 0; i < tracks.length; i++) {
+          const track = tracks[i];
+          const song = {
+            id: track.track.id,
+            name: track.track.name,
+            artist: track.track.artists.map(artist => artist.name).join(', '),
+            image_url: track.track.album.images[0]?.url || '',
+            audio_url: track.track.preview_url || '',
+          };
+
+          await downloadLikeSong(userData.id, song, percent => {
+            const songProgress = i * 100 + percent;
+            const overallPercent = Math.floor(
+              (songProgress / totalSteps) * 100,
+            );
+            setProgress(overallPercent);
+          });
+
+          console.log(`Saved song: ${song.name}`);
+        }
       }
 
       console.log('All liked songs have been saved.');
@@ -328,11 +336,6 @@ const TrackListScreen: React.FC<Props> = ({
     }, 1000);
   };
 
-  // const handleOptionSelect = (option: string) => {
-  //   console.log('Tùy chọn đã chọn:', option);
-  //   setOpenActionSheet(false); // Đóng ActionSheet sau khi chọn
-  // };
-
   const handleOpenOptions = (track: Track) => {
     const convertedItem = {
       id: track.id,
@@ -341,10 +344,7 @@ const TrackListScreen: React.FC<Props> = ({
       image: track.artwork ?? '',
       audio: track.url ?? '',
     };
-
-    // setSelectedItem(convertedItem); // đúng kiểu expected
-    // setOpenActionSheet(true);
-    showActionSheet(convertedItem); // sử dụng context để mở ActionSheet
+    showActionSheet(convertedItem);
   };
 
   return (
@@ -415,31 +415,10 @@ const TrackListScreen: React.FC<Props> = ({
                     style={{
                       width: 250,
                       height: 250,
-                      // borderRadius: 10,
                       marginBottom: 10,
                     }}
                     resizeMode="cover"
                   />
-                  {/* <Text
-                    numberOfLines={1}
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 'bold',
-                      color: '#fff',
-                      textAlign: 'center',
-                      marginBottom: 4,
-                    }}>
-                    Song: {currentTrack?.title || queue[0]?.title}
-                  </Text> */}
-                  {/* <Text
-                    numberOfLines={1}
-                    style={{
-                      fontSize: 16,
-                      color: '#ccc',
-                      textAlign: 'center',
-                    }}>
-                    Artist: {currentTrack?.artist || queue[0]?.artist}
-                  </Text> */}
                 </View>
               )}
 
@@ -536,12 +515,6 @@ const TrackListScreen: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
       </Modal>
-      {/* <ActionSheet
-        isVisible={openActionSheet}
-        onClose={() => setOpenActionSheet(false)}
-        onOptionSelect={handleOptionSelect}
-        selectedItem={selectedItem}
-      /> */}
     </View>
   );
 };
@@ -762,363 +735,5 @@ const styles = StyleSheet.create({
     color: 'green',
   },
 });
-
-// import React, { useEffect, useState, useCallback } from 'react';
-// import {
-//   ActivityIndicator,
-//   StyleSheet,
-//   FlatList,
-//   Image,
-//   Modal,
-//   Pressable,
-//   Text,
-//   TextInput,
-//   View,
-//   TouchableOpacity,
-//   Dimensions,
-// } from 'react-native';
-// import LinearGradient from 'react-native-linear-gradient';
-// import { useNavigation } from '@react-navigation/native';
-// import { debounce } from 'lodash';
-// import Ionicons from 'react-native-vector-icons/Ionicons';
-// import AntDesign from 'react-native-vector-icons/AntDesign';
-// import Entypo from 'react-native-vector-icons/Entypo';
-// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-// import { usePlayer } from '../contexts/PlayerContextV2';
-// import SongItem from '../components/SongItem';
-// import { Track } from 'react-native-track-player';
-
-// const { width } = Dimensions.get('window');
-// type SavedTrack = {
-//   track: {
-//     id: number;
-//     name: string;
-//     preview_url: string | null;
-//     album: { images: { url: string }[] };
-//     artists: { name: string }[];
-//   };
-// };
-
-// interface Props {
-//   title: string;
-//   tracks: SavedTrack[];
-//   onEndReached?: () => void;
-//   totalCount: number;
-//   isLoading?: boolean;
-// }
-
-// const TrackListScreen: React.FC<Props> = ({
-//   title,
-//   tracks,
-//   totalCount = 0,
-//   onEndReached,
-//   isLoading,
-// }) => {
-//   const navigation = useNavigation();
-//   const { play, currentTrack, isPlaying, queue, addToQueue } = usePlayer();
-
-//   const [trackList, setTrackList] = useState<Track[]>([]);
-//   const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
-//   const [input, setInput] = useState('');
-//   const [sortModalVisible, setSortModalVisible] = useState(false);
-
-//   useEffect(() => {
-//     const initialize = async () => {
-//       const converted = tracks.map(item => ({
-//         id: String(item.track.id),
-//         url: item.track.preview_url || '',
-//         title: item.track.name,
-//         artist: item.track.artists.map(a => a.name).join(', '),
-//         artwork: item.track.album.images[0]?.url || '',
-//         duration: 180,
-//       }));
-
-//       setTrackList(converted);
-//       setFilteredTracks(converted);
-//       await addToQueue(converted);
-//     };
-
-//     initialize();
-//   }, [tracks, addToQueue]);
-
-//   const handleTrackPress = async (track: Track) => {
-//     await play(track);
-//   };
-
-//   const handleSearch = useCallback(
-//     debounce((text: string) => {
-//       if (text.trim() === '') {
-//         setFilteredTracks(trackList);
-//         return;
-//       }
-//       const filtered = trackList.filter(track =>
-//         track.name.toLowerCase().includes(text.toLowerCase())
-//       );
-//       setFilteredTracks(filtered);
-//     }, 300),
-//     [trackList]
-//   );
-
-//   const handleShuffle = async () => {
-//     const shuffled = [...trackList].sort(() => Math.random() - 0.5);
-//     await addToQueue(shuffled);
-//     if (shuffled.length > 0) {
-//       await play(shuffled[0]);
-//     }
-//   };
-
-//   const handleSort = (type: 'title' | 'artist') => {
-//     const sorted = [...filteredTracks].sort((a, b) =>
-//       (a[type] ?? '').localeCompare(b[type] ?? '')
-//     );
-//     setFilteredTracks(sorted);
-//     setSortModalVisible(false);
-//   };
-
-//   const renderHeader = () => (
-//     <>
-//       <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-//         <Ionicons name="arrow-back" size={24} color="white" />
-//       </Pressable>
-
-//       <View style={styles.searchContainer}>
-//         <View style={styles.searchInputContainer}>
-//           <AntDesign name="search1" size={20} color="white" />
-//           <TextInput
-//             value={input}
-//             onChangeText={text => {
-//               setInput(text);
-//               handleSearch(text);
-//             }}
-//             placeholder="Tìm trong danh sách"
-//             placeholderTextColor="lightgrey"
-//             style={styles.searchInput}
-//           />
-//         </View>
-//         <Pressable onPress={() => setSortModalVisible(true)} style={styles.sortButton}>
-//           <Text style={styles.sortButtonText}>Sắp xếp</Text>
-//         </Pressable>
-//       </View>
-
-//       <View style={styles.currentTrackInfo}>
-//         <Image
-//           source={{ uri: currentTrack?.artwork || queue[0]?.artwork }}
-//           style={styles.artwork}
-//           resizeMode="cover"
-//         />
-//         <Text numberOfLines={1} style={styles.songTitle}>
-//           Song: {currentTrack?.title || queue[0]?.title}
-//         </Text>
-//         <Text numberOfLines={1} style={styles.songArtist}>
-//           Artist: {currentTrack?.artist || queue[0]?.artist}
-//         </Text>
-//       </View>
-
-//       <View style={styles.titleContainer}>
-//         <Text style={styles.titleText}>{title}</Text>
-//         {totalCount > 0 && (
-//           <Text style={styles.countText}>{totalCount} bài hát</Text>
-//         )}
-//       </View>
-
-//       <View style={styles.playHeader}>
-//         <Pressable style={styles.downloadButton}>
-//           <AntDesign name="arrowdown" size={20} color="white" />
-//         </Pressable>
-//         <View style={styles.playControls}>
-//           <Pressable onPress={handleShuffle}>
-//             <MaterialCommunityIcons name="cross-bolnisi" size={24} color="#1DB954" />
-//           </Pressable>
-//           <Pressable
-//             onPress={() => {
-//               if (filteredTracks.length > 0) play(filteredTracks[0]);
-//             }}
-//             style={styles.playButton}
-//           >
-//             <Entypo name="controller-play" size={24} color="white" />
-//           </Pressable>
-//         </View>
-//       </View>
-
-//       {isLoading && (
-//         <ActivityIndicator size="large" color="gray" style={{ marginVertical: 20 }} />
-//       )}
-//     </>
-//   );
-
-//   return (
-//     <LinearGradient colors={['#614385', '#516395']} style={styles.container}>
-//       <FlatList
-//         data={filteredTracks}
-//         keyExtractor={item => item.id}
-//         renderItem={({ item }) => (
-//           <SongItem
-//             item={item}
-//             onPress={handleTrackPress}
-//             isPlaying={item.id === currentTrack?.id}
-//           />
-//         )}
-//         onEndReached={onEndReached}
-//         onEndReachedThreshold={0.5}
-//         contentContainerStyle={styles.listContent}
-//         ListHeaderComponent={renderHeader}
-//       />
-
-//       {/* Modal sắp xếp */}
-//       <Modal
-//         visible={sortModalVisible}
-//         transparent
-//         animationType="slide"
-//         onRequestClose={() => setSortModalVisible(false)}
-//       >
-//         <TouchableOpacity style={styles.modalOverlay} onPress={() => setSortModalVisible(false)}>
-//           <View style={styles.modalContent}>
-//             <Text style={styles.modalTitle}>Sắp xếp theo</Text>
-//             <Pressable onPress={() => handleSort('title')} style={styles.modalOption}>
-//               <Text style={styles.modalOptionText}>Tên bài hát</Text>
-//             </Pressable>
-//             <Pressable onPress={() => handleSort('artist')} style={styles.modalOption}>
-//               <Text style={styles.modalOptionText}>Nghệ sĩ</Text>
-//             </Pressable>
-//           </View>
-//         </TouchableOpacity>
-//       </Modal>
-//     </LinearGradient>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     paddingHorizontal: 12,
-//     paddingTop: 50,
-//   },
-//   backButton: {
-//     position: 'absolute',
-//     top: 50,
-//     left: 20,
-//     zIndex: 10,
-//   },
-//   searchContainer: {
-//     marginTop: 20,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     gap: 10,
-//   },
-//   searchInputContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     backgroundColor: '#3D3D3D',
-//     borderRadius: 20,
-//     paddingHorizontal: 10,
-//     flex: 1,
-//     height: 40,
-//   },
-//   searchInput: {
-//     flex: 1,
-//     marginLeft: 8,
-//     color: 'white',
-//     fontSize: 16,
-//   },
-//   sortButton: {
-//     backgroundColor: '#3D3D3D',
-//     borderRadius: 20,
-//     paddingVertical: 8,
-//     paddingHorizontal: 12,
-//   },
-//   sortButtonText: {
-//     color: 'white',
-//     fontSize: 14,
-//   },
-//   currentTrackInfo: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     marginTop: 20,
-//     gap: 12,
-//   },
-//   artwork: {
-//     width: 60,
-//     height: 60,
-//     borderRadius: 8,
-//     backgroundColor: '#555',
-//   },
-//   songTitle: {
-//     flex: 1,
-//     fontSize: 16,
-//     fontWeight: '600',
-//     color: 'white',
-//   },
-//   songArtist: {
-//     flex: 1,
-//     fontSize: 14,
-//     color: 'lightgrey',
-//   },
-//   titleContainer: {
-//     marginTop: 20,
-//     alignItems: 'center',
-//   },
-//   titleText: {
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//     color: 'white',
-//   },
-//   countText: {
-//     marginTop: 4,
-//     fontSize: 14,
-//     color: 'lightgrey',
-//   },
-//   playHeader: {
-//     marginTop: 20,
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//   },
-//   downloadButton: {
-//     backgroundColor: '#1DB954',
-//     padding: 8,
-//     borderRadius: 50,
-//   },
-//   playControls: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     gap: 20,
-//   },
-//   playButton: {
-//     backgroundColor: '#1DB954',
-//     padding: 12,
-//     borderRadius: 50,
-//   },
-//   listContent: {
-//     paddingBottom: 80,
-//   },
-//   modalOverlay: {
-//     flex: 1,
-//     justifyContent: 'flex-end',
-//     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-//   },
-//   modalContent: {
-//     backgroundColor: '#2C2C2C',
-//     borderTopLeftRadius: 20,
-//     borderTopRightRadius: 20,
-//     padding: 20,
-//   },
-//   modalTitle: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//     color: 'white',
-//     marginBottom: 20,
-//     textAlign: 'center',
-//   },
-//   modalOption: {
-//     paddingVertical: 15,
-//     borderBottomWidth: 1,
-//     borderBottomColor: '#444',
-//   },
-//   modalOptionText: {
-//     fontSize: 16,
-//     color: 'white',
-//     textAlign: 'center',
-//   },
-// });
 
 export default TrackListScreen;

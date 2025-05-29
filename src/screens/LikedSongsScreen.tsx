@@ -64,7 +64,6 @@ const LikedSongsScreen = () => {
     <TrackListScreen
       title="Bài hát ưa thích"
       tracks={tracks}
-      //onEndReached={fetchTracks}
       totalCount={totalItems}
       isLoading={loading}
       filterByLikedSongs={true}

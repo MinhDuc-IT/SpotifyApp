@@ -186,6 +186,7 @@ const SearchScreen = () => {
           totalCount={selectedGenre.totalCount}
           isLoading={false}
           filterByLikedSongs={false}
+          onBackPress={() => setSelectedGenre(null)} 
         />
       );
     } else {
@@ -239,10 +240,17 @@ const SearchScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.horizontalList}>
-          {newContent.map(item => (
-            <TouchableOpacity key={item.id} style={styles.newContentItem}>
-              <Image source={item.image} style={styles.newImage} />
-              <Text style={styles.hashText}>{item.title}</Text>
+          {genres.slice(-5).map(item => (
+            <TouchableOpacity key={item.genreId} style={styles.newContentItem}>
+              <Image
+                source={
+                  item.image
+                    ? { uri: item.image }
+                    : require('../assets/images/sontung.jpg')
+                }
+                style={styles.newImage}
+              />
+              <Text style={styles.hashText} numberOfLines={1}>{item.genreName}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -336,6 +344,7 @@ const styles = StyleSheet.create({
     bottom: 8,
     left: 8,
     fontWeight: 'bold',
+    overflow: 'hidden',
   },
   grid: {
     flexDirection: 'row',

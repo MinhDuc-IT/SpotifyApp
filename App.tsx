@@ -53,6 +53,23 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [isHandlingDeepLink, setIsHandlingDeepLink] = useState(false);
   // const [showActionSheet, setShowActionSheet] = useState(false);
+  const [accountType, setAccountType] = useState<'free' | 'premium'>('free');
+  const [premiumExpiryDate, setPremiumExpiryDate] = useState<string | null>(null); // Thêm dòng này
+
+  // Hàm kiểm tra subscription
+  const checkSubscription = async () => {
+    try {
+      const response = await api.get('/user/check-subscription');
+      console.log('Subscription check response:', response.data);
+      // Giả sử response.data.subscriptionType là 'free' hoặc 'premium'
+      setAccountType(response.data.subscriptionType === 'Premium' ? 'premium' : 'free');
+      setPremiumExpiryDate(response.data.premiumExpiryDate);
+    } catch (ex) {
+      console.log(ex);
+      setAccountType('free');
+      setPremiumExpiryDate(null);
+    }
+  };
 
   // Xử lý auth state và refresh token
   const handleAuthStateChanged = async (
@@ -97,13 +114,19 @@ const App = () => {
         api.defaults.headers.common[
           'Authorization'
         ] = `Bearer ${tokenResult.token}`;
+
+        // Gọi checkSubscription sau khi xác thực thành công
+        await checkSubscription();
+
       } catch (error) {
         console.error('Token refresh error:', error);
+        setAccountType('free');
         console.error('Lỗi khi thiết lập claims hoặc làm mới token:', error);
       }
     } else {
       console.log('[Auth] User is null or email not verified');
       setRoles([]);
+      setAccountType('free');
       delete api.defaults.headers.common['Authorization'];
     }
     setUser(user);
@@ -258,7 +281,7 @@ const App = () => {
 
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-      <AuthContext.Provider value={{user, roles}}>
+      <AuthContext.Provider value={{user, roles, accountType, setAccountType, premiumExpiryDate, setPremiumExpiryDate}}>
         <PlayerProvider>
           <PlayerProviderV2>
             <LibraryProvider>

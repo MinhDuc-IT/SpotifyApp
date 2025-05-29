@@ -445,7 +445,7 @@
 
 // export default PremiumOfferScreen;
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -462,6 +462,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import api from '../services/api';
 import { useFocusEffect } from '@react-navigation/native';
+import AuthContext from '../contexts/AuthContext';
 
 interface UserSubscriptionDto {
   subscriptionType: 'Free' | 'Premium';
@@ -470,44 +471,14 @@ interface UserSubscriptionDto {
 
 const PremiumOfferScreen = () => {
   const [loading, setLoading] = useState(false);
-  const [subscriptionType, setSubscriptionType] = useState<string>("Free");
   const [premiumExpiryDate, setPremiumExpiryDate] = useState<string | null>(null);
+  const { accountType } = useContext(AuthContext); // Lấy accountType từ context
 
-  useEffect(() => {
-    const checkSubscription = async () => {
-      try {
-        const response = await api.get('/user/check-subscription');
-        console.log('subscriptionType', response.data);
-        setSubscriptionType(response.data.subscriptionType);
-        setPremiumExpiryDate(response.data.premiumExpiryDate);
-      } catch(ex) {
-        console.log(ex);
-      }
-    }
-    checkSubscription();
-  }, []);
-  
-  useFocusEffect(
-    React.useCallback(() => {
-      const checkSubscription = async () => {
-        try {
-          const response = await api.get('/user/check-subscription');
-          setSubscriptionType(response.data.subscriptionType);
-          setPremiumExpiryDate(response.data.premiumExpiryDate);
-        } catch (ex) {
-          console.log(ex);
-        } finally {
-        }
-      };
-  
-      checkSubscription();
-    }, [])
-  );
-  
-  const isPremium = subscriptionType === "Premium";
+  console.log('accountType', accountType);
+  const isPremium = accountType === 'premium';
 
   const startPayment = async () => {
-    if (isPremium) return;
+    //if (isPremium) return;
     
     setLoading(true);
     try {

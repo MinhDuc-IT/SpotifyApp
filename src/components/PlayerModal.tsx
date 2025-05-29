@@ -58,14 +58,19 @@ const PlayerModal = () => {
 
   useEffect(() => {
     if (scrollRef.current && currentLyricIndex >= 0 && lyrics.length > 0) {
-      const itemHeight = 35; // Chiều cao mỗi dòng
-      const offset = itemHeight * currentLyricIndex; // Vị trí cuộn đến
+      const itemHeight = 35;
+      const offset = itemHeight * currentLyricIndex;
       const screenHeight = height - 350;
-      const middleOffset = offset - screenHeight / 2 + itemHeight / 2; // Đảm bảo lyric nằm ở giữa
+      const contentHeight = itemHeight * lyrics.length;
+      const maxOffset = Math.max(contentHeight - screenHeight, 0);
+
+      // Clamp middleOffset để không cuộn quá đầu/cuối
+      let middleOffset = offset - screenHeight / 2 + itemHeight / 2;
+      middleOffset = Math.max(0, Math.min(middleOffset, maxOffset));
 
       setTimeout(() => {
         scrollRef.current?.scrollTo({
-          y: middleOffset, // Cuộn đến vị trí giữa
+          y: middleOffset,
           animated: true,
         });
       }, 50);
@@ -239,6 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     minHeight: 280,
     justifyContent: 'center',
+    alignItems: 'center',
     paddingBottom: 200,
   },
   lyricLine: {

@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   Button,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useActionSheet} from '../contexts/ActionSheetContext';
+import { useActionSheet } from '../contexts/ActionSheetContext';
 
 import ActionSheet from '../components/ActionSheet';
 import {
@@ -22,6 +22,7 @@ import {
   deleteSearchHistory,
   deleteAllSearchHistory,
 } from '../services/searchService';
+import TrackListScreen from '../components/TrackList';
 
 type SearchItem = {
   id: number;
@@ -40,6 +41,7 @@ const SearchDetailScreen = () => {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const navigation = useNavigation();
   const { showActionSheet } = useActionSheet();
+  const [selectedSong, setSelectedSong] = useState<SearchItem | null>(null);
 
   useEffect(() => {
     fetchSearchHistory();
@@ -103,6 +105,19 @@ const SearchDetailScreen = () => {
   const updateSearchHistory = async (item: SearchItem) => {
     await createSearchHistory(item);
     fetchSearchHistory();
+
+    if (item.type === 'Song') {
+      setSelectedSong(item);
+    } else if (item.type === 'Artist') {
+      navigation.navigate('ArtistSongs', {
+        item: {
+          artistId: item.id,
+          artistName: item.name,
+          totalPlays: 0, // hoặc truyền số lượt nghe nếu có
+          thumbnailUrl: item.image,
+        }
+      });
+    }
   };
 
   const handleOptionSelect = (option: string) => {
@@ -110,14 +125,14 @@ const SearchDetailScreen = () => {
     setOpenActionSheet(false); // Đóng ActionSheet sau khi chọn
   };
 
-  const renderItem = ({item}: {item: SearchItem}) => (
+  const renderItem = ({ item }: { item: SearchItem }) => (
     <TouchableOpacity
       style={styles.itemContainer}
       onPress={() => updateSearchHistory(item)}>
       <Image
         source={
           item.image
-            ? {uri: item.image}
+            ? { uri: item.image }
             : require('../assets/images/sontung.jpg')
         }
         style={item.type === 'Song' ? styles.avatar : styles.avatarArtist}
@@ -150,6 +165,31 @@ const SearchDetailScreen = () => {
       )}
     </TouchableOpacity>
   );
+
+  if (selectedSong) {
+    return (
+      <TrackListScreen
+        title={selectedSong.name}
+        tracks={[
+          {
+            track: {
+              name: selectedSong.name,
+              id: selectedSong.id,
+              preview_url: selectedSong.audio,
+              album: {
+                images: [{ url: selectedSong.image }],
+              },
+              artists: [{ name: '' }],
+            },
+          },
+        ]}
+        totalCount={1}
+        isLoading={false}
+        filterByLikedSongs={false}
+        onBackPress={() => setSelectedSong(null)}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView
 } from 'react-native';
 import {LinearGradient} from 'react-native-linear-gradient';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -54,6 +55,7 @@ interface Props {
   playlistId: string;
   onSongRemoved?: (songId: number) => void; // Callback to remove song from playlist
   isPlayList?: boolean;
+  onBackPress?: () => void; // Optional callback for back press
 }
 
 const TrackListScreen: React.FC<Props> = ({
@@ -67,6 +69,7 @@ const TrackListScreen: React.FC<Props> = ({
   isPlayList,
   playlistId,
   onSongRemoved,
+  onBackPress
 }) => {
   const navigation = useNavigation();
   const {play, currentTrack, isPlaying, queue, addToQueue, pause} = usePlayer();
@@ -347,8 +350,13 @@ const TrackListScreen: React.FC<Props> = ({
     showActionSheet(convertedItem);
   };
 
+  const handleBack = () => {
+    if (onBackPress) onBackPress();
+    else navigation.goBack();
+  };
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={searchedTracks}
         keyExtractor={item => item.id}
@@ -371,7 +379,7 @@ const TrackListScreen: React.FC<Props> = ({
             style={styles.headerContainer}>
             <>
               <Pressable
-                onPress={() => navigation.goBack()}
+                onPress={() => handleBack()}
                 style={styles.backButton}>
                 <Entypo name="chevron-thin-left" size={20} color="white" />
               </Pressable>
@@ -515,7 +523,7 @@ const TrackListScreen: React.FC<Props> = ({
           </View>
         </TouchableOpacity>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 

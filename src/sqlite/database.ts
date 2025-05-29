@@ -8,7 +8,8 @@ export const db = SQLite.openDatabase(
 );
 
 // Hàm để tạo các bảng nếu chưa tồn tại
-export const createTables = () => {
+export const createTables = async () => {
+  // const db = await getDBConnection();
   db.transaction(tx => {
     // Tạo bảng users - Lưu thông tin người dùng
     tx.executeSql(`
@@ -58,7 +59,7 @@ export const createTables = () => {
     // Tạo bảng playlists - Playlist của người dùng
     tx.executeSql(`
       CREATE TABLE IF NOT EXISTS playlists (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         user_id INTEGER,
         name TEXT,
         description TEXT,

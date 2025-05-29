@@ -140,6 +140,7 @@ export const PlayerProviderV2 = ({ children }: { children: React.ReactNode }) =>
       if (track) {
         if (track && track.id !== state.currentTrack?.id) {
           const currentQueue = await TrackPlayer.getQueue();
+          console.log(state.currentTrack)
           const trackIndex = currentQueue.findIndex(t => t.id === track.id);
 
           if (trackIndex === -1) {

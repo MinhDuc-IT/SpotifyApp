@@ -22,6 +22,7 @@ import {debounce} from 'lodash';
 import SongItem from '../DownLoad/SongItem';
 import {Track} from 'react-native-track-player';
 import {usePlayer} from '../../contexts/PlayerContextV2';
+import { useFocusEffect } from '@react-navigation/native';
 
 type SavedTrack = {
   track: {
@@ -55,31 +56,38 @@ const TrackListScreen: React.FC<Props> = ({
   const [currentSort, setCurrentSort] = useState<string>('title');
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchPlaylist = async () => {
-      try {
-        // Convert SavedTrack to Track
-        const convertedTrackList: Track[] = tracks.map(item => ({
-          id: String(item.track.id), // Convert id to string
-          url: item.track.preview_url || '', // Use preview_url from Spotify
-          title: item.track.name, // Use name as title
-          artist: item.track.artists.map(artist => artist.name).join(', '), // Join artists names
-          artwork: item.track.album.images[0]?.url || '', // Get artwork from album
-          duration: 180, // Example duration, replace with real data
-        }));
+  console.log("tracks:", tracks)
 
-        //setTracks(mockData); // Set the mock data state for display
-        setTrackList(convertedTrackList); // Set the Track type list for actions
-        await addToQueue(convertedTrackList); // Add converted tracks to the queue
-        setSearchedTracks(convertedTrackList);
-      } catch (error) {
-        console.error('Failed to load playlist:', error);
-      }
-    };
-
-    fetchPlaylist();
-  }, [tracks]);
-
+  useFocusEffect(
+    useCallback(() => {
+      const fetchPlaylist = async () => {
+        try {
+          const convertedTrackList: Track[] = tracks.map(item => ({
+            id: String(item.track.id),
+            url: item.track.preview_url || '',
+            title: item.track.name,
+            artist: item.track.artists.map(artist => artist.name).join(', '),
+            artwork: item.track.album.images[0]?.url || '',
+            duration: 180,
+          }));
+  
+          setTrackList(convertedTrackList);
+          await addToQueue(convertedTrackList);
+          setSearchedTracks(convertedTrackList);
+        } catch (error) {
+          console.error('Failed to load playlist:', error);
+        }
+      };
+  
+      fetchPlaylist();
+  
+      // Optional: return cleanup function if needed
+      return () => {
+        // Cleanup logic if any
+      };
+    }, [tracks])
+  );
+  
   const handleTrackPress = async (track: Track) => {
     await play(track);
   };

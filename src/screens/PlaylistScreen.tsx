@@ -136,8 +136,9 @@ const PlayListScreen = () => {
       totalCount={totalItems}
       isLoading={loading}
       isInPlayListScreen={true}
-      playlistId={playListItem?.id}
       onSongRemoved={handleSongRemoved}
+      isPlayList={true}
+      playlistId={playListItem?.id || 'default-playlist-id'}
     />
   );
 };

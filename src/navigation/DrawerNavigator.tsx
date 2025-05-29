@@ -17,6 +17,7 @@ import {
   getDownloadedLikedSongsByUser,
   deleteLikedSongsByUser,
 } from '../sqlite/songService';
+import {getUserPlaylistsWithSongs, getPlaylistsByFirebaseId} from '../sqlite/playListService';
 import TrackPlayer from 'react-native-track-player';
 import {useNavigation} from '@react-navigation/native';
 
@@ -24,8 +25,8 @@ const Drawer = createDrawerNavigator();
 
 interface Song {
   id: string;
-  title: string;
-  path: string;
+  name: string;
+  audio_url: string;
 }
 
 const CustomDrawerContent = (props: any) => {
@@ -42,8 +43,9 @@ const CustomDrawerContent = (props: any) => {
         if (user) {
           console.log('Fetching downloaded songs for user:', user.uid);
           const songs = await getDownloadedLikedSongsByUser(user.uid);
+          // const songs = await getPlaylistsByFirebaseId(user.uid);
           console.log('Downloaded songs from SQLite:', songs);
-          setDownloadedSongs(songs);
+          // setDownloadedSongs(songs);
         } else {
           console.log('No user is logged in');
         }
@@ -59,8 +61,8 @@ const CustomDrawerContent = (props: any) => {
     await TrackPlayer.reset();
     await TrackPlayer.add({
       id: song.id,
-      url: `file://${song.path}`,
-      title: song.title,
+      url: `file://${song.audio_url}`,
+      title: song.name,
     });
     await TrackPlayer.play();
     setModalVisible(false);
@@ -162,12 +164,12 @@ const CustomDrawerContent = (props: any) => {
         <MaterialCommunityIcons name="history" size={24} color="white" />
         <Text style={styles.drawerButtonText}>Gần đây</Text>
       </TouchableOpacity>
-      {/* <TouchableOpacity
+      <TouchableOpacity
         style={styles.drawerButton}
         onPress={handleOpenDownloadOld}>
         <MaterialCommunityIcons name="download" size={24} color="white" />
         <Text style={styles.drawerButtonText}>Bài hát đã tải cũ</Text>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.drawerButton}
         onPress={handleOpenDownload}>
@@ -208,7 +210,7 @@ const CustomDrawerContent = (props: any) => {
                 key={song.id}
                 onPress={() => handlePlaySong(song)}
                 style={{ marginBottom: 10 }}>
-                <Text style={{ fontSize: 16 }}>{song.title}</Text>
+                <Text style={{ fontSize: 16 }}>{song.name}</Text>
               </TouchableOpacity>
             ))}
             <TouchableOpacity

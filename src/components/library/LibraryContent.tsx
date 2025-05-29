@@ -67,6 +67,8 @@ const LibraryContent: React.FC<LibraryContentProps> = ({
   const navigation = useNavigation<NavigationProp>();
   const {removeLibraryItem} = useLibrary();
 
+  console.log('console.log(libraryItems):', libraryItems);
+
   //const tabBarHeight = useBottomTabBarHeight();
   const tabBarHeight = 170; // hot fix
 
